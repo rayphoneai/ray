@@ -500,8 +500,10 @@ function toggleMenu(){
 // ---------- 設定読み込み ----------
 var cfg = {};
 try{ cfg = JSON.parse(localStorage.getItem('rp_cfg')||'{}'); }catch(e){}
-var noteUrl = cfg.noteUrl || 'https://note.com/rayphone';
-  var noteShopUrl = cfg.noteShopUrl || noteUrl;
+var noteUrl     = cfg.noteUrl     || 'https://note.com/rayphone';
+  var noteShopUrl = cfg.noteShopUrl || cfg.noteUrl || 'https://note.com/rayphone';
+  // デバッグ用（コンソールで確認可能）
+  console.log('noteShopUrl:', noteShopUrl);
 var xUrl    = cfg.xUrl    || 'https://x.com/rayphone';
 var blogUrl = cfg.blogUrl || location.origin + location.pathname;
 
