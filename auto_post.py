@@ -1,23 +1,18 @@
 """
 auto_post.py — RayPhoneAI GitHub Actions 自動投稿スクリプト
-=============================================================
-GitHub Secrets に以下を登録してください:
-  GEMINI_API_KEY  : GeminiのAPIキー
-  NOTE_EMAIL      : noteのメールアドレス
-  NOTE_PASSWORD   : noteのパスワード
-  BLOG_URL        : https://rayphoneai.github.io/ray/
-  NOTE_URL        : https://note.com/rayphone
-  NOTE_SHOP_URL   : https://note.com/rayphone/n/nf6e5688f3939
-  GH_TOKEN        : GitHubのPersonal Access Token (repo権限)
-  GH_USER         : rayphoneai
-  GH_REPO         : ray
-  X_COOKIES_B64   : X(Twitter)のCookieをBase64エンコードしたもの (任意)
-  X_AUTO          : "true" でX自動投稿ON
 """
+import sys
+print("=== auto_post.py 起動 ===", flush=True)
+print(f"Python: {sys.version}", flush=True)
 
-import os, sys, json, time, base64, re, requests
-from pathlib import Path
-from datetime import datetime
+try:
+    import os, json, time, base64, re, requests
+    from pathlib import Path
+    from datetime import datetime
+    print("✓ 基本ライブラリ読み込み完了", flush=True)
+except Exception as e:
+    print(f"✗ ライブラリ読み込みエラー: {e}", flush=True)
+    sys.exit(1)
 
 # ── 環境変数 ───────────────────────────────────────────────
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
