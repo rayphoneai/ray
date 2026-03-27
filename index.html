@@ -561,52 +561,140 @@ function toggleMenu(){
 </footer>
 
 <script>
-// ===== 管理画面から生成された記事をLocalStorageから表示 =====
+// ===== 設定からリンクを動的に設定 =====
 (function(){
-  var arts = [];
-  try { arts = JSON.parse(localStorage.getItem('rp_arts') || '[]'); } catch(e){}
-  if (!arts.length) return;
+  var cfg = {};
+  try { cfg = JSON.parse(localStorage.getItem('rp_cfg') || '{}'); } catch(e){}
+  var noteUrl = cfg.noteUrl || 'https://note.com/rayphone';
+  var xUrl = cfg.xUrl || 'https://x.com/rayphone';
+  var blogUrl = cfg.blogUrl || location.origin + location.pathname;
 
-  // 新着記事セクションに追加
-  var grid = document.querySelector('.card-grid');
-  if (!grid) return;
-
-  arts.slice(0, 10).forEach(function(art) {
-    var card = document.createElement('div');
-    card.className = 'art-card';
-    card.id = 'art-' + art.id;
-    card.setAttribute('data-art-id', art.id);
-    var thumb = '';
-    if (art.svg) {
-      thumb = '<div class="art-card-thumb" style="background:#FFF0E3;overflow:hidden;">'
-        + '<img src="data:image/svg+xml;charset=utf-8,' + encodeURIComponent(art.svg)
-        + '" style="width:100%;height:100%;object-fit:cover;" alt="アイキャッチ"></div>';
-    } else {
-      thumb = '<div class="art-card-thumb" style="background:#FFF0E3;">'
-        + '<div class="art-card-thumb-text" style="color:var(--black);">'
-        + (art.title||'').slice(0,20) + '</div></div>';
-    }
-    card.innerHTML = thumb
-      + '<div class="art-card-body">'
-      + '<div class="art-card-cat" style="color:var(--orange);">' + (art.cat||'') + '</div>'
-      + '<div class="art-card-title">' + (art.title||'') + '</div>'
-      + '<div class="art-card-desc">' + (art.content||'').slice(0,80) + '…</div>'
-      + '<div class="art-card-footer">'
-      + '<span class="art-card-date">' + (art.date||'') + '</span>'
-      + '<span class="art-card-tag">新着</span>'
-      + '</div></div>';
-    grid.insertBefore(card, grid.firstChild);
+  // noteボタンを全て設定
+  document.querySelectorAll('a.header-cta, a.cta-btn, a.note-cta-btn, a.mobile-cta').forEach(function(a){
+    if(a.getAttribute('href')==='#') a.href = noteUrl;
+    a.target = '_blank';
   });
 
-  // URLパラメータ ?id=xxx でその記事にスクロール
-  var params = new URLSearchParams(window.location.search);
-  var targetId = params.get('id');
-  if (targetId) {
-    var el = document.getElementById('art-' + targetId)
-          || document.querySelector('[data-art-id="' + targetId + '"]');
-    if (el) {
-      setTimeout(function(){ el.scrollIntoView({behavior:'smooth', block:'center'}); el.style.boxShadow='0 0 0 3px var(--orange)'; }, 500);
+  // ナビのカテゴリリンクをアンカーに
+  var catLinks = document.querySelectorAll('nav a[href="#"], .mobile-nav a[href="#"]');
+  var catMap = {'Claude活用':'#claude', '士業向け':'#shigyo', '商品開発':'#product', '副業':'#fukugyo', 'プロンプト':'#prompt'};
+  catLinks.forEach(function(a){
+    Object.keys(catMap).forEach(function(k){
+      if(a.textContent.includes(k)) a.href = catMap[k];
+    });
+  });
+
+  // SNSリンク
+  document.querySelectorAll('.footer-link').forEach(function(a){
+    if(a.textContent.includes('X')) { a.href = xUrl; a.target = '_blank'; }
+    else if(a.textContent.includes('note')) { a.href = noteUrl; a.target = '_blank'; }
+  });
+
+  // 「プロンプト集を見る」ボタン
+  document.querySelectorAll('a.btn-primary').forEach(function(a){
+    if(a.href.endsWith('#')){ a.href = noteUrl; a.target = '_blank'; }
+  });
+
+  // 「記事一覧へ」ボタン
+  document.querySelectorAll('a.btn-secondary').forEach(function(a){
+    if(a.href.endsWith('#')){ a.href = '#articles-section'; }
+  });
+
+  // 「すべて見る」ボタン → noteアカウントへ
+  document.querySelectorAll('a.sec-more').forEach(function(a){
+    if(a.href.endsWith('#')){ a.href = noteUrl; a.target = '_blank'; }
+  });
+
+  // カテゴリ一覧リンク
+  document.querySelectorAll('a.cat-item').forEach(function(a){
+    if(a.href.endsWith('#')){ a.href = noteUrl; a.target = '_blank'; }
+  });
+
+  // ランキングタイトルリンク
+  document.querySelectorAll('a.rank-title').forEach(function(a){
+    if(a.href.endsWith('#')){ a.href = noteUrl; a.target = '_blank'; }
+  });
+
+  // 記事一覧セクションにIDを付ける
+  var grids = document.querySelectorAll('.card-grid');
+  if(grids.length > 0) {
+    grids[0].id = 'articles-section';
+    grids[0].scrollIntoView && null; // IDだけ設定
+  }
+})();
+</script>
+
+<script>
+// ===== GitHubのarticles.jsonから記事を読み込んで表示 =====
+(function(){
+  // GitHub Pages URL からリポジトリ情報を推定
+  // 例: https://rayphoneai.github.io/ray/ → user=rayphoneai, repo=ray
+  var host = location.hostname; // e.g. rayphoneai.github.io
+  var pathParts = location.pathname.split('/').filter(Boolean); // e.g. ['ray']
+  var ghUser = host.replace('.github.io','');
+  var ghRepo = pathParts[0] || '';
+
+  function renderArts(arts){
+    if(!arts||!arts.length) return;
+    var grid = document.querySelector('.card-grid');
+    if(!grid) return;
+    arts.slice(0,10).forEach(function(art){
+      var card = document.createElement('div');
+      card.className = 'art-card';
+      card.id = 'art-' + art.id;
+      card.setAttribute('data-art-id', art.id);
+      var artUrl = location.origin + location.pathname + '?id=' + art.id;
+      var thumb = art.svg
+        ? '<div class="art-card-thumb" style="background:#FFF0E3;overflow:hidden;"><img src="data:image/svg+xml;charset=utf-8,'+encodeURIComponent(art.svg)+'" style="width:100%;height:100%;object-fit:cover;" alt="アイキャッチ"></div>'
+        : '<div class="art-card-thumb" style="background:#FFF0E3;"><div class="art-card-thumb-text" style="color:var(--black);">'+(art.title||'').slice(0,20)+'</div></div>';
+      card.innerHTML = thumb
+        + '<div class="art-card-body">'
+        + '<div class="art-card-cat" style="color:var(--orange);">'+(art.cat||'')+'</div>'
+        + '<div class="art-card-title">'+(art.title||'')+'</div>'
+        + '<div class="art-card-desc">'+(art.content||'').slice(0,80)+'…</div>'
+        + '<div class="art-card-footer">'
+        + '<span class="art-card-date">'+(art.date||'')+'</span>'
+        + '<a href="'+artUrl+'" class="art-card-tag" style="text-decoration:none;background:var(--orange);color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;">読む</a>'
+        + '</div></div>';
+      grid.insertBefore(card, grid.firstChild);
+    });
+
+    // URLパラメータ ?id=xxx でその記事にスクロール＆ハイライト
+    var params = new URLSearchParams(location.search);
+    var targetId = params.get('id');
+    if(targetId){
+      var el = document.getElementById('art-'+targetId)||document.querySelector('[data-art-id="'+targetId+'"]');
+      if(el) setTimeout(function(){
+        el.scrollIntoView({behavior:'smooth',block:'center'});
+        el.style.boxShadow='0 0 0 3px var(--orange)';
+        el.style.transition='box-shadow .3s';
+      },600);
     }
+  }
+
+  // 1. まずGitHubのarticles.jsonを取得
+  if(ghUser && ghRepo){
+    var apiUrl = 'https://raw.githubusercontent.com/'+ghUser+'/'+ghRepo+'/main/articles.json';
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', apiUrl + '?t=' + Date.now(), true);
+    xhr.onload = function(){
+      if(xhr.status===200){
+        try{
+          var arts = JSON.parse(xhr.responseText);
+          renderArts(arts);
+          return;
+        }catch(e){}
+      }
+      // 2. フォールバック: LocalStorageから読み込み
+      try{renderArts(JSON.parse(localStorage.getItem('rp_arts')||'[]'));}catch(e){}
+    };
+    xhr.onerror = function(){
+      try{renderArts(JSON.parse(localStorage.getItem('rp_arts')||'[]'));}catch(e){}
+    };
+    xhr.send();
+  } else {
+    // ローカル環境: LocalStorageから読み込み
+    try{renderArts(JSON.parse(localStorage.getItem('rp_arts')||'[]'));}catch(e){}
   }
 })();
 </script>
