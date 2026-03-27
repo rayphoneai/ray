@@ -442,38 +442,29 @@ def post_to_x_actions(content, art_url):
                 log("X: 作成ボタンが見つかりません")
                 page.screenshot(path="debug_x_no_button.png")
 
-            # テキストエリアに入力（clipboard経由で確実に入力）
+            # テキストエリアに入力（Reactの状態を更新するためキーボードイベント経由）
             typed = False
-            for sel in ['[data-testid="tweetTextarea_0"]', 'div[role="textbox"][aria-multiline="true"]', 'div[contenteditable="true"]']:
+            for sel in ['[data-testid="tweetTextarea_0"]', 'div[role="textbox"][aria-multiline="true"]']:
                 try:
                     ed = page.locator(sel).first
                     if ed.is_visible(timeout=5000):
                         ed.click()
                         time.sleep(1)
-                        # JavaScriptで直接テキストを挿入（最も確実）
-                        page.evaluate(f"""
-                            const el = document.querySelector('[data-testid="tweetTextarea_0"] div[contenteditable], div[data-testid="tweetTextarea_0"]');
-                            if (el) {{
-                                el.focus();
-                                document.execCommand('selectAll', false, null);
-                                document.execCommand('delete', false, null);
-                                document.execCommand('insertText', false, {json.dumps(tweet)});
-                            }}
-                        """)
+                        # Ctrl+A で全選択してから削除
+                        page.keyboard.press("Control+a")
+                        page.keyboard.press("Delete")
+                        time.sleep(0.3)
+                        # クリップボード経由で貼り付け（Reactのonchange最も確実に発火）
+                        page.evaluate(f"navigator.clipboard.writeText({json.dumps(tweet)})")
+                        time.sleep(0.3)
+                        page.keyboard.press("Control+v")
                         time.sleep(2)
-                        # テキストが入力されているか確認
+                        # 入力確認
                         val = ed.inner_text()
                         log(f"X: テキスト確認 ({len(val)}文字): {val[:30]}...")
                         if len(val) > 5:
                             typed = True
                             log(f"X: テキスト入力完了: {sel}")
-                            break
-                        else:
-                            # フォールバック: type()メソッド
-                            ed.type(tweet, delay=10)
-                            time.sleep(2)
-                            typed = True
-                            log(f"X: テキスト入力完了(type): {sel}")
                             break
                 except Exception as e:
                     log(f"X: テキストエリア試行失敗 {sel}: {e}")
@@ -485,37 +476,26 @@ def post_to_x_actions(content, art_url):
                 browser.close()
                 return
 
-            # 投稿ボタンが有効になるまで待つ（テキスト入力後に有効化される）
+            # 投稿ボタンが有効になるまで待つ
             time.sleep(2)
             posted = False
             for sel in ['[data-testid="tweetButton"]', '[data-testid="tweetButtonInline"]', 'button:has-text("ポストする")', 'button:has-text("Post")']:
                 try:
                     btn = page.locator(sel).last
-                    # まず存在確認（タイムアウト短め）
                     if not btn.is_visible(timeout=3000):
                         continue
-                    # disabled でないか確認
-                    disabled = btn.get_attribute("disabled")
-                    aria_disabled = btn.get_attribute("aria-disabled")
-                    log(f"X: ボタン確認 {sel} disabled={disabled} aria-disabled={aria_disabled}")
-                    if disabled is not None or aria_disabled == "true":
-                        log(f"X: ボタンがdisabled → テキスト再入力を試みます")
-                        # テキストが入っていないので再度入力
-                        try:
-                            ed = page.locator('[data-testid="tweetTextarea_0"]').first
-                            ed.click()
-                            time.sleep(0.5)
-                            page.evaluate(f"""
-                                const el = document.querySelector('[data-testid="tweetTextarea_0"] div[contenteditable]') || document.querySelector('div[data-testid="tweetTextarea_0"]');
-                                if (el) {{ el.focus(); document.execCommand('insertText', false, {json.dumps(tweet)}); }}
-                            """)
-                            time.sleep(2)
-                        except Exception:
-                            pass
-                        continue
+                    # JavaScriptでdisabled状態を確認（Githubのシークレットマスクを回避）
+                    is_disabled = page.evaluate(f"""
+                        const b = document.querySelector('[data-testid="tweetButton"]') || document.querySelector('[data-testid="tweetButtonInline"]');
+                        return b ? (b.disabled || b.getAttribute('aria-disabled') === 'true') : true;
+                    """)
+                    log(f"X: ボタン disabled状態={is_disabled}")
+                    if is_disabled:
+                        log(f"X: ボタンがdisabled → スキップ")
+                        break  # 全ボタン同じ状態なのでbreakして再入力へ
                     btn.scroll_into_view_if_needed()
                     time.sleep(0.3)
-                    btn.click()
+                    btn.click(force=True)
                     time.sleep(3)
                     log(f"✓ X投稿完了: {sel}")
                     posted = True
@@ -523,6 +503,16 @@ def post_to_x_actions(content, art_url):
                 except Exception as e:
                     log(f"X: 投稿ボタン試行失敗 {sel}: {e}")
                     continue
+
+            if not posted:
+                # 最終手段: Enterキーで送信
+                try:
+                    page.keyboard.press("Control+Return")
+                    time.sleep(3)
+                    log("X: Ctrl+Enterで送信試行")
+                    posted = True
+                except Exception:
+                    pass
 
             if not posted:
                 log("✗ X: 投稿ボタンが見つかりません")
