@@ -796,7 +796,19 @@ def post_to_x(tweet_text: str) -> dict:
                     continue
 
             # テキストエリアに入力
-            tweet_text_trimmed = tweet_text[:270]
+            # 句読点・文末で自然に切る（Xは280文字制限）
+            _url_part = "\n\n" + card_url if card_url else ""
+            _max_body = 275 - len(_url_part)
+            _body = tweet_text
+            if len(_body) > _max_body:
+                _cut = _max_body
+                for _e in ["。", "！", "？", "\n", "、"]:
+                    _p = _body.rfind(_e, 0, _max_body)
+                    if _p > int(_max_body * 0.6):
+                        _cut = _p + 1
+                        break
+                _body = _body[:_cut].rstrip()
+            tweet_text_trimmed = _body + _url_part
             editor_typed = False
             for sel in [
                 '[data-testid="tweetTextarea_0"]',
@@ -956,7 +968,19 @@ def post_to_x(tweet_text: str) -> dict:
                     continue
 
             # テキストエリアに入力
-            tweet_text_trimmed = tweet_text[:270]
+            # 句読点・文末で自然に切る（Xは280文字制限）
+            _url_part = "\n\n" + card_url if card_url else ""
+            _max_body = 275 - len(_url_part)
+            _body = tweet_text
+            if len(_body) > _max_body:
+                _cut = _max_body
+                for _e in ["。", "！", "？", "\n", "、"]:
+                    _p = _body.rfind(_e, 0, _max_body)
+                    if _p > int(_max_body * 0.6):
+                        _cut = _p + 1
+                        break
+                _body = _body[:_cut].rstrip()
+            tweet_text_trimmed = _body + _url_part
             editor_typed = False
             for sel in [
                 '[data-testid="tweetTextarea_0"]',
@@ -1226,7 +1250,19 @@ def post_to_x(tweet_text: str) -> dict:
                     pass
 
             # テキスト入力（280文字制限を考慮）
-            tweet_text_trimmed = tweet_text[:270]
+            # 句読点・文末で自然に切る（Xは280文字制限）
+            _url_part = "\n\n" + card_url if card_url else ""
+            _max_body = 275 - len(_url_part)
+            _body = tweet_text
+            if len(_body) > _max_body:
+                _cut = _max_body
+                for _e in ["。", "！", "？", "\n", "、"]:
+                    _p = _body.rfind(_e, 0, _max_body)
+                    if _p > int(_max_body * 0.6):
+                        _cut = _p + 1
+                        break
+                _body = _body[:_cut].rstrip()
+            tweet_text_trimmed = _body + _url_part
             # エディタに確実にフォーカスを当ててから入力
             try:
                 editor_el = page.locator('[data-testid="tweetTextarea_0"]').first
