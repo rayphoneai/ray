@@ -339,121 +339,43 @@ function toggleMenu(){
 <div class="main">
   <div>
 
-    <!-- FEATURED -->
+    <!-- FEATURED (最新2件) -->
     <div class="sec-head">
       <span class="sec-title">FEATURED</span>
       <div class="sec-title-line"></div>
-      <a href="#" class="sec-more">すべて見る →</a>
+      <a href="#" class="sec-more" id="all-arts-link">すべて見る →</a>
     </div>
-    <div class="card-grid" style="margin-bottom:48px;">
-      <div class="art-card">
-        <div class="art-card-thumb" style="background:#FFF0E3;">
-          <div class="art-card-thumb-text" style="color:var(--black);">Claudeで<br>節税提案書を<br>3分で作る方法</div>
-        </div>
-        <div class="art-card-body">
-          <div class="art-card-cat" style="color:var(--orange);">税理士向け</div>
-          <div class="art-card-title">Claudeで節税提案書を3分で作る方法——顧客情報を入れるだけで2,000字が完成</div>
-          <div class="art-card-desc">毎回1時間かかっていた節税提案書が、プロンプトに4つの情報を入れるだけで完成するようになりました。</div>
-          <div class="art-card-footer">
-            <span class="art-card-date">2025.04.01</span>
-            <span class="art-card-tag">税理士向け</span>
-          </div>
-        </div>
-      </div>
-      <div class="art-card">
-        <div class="art-card-thumb" style="background:#1A1A1A;">
-          <div class="art-card-thumb-text" style="color:#fff;">商品開発15年で<br>気づいた<br>プロンプトの型</div>
-        </div>
-        <div class="art-card-body">
-          <div class="art-card-cat" style="color:var(--orange);">Claude活用</div>
-          <div class="art-card-title">仕様書が書ける人はプロンプトが上手い——商品開発15年で気づいた共通点</div>
-          <div class="art-card-desc">「誰が・何を・どんな形式で」の3点を整えるだけで、Claudeの出力が別物になります。</div>
-          <div class="art-card-footer">
-            <span class="art-card-date">2025.04.03</span>
-            <span class="art-card-tag">Claude活用</span>
-          </div>
-        </div>
-      </div>
+    <div class="card-grid" id="featured-grid" style="margin-bottom:48px;">
+      <div style="grid-column:1/-1;text-align:center;padding:40px;color:#aaa;">記事を読み込み中...</div>
     </div>
 
-    <!-- LATEST -->
+    <!-- LATEST (次の3件) -->
     <div class="sec-head">
       <span class="sec-title">LATEST ARTICLES</span>
       <div class="sec-title-line"></div>
-      <a href="#" class="sec-more">すべて見る →</a>
     </div>
-    <div class="featured-row" style="margin-bottom:48px;">
-      <div class="feat-card">
-        <div class="feat-card-thumb" style="background:#E1F5EE;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:#1A1A1A;text-align:center;padding:0 14px;line-height:1.2;">就業規則の<br>説明文を自動化</div>
-        </div>
-        <div class="feat-card-body">
-          <div class="feat-card-cat" style="color:#1D9E75;">社労士向け</div>
-          <div class="feat-card-title">就業規則の条文をそのまま貼るだけで従業員向け説明文が完成する方法</div>
-        </div>
-      </div>
-      <div class="feat-card">
-        <div class="feat-card-thumb" style="background:#E6F1FB;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:#1A1A1A;text-align:center;padding:0 14px;line-height:1.2;">副業3ヶ月<br>月収15万の全記録</div>
-        </div>
-        <div class="feat-card-body">
-          <div class="feat-card-cat" style="color:#185FA5;">副業×AI</div>
-          <div class="feat-card-title">Claude副業3ヶ月で月収15万を達成するまでにやったこと全部書く</div>
-        </div>
-      </div>
-      <div class="feat-card">
-        <div class="feat-card-thumb" style="background:#EEEDFE;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:#1A1A1A;text-align:center;padding:0 14px;line-height:1.2;">企画書を<br>15分で仕上げる</div>
-        </div>
-        <div class="feat-card-body">
-          <div class="feat-card-cat" style="color:#534AB7;">商品開発×AI</div>
-          <div class="feat-card-title">商品企画書の骨格をClaudeで15分に短縮——メーカー15年の型をプロンプト化</div>
-        </div>
-      </div>
-    </div>
+    <div class="featured-row" id="latest-row" style="margin-bottom:48px;"></div>
 
     <!-- CTA BANNER -->
     <div class="cta-banner">
       <div>
         <div class="cta-label">note販売中</div>
-        <div class="cta-title">税理士・社労士向け<br>Claudeプロンプト集20本</div>
-        <p class="cta-desc">節税提案書・法改正案内・就業規則説明・<br>助成金提案・SNS投稿まで完全網羅。<br>コピペ一発・全品サンプル付き。</p>
+        <div class="cta-title" id="cta-title">RayPhoneAI<br>プロンプト集</div>
+        <p class="cta-desc" id="cta-desc">現場で即使えるAI活用プロンプト集を<br>販売中。コピペ一発で業務が変わります。</p>
       </div>
       <div class="cta-right">
-        <div class="cta-price">¥2,480</div>
-        <div class="cta-price-sub">20本収録 · Claude無料版対応</div>
-        <a href="#" class="cta-btn">noteで購入する →</a>
+        <div class="cta-price">note</div>
+        <div class="cta-price-sub">プロンプト設計士 Rayphone</div>
+        <a href="#" class="cta-btn" id="cta-note-btn">noteで購入する →</a>
       </div>
     </div>
 
-    <!-- MORE -->
-    <div class="sec-head">
-      <span class="sec-title">CLAUDE活用 TIPS</span>
+    <!-- MORE (残り全件) -->
+    <div class="sec-head" id="more-sec" style="display:none;">
+      <span class="sec-title">ALL ARTICLES</span>
       <div class="sec-title-line"></div>
-      <a href="#" class="sec-more">すべて見る →</a>
     </div>
-    <div class="card-grid">
-      <div class="art-card">
-        <div class="art-card-thumb" style="background:var(--gray-light);">
-          <div class="art-card-thumb-text" style="color:var(--black);">AIの文章から<br>「AI感」を<br>消す3つの技</div>
-        </div>
-        <div class="art-card-body">
-          <div class="art-card-cat" style="color:var(--orange);">Claude活用</div>
-          <div class="art-card-title">Claudeの出力が「いかにもAI」になる人の共通点と、3行で直す方法</div>
-          <div class="art-card-footer"><span class="art-card-date">2025.04.05</span><span class="art-card-tag">初心者向け</span></div>
-        </div>
-      </div>
-      <div class="art-card">
-        <div class="art-card-thumb" style="background:#FFF0E3;">
-          <div class="art-card-thumb-text" style="color:var(--black);">朝5分の<br>Claude活用で<br>1日が変わる</div>
-        </div>
-        <div class="art-card-body">
-          <div class="art-card-cat" style="color:var(--orange);">活用Tips</div>
-          <div class="art-card-title">「今日やること」をClaudeに貼り付けるだけで仕事の立ち上がりが格段に速くなった話</div>
-          <div class="art-card-footer"><span class="art-card-date">2025.04.07</span><span class="art-card-tag">習慣化</span></div>
-        </div>
-      </div>
-    </div>
+    <div class="card-grid" id="more-grid"></div>
 
   </div>
 
@@ -501,16 +423,10 @@ function toggleMenu(){
       </div>
     </div>
 
-    <!-- RANKING -->
+    <!-- RANKING (動的) -->
     <div class="sidebar-block">
-      <div class="sidebar-title">POPULAR</div>
-      <div class="rank-list">
-        <div class="rank-item"><span class="rank-num top">01</span><div><a href="#" class="rank-title">Claudeで節税提案書を3分で作る方法</a><div class="rank-cat">税理士向け</div></div></div>
-        <div class="rank-item"><span class="rank-num top">02</span><div><a href="#" class="rank-title">副業3ヶ月で月収15万を達成した全記録</a><div class="rank-cat">副業×AI</div></div></div>
-        <div class="rank-item"><span class="rank-num top">03</span><div><a href="#" class="rank-title">仕様書が書ける人はプロンプトが上手い</a><div class="rank-cat">Claude活用</div></div></div>
-        <div class="rank-item"><span class="rank-num">04</span><div><a href="#" class="rank-title">就業規則の条文から説明文を自動生成する方法</a><div class="rank-cat">社労士向け</div></div></div>
-        <div class="rank-item"><span class="rank-num">05</span><div><a href="#" class="rank-title">商品企画書の骨格をClaudeで15分に短縮</a><div class="rank-cat">商品開発×AI</div></div></div>
-      </div>
+      <div class="sidebar-title">LATEST</div>
+      <div class="rank-list" id="sidebar-rank"></div>
     </div>
 
   </aside>
@@ -560,143 +476,282 @@ function toggleMenu(){
   </div>
 </footer>
 
+<!-- 記事モーダル -->
+<div id="art-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;overflow-y:auto;padding:20px;">
+  <div style="max-width:780px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;position:relative;">
+    <div id="art-modal-eyecatch" style="width:100%;height:300px;background:#FFF0E3;overflow:hidden;"></div>
+    <button onclick="document.getElementById('art-modal').style.display='none'" style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;z-index:1;">✕</button>
+    <div style="padding:32px;">
+      <div id="art-modal-cat" style="font-size:11px;font-weight:700;color:#FF6B00;letter-spacing:.2em;text-transform:uppercase;margin-bottom:8px;"></div>
+      <h1 id="art-modal-title" style="font-size:24px;font-weight:700;line-height:1.4;margin-bottom:16px;color:#1A1A1A;"></h1>
+      <div id="art-modal-date" style="font-size:12px;color:#aaa;margin-bottom:24px;border-bottom:1px solid #eee;padding-bottom:16px;"></div>
+      <div id="art-modal-body" style="font-size:15px;line-height:1.9;color:#333;white-space:pre-wrap;"></div>
+      <div style="margin-top:32px;padding-top:24px;border-top:1px solid #eee;text-align:center;">
+        <button onclick="document.getElementById('art-modal').style.display='none'" style="background:#1A1A1A;color:#fff;border:none;padding:12px 32px;border-radius:6px;font-size:14px;cursor:pointer;">閉じる</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-// ===== 設定からリンクを動的に設定 =====
+// ===== RayPhoneAI 動的ブログエンジン =====
 (function(){
-  var cfg = {};
-  try { cfg = JSON.parse(localStorage.getItem('rp_cfg') || '{}'); } catch(e){}
-  var noteUrl = cfg.noteUrl || 'https://note.com/rayphone';
-  var xUrl = cfg.xUrl || 'https://x.com/rayphone';
-  var blogUrl = cfg.blogUrl || location.origin + location.pathname;
 
-  // noteボタンを全て設定
-  document.querySelectorAll('a.header-cta, a.cta-btn, a.note-cta-btn, a.mobile-cta').forEach(function(a){
-    if(a.getAttribute('href')==='#') a.href = noteUrl;
-    a.target = '_blank';
+// ---------- 設定読み込み ----------
+var cfg = {};
+try{ cfg = JSON.parse(localStorage.getItem('rp_cfg')||'{}'); }catch(e){}
+var noteUrl = cfg.noteUrl || 'https://note.com/rayphone';
+  var noteShopUrl = cfg.noteShopUrl || noteUrl;
+var xUrl    = cfg.xUrl    || 'https://x.com/rayphone';
+var blogUrl = cfg.blogUrl || location.origin + location.pathname;
+
+// ---------- noteリンクを全設定 ----------
+function setNoteLinks(){
+  document.querySelectorAll('a.header-cta,a.cta-btn,a.note-cta-btn,a.mobile-cta,#cta-note-btn').forEach(function(a){
+    a.href=noteShopUrl; a.target='_blank';
   });
-
-  // ナビのカテゴリリンクをアンカーに
-  var catLinks = document.querySelectorAll('nav a[href="#"], .mobile-nav a[href="#"]');
-  var catMap = {'Claude活用':'#claude', '士業向け':'#shigyo', '商品開発':'#product', '副業':'#fukugyo', 'プロンプト':'#prompt'};
-  catLinks.forEach(function(a){
-    Object.keys(catMap).forEach(function(k){
-      if(a.textContent.includes(k)) a.href = catMap[k];
-    });
-  });
-
-  // SNSリンク
+  document.querySelectorAll('a.btn-primary').forEach(function(a){ a.href=noteShopUrl; a.target='_blank'; });
+  document.querySelectorAll('a.btn-secondary').forEach(function(a){ a.href='#featured-grid'; });
+  document.querySelectorAll('a.sec-more,#all-arts-link').forEach(function(a){ a.href=noteUrl; a.target='_blank'; });
+  document.querySelectorAll('a.cat-item').forEach(function(a){ a.href=noteUrl; a.target='_blank'; });
   document.querySelectorAll('.footer-link').forEach(function(a){
-    if(a.textContent.includes('X')) { a.href = xUrl; a.target = '_blank'; }
-    else if(a.textContent.includes('note')) { a.href = noteUrl; a.target = '_blank'; }
+    if(a.textContent.includes('X')){ a.href=xUrl; a.target='_blank'; }
+    else if(a.textContent.includes('note')){ a.href=noteUrl; a.target='_blank'; }
+    else if(a.textContent.includes('プロフィール')){ a.href=noteUrl; a.target='_blank'; }
   });
+}
+setNoteLinks();
 
-  // 「プロンプト集を見る」ボタン
-  document.querySelectorAll('a.btn-primary').forEach(function(a){
-    if(a.href.endsWith('#')){ a.href = noteUrl; a.target = '_blank'; }
-  });
+// ---------- 10種アイキャッチSVG生成 ----------
+function makeEyecatch(art){
+  var title = (art.title||'').replace(/【深掘り】/,'');
+  var cat   = art.cat||'AI活用';
 
-  // 「記事一覧へ」ボタン
-  document.querySelectorAll('a.btn-secondary').forEach(function(a){
-    if(a.href.endsWith('#')){ a.href = '#articles-section'; }
-  });
+  // タイトルを14文字で折り返し
+  var lines=[]; var t=title;
+  while(t.length>0){ lines.push(t.slice(0,14)); t=t.slice(14); }
+  if(lines.length>4) lines=lines.slice(0,4);
+  var fs = lines.length===1?58:lines.length===2?48:lines.length===3?40:34;
 
-  // 「すべて見る」ボタン → noteアカウントへ
-  document.querySelectorAll('a.sec-more').forEach(function(a){
-    if(a.href.endsWith('#')){ a.href = noteUrl; a.target = '_blank'; }
-  });
+  // ランダムパターン選択（記事IDで固定）
+  var patterns = 10;
+  var idx = Math.abs(parseInt(String(art.id||0).slice(-2))||0) % patterns;
 
-  // カテゴリ一覧リンク
-  document.querySelectorAll('a.cat-item').forEach(function(a){
-    if(a.href.endsWith('#')){ a.href = noteUrl; a.target = '_blank'; }
-  });
+  var svgs = [
+    // 0: 左右分割（白左・オレンジ右）
+    function(){
+      var textY = 335 - (lines.length-1)*fs*0.65;
+      var textEls = lines.map(function(l,i){ return '<text x="52" y="'+(textY+i*fs*1.35)+'" font-size="'+fs+'" font-weight="700" fill="#1A1A1A" font-family="Arial,sans-serif">'+l+'</text>'; }).join('');
+      return '<svg viewBox="0 0 1280 670" width="1280" height="670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><rect x="640" width="640" height="670" fill="#FF6B00"/><circle cx="960" cy="335" r="240" fill="rgba(255,255,255,.12)"/><circle cx="1100" cy="150" r="100" fill="rgba(255,255,255,.08)"/><rect x="0" y="600" width="640" height="70" fill="#1A1A1A"/><rect x="50" y="60" width="100" height="28" rx="4" fill="#FF6B00"/><text x="60" y="80" font-size="14" font-weight="700" fill="#fff" font-family="Arial,sans-serif">'+cat+'</text>'+textEls+'<text x="60" y="640" font-size="14" fill="#FF6B00" font-weight="700" font-family="Arial,sans-serif">RayPhoneAI</text></svg>';
+    },
+    // 1: 黒背景・オレンジアクセント
+    function(){
+      var textY = 300 - (lines.length-1)*fs*0.65;
+      var textEls = lines.map(function(l,i){ return '<text x="80" y="'+(textY+i*fs*1.35)+'" font-size="'+fs+'" font-weight="700" fill="#fff" font-family="Arial,sans-serif">'+l+'</text>'; }).join('');
+      return '<svg viewBox="0 0 1280 670" width="1280" height="670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#1A1A1A"/><rect x="0" y="0" width="8" height="670" fill="#FF6B00"/><rect x="0" y="580" width="1280" height="90" fill="#FF6B00"/><circle cx="1050" cy="200" r="300" fill="rgba(255,107,0,.08)"/><rect x="80" y="60" width="120" height="32" rx="4" fill="#FF6B00"/><text x="92" y="82" font-size="14" font-weight="700" fill="#fff" font-family="Arial,sans-serif">'+cat+'</text>'+textEls+'<text x="80" y="640" font-size="15" fill="#1A1A1A" font-weight="700" font-family="Arial,sans-serif">RayPhoneAI — あなたの仕事をAIで加速する</text></svg>';
+    },
+    // 2: 中央揃え・白背景
+    function(){
+      var centerY = 335 - (lines.length-1)*fs*0.65;
+      var textEls = lines.map(function(l,i){ return '<text x="640" y="'+(centerY+i*fs*1.35)+'" font-size="'+fs+'" font-weight="700" fill="#1A1A1A" text-anchor="middle" font-family="Arial,sans-serif">'+l+'</text>'; }).join('');
+      return '<svg viewBox="0 0 1280 670" width="1280" height="670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><rect y="0" x="0" width="1280" height="6" fill="#FF6B00"/><rect y="664" x="0" width="1280" height="6" fill="#FF6B00"/><rect x="0" y="600" width="1280" height="64" fill="#1A1A1A"/>'+textEls+'<rect x="540" y="420" width="200" height="3" fill="#FF6B00"/><text x="640" y="460" font-size="13" fill="#777" text-anchor="middle" font-family="Arial,sans-serif">'+cat+'</text><text x="640" y="640" font-size="14" fill="#FF6B00" font-weight="700" text-anchor="middle" font-family="Arial,sans-serif">RayPhoneAI</text></svg>';
+    },
+    // 3: 斜め分割
+    function(){
+      var textY = 280 - (lines.length-1)*fs*0.65;
+      var textEls = lines.map(function(l,i){ return '<text x="60" y="'+(textY+i*fs*1.35)+'" font-size="'+fs+'" font-weight="700" fill="#fff" font-family="Arial,sans-serif">'+l+'</text>'; }).join('');
+      return '<svg viewBox="0 0 1280 670" width="1280" height="670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#FF6B00"/><polygon points="0,0 750,0 500,670 0,670" fill="#1A1A1A"/><rect x="0" y="600" width="500" height="70" fill="rgba(0,0,0,.3)"/><rect x="60" y="55" width="110" height="28" rx="4" fill="#FF6B00"/>'+textEls+'<text x="60" y="79" font-size="13" font-weight="700" fill="#1A1A1A" font-family="Arial,sans-serif">'+cat+'</text><text x="60" y="640" font-size="14" fill="#FF6B00" font-weight="700" font-family="Arial,sans-serif">RayPhoneAI</text></svg>';
+    },
+    // 4: ミニマル左ライン
+    function(){
+      var textY = 335 - (lines.length-1)*fs*0.65;
+      var textEls = lines.map(function(l,i){ return '<text x="120" y="'+(textY+i*fs*1.35)+'" font-size="'+fs+'" font-weight="700" fill="#1A1A1A" font-family="Arial,sans-serif">'+l+'</text>'; }).join('');
+      return '<svg viewBox="0 0 1280 670" width="1280" height="670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#FAFAFA"/><rect x="70" y="0" width="6" height="670" fill="#FF6B00"/><rect x="0" y="620" width="1280" height="50" fill="#1A1A1A"/><text x="120" y="90" font-size="15" fill="#FF6B00" font-weight="700" font-family="Arial,sans-serif">'+cat+'</text>'+textEls+'<text x="120" y="648" font-size="13" fill="#FF6B00" font-weight="700" font-family="Arial,sans-serif">RayPhoneAI | プロンプト設計士 Rayphone</text></svg>';
+    },
+    // 5: 額縁風オレンジ枠
+    function(){
+      var textY = 335 - (lines.length-1)*fs*0.65;
+      var textEls = lines.map(function(l,i){ return '<text x="640" y="'+(textY+i*fs*1.35)+'" font-size="'+fs+'" font-weight="700" fill="#1A1A1A" text-anchor="middle" font-family="Arial,sans-serif">'+l+'</text>'; }).join('');
+      return '<svg viewBox="0 0 1280 670" width="1280" height="670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#FF6B00"/><rect x="24" y="24" width="1232" height="622" fill="#fff"/><rect x="24" y="570" width="1232" height="76" fill="#1A1A1A"/><text x="640" y="100" font-size="14" fill="#FF6B00" font-weight="700" text-anchor="middle" font-family="Arial,sans-serif">'+cat+'</text><rect x="540" y="112" width="200" height="2" fill="#FF6B00"/>'+textEls+'<text x="640" y="628" font-size="14" fill="#FF6B00" font-weight="700" text-anchor="middle" font-family="Arial,sans-serif">RayPhoneAI</text></svg>';
+    },
+    // 6: グラデーション風（上下オレンジ帯）
+    function(){
+      var textY = 335 - (lines.length-1)*fs*0.65;
+      var textEls = lines.map(function(l,i){ return '<text x="640" y="'+(textY+i*fs*1.35)+'" font-size="'+fs+'" font-weight="700" fill="#1A1A1A" text-anchor="middle" font-family="Arial,sans-serif">'+l+'</text>'; }).join('');
+      return '<svg viewBox="0 0 1280 670" width="1280" height="670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><rect y="0" width="1280" height="120" fill="#FF6B00"/><rect y="550" width="1280" height="120" fill="#1A1A1A"/><text x="640" y="78" font-size="22" font-weight="700" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">RayPhoneAI</text><text x="640" y="102" font-size="13" fill="rgba(255,255,255,.8)" text-anchor="middle" font-family="Arial,sans-serif">'+cat+'</text>'+textEls+'<text x="640" y="618" font-size="13" fill="#FF6B00" font-weight="700" text-anchor="middle" font-family="Arial,sans-serif">あなたの仕事をAIで加速する</text></svg>';
+    },
+    // 7: タイポグラフィ重視（大テキスト）
+    function(){
+      var bigFs = 90; var subFs = 32;
+      return '<svg viewBox="0 0 1280 670" width="1280" height="670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#1A1A1A"/><text x="60" y="200" font-size="'+bigFs+'" font-weight="700" fill="rgba(255,107,0,.15)" font-family="Arial,sans-serif">AI</text><text x="60" y="300" font-size="'+bigFs+'" font-weight="700" fill="rgba(255,107,0,.15)" font-family="Arial,sans-serif">BLOG</text><rect x="60" y="340" width="1160" height="3" fill="#FF6B00"/><text x="60" y="420" font-size="'+subFs+'" font-weight="700" fill="#fff" font-family="Arial,sans-serif">'+(title.slice(0,28))+'</text><text x="60" y="460" font-size="'+subFs+'" font-weight="700" fill="#fff" font-family="Arial,sans-serif">'+(title.length>28?title.slice(28,56):'')+'</text><rect x="60" y="570" width="200" height="38" rx="4" fill="#FF6B00"/><text x="72" y="594" font-size="15" fill="#fff" font-weight="700" font-family="Arial,sans-serif">'+cat+'</text><text x="640" y="640" font-size="13" fill="#666" text-anchor="middle" font-family="Arial,sans-serif">RayPhoneAI | Powered by Rayphone</text></svg>';
+    },
+    // 8: 右側縦ストライプ
+    function(){
+      var textY = 310 - (lines.length-1)*fs*0.65;
+      var textEls = lines.map(function(l,i){ return '<text x="60" y="'+(textY+i*fs*1.35)+'" font-size="'+fs+'" font-weight="700" fill="#1A1A1A" font-family="Arial,sans-serif">'+l+'</text>'; }).join('');
+      var stripes = '';
+      for(var s=0;s<6;s++) stripes+='<rect x="'+(880+s*65)+'" y="0" width="32" height="670" fill="'+(s%2===0?'#FF6B00':'rgba(255,107,0,.3)')+'"/>';
+      return '<svg viewBox="0 0 1280 670" width="1280" height="670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/>'+stripes+'<rect x="0" y="610" width="860" height="60" fill="#1A1A1A"/><rect x="60" y="55" width="110" height="30" rx="4" fill="#FF6B00"/><text x="72" y="76" font-size="14" fill="#fff" font-weight="700" font-family="Arial,sans-serif">'+cat+'</text>'+textEls+'<text x="60" y="646" font-size="13" fill="#FF6B00" font-weight="700" font-family="Arial,sans-serif">RayPhoneAI</text></svg>';
+    },
+    // 9: ダイヤ型アクセント
+    function(){
+      var textY = 335 - (lines.length-1)*fs*0.65;
+      var textEls = lines.map(function(l,i){ return '<text x="640" y="'+(textY+i*fs*1.35)+'" font-size="'+fs+'" font-weight="700" fill="#fff" text-anchor="middle" font-family="Arial,sans-serif">'+l+'</text>'; }).join('');
+      return '<svg viewBox="0 0 1280 670" width="1280" height="670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#FF6B00"/><rect x="100" y="100" width="1080" height="470" fill="#1A1A1A"/><polygon points="640,80 680,110 640,140 600,110" fill="#FF6B00"/><text x="640" y="195" font-size="14" fill="#FF6B00" font-weight="700" text-anchor="middle" font-family="Arial,sans-serif">'+cat+'</text>'+textEls+'<text x="640" y="535" font-size="13" fill="rgba(255,107,0,.8)" text-anchor="middle" font-family="Arial,sans-serif">RayPhoneAI | あなたの仕事をAIで加速する</text></svg>';
+    },
+  ];
+  return svgs[idx]();
+}
 
-  // ランキングタイトルリンク
-  document.querySelectorAll('a.rank-title').forEach(function(a){
-    if(a.href.endsWith('#')){ a.href = noteUrl; a.target = '_blank'; }
-  });
-
-  // 記事一覧セクションにIDを付ける
-  var grids = document.querySelectorAll('.card-grid');
-  if(grids.length > 0) {
-    grids[0].id = 'articles-section';
-    grids[0].scrollIntoView && null; // IDだけ設定
-  }
-})();
-</script>
-
-<script>
-// ===== GitHubのarticles.jsonから記事を読み込んで表示 =====
-(function(){
-  // GitHub Pages URL からリポジトリ情報を推定
-  // 例: https://rayphoneai.github.io/ray/ → user=rayphoneai, repo=ray
-  var host = location.hostname; // e.g. rayphoneai.github.io
-  var pathParts = location.pathname.split('/').filter(Boolean); // e.g. ['ray']
-  var ghUser = host.replace('.github.io','');
-  var ghRepo = pathParts[0] || '';
-
-  function renderArts(arts){
-    if(!arts||!arts.length) return;
-    var grid = document.querySelector('.card-grid');
-    if(!grid) return;
-    arts.slice(0,10).forEach(function(art){
-      var card = document.createElement('div');
-      card.className = 'art-card';
-      card.id = 'art-' + art.id;
-      card.setAttribute('data-art-id', art.id);
-      var artUrl = location.origin + location.pathname + '?id=' + art.id;
-      var thumb = art.svg
-        ? '<div class="art-card-thumb" style="background:#FFF0E3;overflow:hidden;"><img src="data:image/svg+xml;charset=utf-8,'+encodeURIComponent(art.svg)+'" style="width:100%;height:100%;object-fit:cover;" alt="アイキャッチ"></div>'
-        : '<div class="art-card-thumb" style="background:#FFF0E3;"><div class="art-card-thumb-text" style="color:var(--black);">'+(art.title||'').slice(0,20)+'</div></div>';
-      card.innerHTML = thumb
-        + '<div class="art-card-body">'
-        + '<div class="art-card-cat" style="color:var(--orange);">'+(art.cat||'')+'</div>'
-        + '<div class="art-card-title">'+(art.title||'')+'</div>'
-        + '<div class="art-card-desc">'+(art.content||'').slice(0,80)+'…</div>'
-        + '<div class="art-card-footer">'
-        + '<span class="art-card-date">'+(art.date||'')+'</span>'
-        + '<a href="'+artUrl+'" class="art-card-tag" style="text-decoration:none;background:var(--orange);color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;">読む</a>'
-        + '</div></div>';
-      grid.insertBefore(card, grid.firstChild);
-    });
-
-    // URLパラメータ ?id=xxx でその記事にスクロール＆ハイライト
-    var params = new URLSearchParams(location.search);
-    var targetId = params.get('id');
-    if(targetId){
-      var el = document.getElementById('art-'+targetId)||document.querySelector('[data-art-id="'+targetId+'"]');
-      if(el) setTimeout(function(){
-        el.scrollIntoView({behavior:'smooth',block:'center'});
-        el.style.boxShadow='0 0 0 3px var(--orange)';
-        el.style.transition='box-shadow .3s';
-      },600);
-    }
-  }
-
-  // 1. まずGitHubのarticles.jsonを取得
-  if(ghUser && ghRepo){
-    var apiUrl = 'https://raw.githubusercontent.com/'+ghUser+'/'+ghRepo+'/main/articles.json';
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', apiUrl + '?t=' + Date.now(), true);
-    xhr.onload = function(){
-      if(xhr.status===200){
-        try{
-          var arts = JSON.parse(xhr.responseText);
-          renderArts(arts);
-          return;
-        }catch(e){}
-      }
-      // 2. フォールバック: LocalStorageから読み込み
-      try{renderArts(JSON.parse(localStorage.getItem('rp_arts')||'[]'));}catch(e){}
-    };
-    xhr.onerror = function(){
-      try{renderArts(JSON.parse(localStorage.getItem('rp_arts')||'[]'));}catch(e){}
-    };
-    xhr.send();
+// ---------- モーダルを開く ----------
+function openArt(art){
+  var ec = document.getElementById('art-modal-eyecatch');
+  if(art.svg){
+    ec.innerHTML='<img src="data:image/svg+xml;charset=utf-8,'+encodeURIComponent(art.svg)+'" style="width:100%;height:100%;object-fit:cover;">';
   } else {
-    // ローカル環境: LocalStorageから読み込み
-    try{renderArts(JSON.parse(localStorage.getItem('rp_arts')||'[]'));}catch(e){}
+    ec.innerHTML=makeEyecatch(art).replace(/width="1280" height="670"/, 'style="width:100%;height:100%;"');
   }
+  document.getElementById('art-modal-cat').textContent   = art.cat||'';
+  document.getElementById('art-modal-title').textContent = art.title||'';
+  document.getElementById('art-modal-date').textContent  = art.date||'';
+  document.getElementById('art-modal-body').textContent  = art.content||'';
+  document.getElementById('art-modal').style.display='block';
+  document.getElementById('art-modal').scrollTop=0;
+  window.scrollTo(0,0);
+}
+
+// ---------- カード生成 ----------
+function makeCard(art, size){
+  var card = document.createElement('div');
+  card.className = size==='feat' ? 'feat-card' : 'art-card';
+  card.id = 'art-'+art.id;
+  card.setAttribute('data-art-id', art.id);
+  card.style.cursor='pointer';
+
+  var thumbH = size==='feat' ? '130px' : '160px';
+  var thumbHtml;
+  if(art.svg){
+    thumbHtml = '<div class="'+(size==='feat'?'feat-card-thumb':'art-card-thumb')+'" style="overflow:hidden;height:'+thumbH+';">'
+      + '<img src="data:image/svg+xml;charset=utf-8,'+encodeURIComponent(art.svg)+'" style="width:100%;height:100%;object-fit:cover;"></div>';
+  } else {
+    var svgStr = makeEyecatch(art);
+    thumbHtml = '<div class="'+(size==='feat'?'feat-card-thumb':'art-card-thumb')+'" style="overflow:hidden;height:'+thumbH+';">'
+      + '<img src="data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svgStr)+'" style="width:100%;height:100%;object-fit:cover;"></div>';
+  }
+
+  if(size==='feat'){
+    card.innerHTML = thumbHtml
+      + '<div class="feat-card-body">'
+      + '<div class="feat-card-cat" style="color:var(--orange);">'+(art.cat||'')+'</div>'
+      + '<div class="feat-card-title">'+(art.title||'')+'</div>'
+      + '</div>';
+  } else {
+    card.innerHTML = thumbHtml
+      + '<div class="art-card-body">'
+      + '<div class="art-card-cat" style="color:var(--orange);">'+(art.cat||'')+'</div>'
+      + '<div class="art-card-title">'+(art.title||'')+'</div>'
+      + '<div class="art-card-desc">'+(art.content||'').slice(0,80)+'…</div>'
+      + '<div class="art-card-footer">'
+      + '<span class="art-card-date">'+(art.date||'')+'</span>'
+      + '<span class="art-card-tag" style="background:var(--orange);color:#fff;">NEW</span>'
+      + '</div></div>';
+  }
+  card.onclick = (function(a){ return function(){ openArt(a); }; })(art);
+  return card;
+}
+
+// ---------- 記事を全セクションに描画 ----------
+function renderArts(arts){
+  if(!arts||!arts.length){
+    document.getElementById('featured-grid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:60px;color:#aaa;">まだ記事がありません。管理画面から生成してください。</div>';
+    return;
+  }
+
+  // FEATURED: 最新2件
+  var fg = document.getElementById('featured-grid');
+  fg.innerHTML='';
+  arts.slice(0,2).forEach(function(a){ fg.appendChild(makeCard(a,'normal')); });
+
+  // LATEST: 次の3件（feat-card）
+  var lr = document.getElementById('latest-row');
+  lr.innerHTML='';
+  arts.slice(2,5).forEach(function(a){ lr.appendChild(makeCard(a,'feat')); });
+
+  // MORE: 残り全件
+  var mg = document.getElementById('more-grid');
+  mg.innerHTML='';
+  if(arts.length>5){
+    document.getElementById('more-sec').style.display='flex';
+    arts.slice(5).forEach(function(a){ mg.appendChild(makeCard(a,'normal')); });
+  }
+
+  // サイドバーランキング
+  var sr = document.getElementById('sidebar-rank');
+  if(sr){
+    sr.innerHTML='';
+    arts.slice(0,5).forEach(function(a,i){
+      var item = document.createElement('div');
+      item.className='rank-item';
+      item.style.cursor='pointer';
+      item.innerHTML='<span class="rank-num'+(i<3?' top':'')+'">'+'0'+(i+1)+'</span>'
+        +'<div><span class="rank-title">'+(a.title||'')+'</span>'
+        +'<div class="rank-cat">'+(a.cat||'')+'</div></div>';
+      item.onclick=(function(art){ return function(){ openArt(art); }; })(a);
+      sr.appendChild(item);
+    });
+  }
+
+  // カテゴリ件数を更新
+  var catCount={};
+  arts.forEach(function(a){ catCount[a.cat||'']=(catCount[a.cat||'']||0)+1; });
+  document.querySelectorAll('.cat-item').forEach(function(el){
+    var name = el.querySelector('.cat-name');
+    var cnt  = el.querySelector('.cat-count');
+    if(name&&cnt&&catCount[name.textContent]) cnt.textContent=catCount[name.textContent];
+  });
+
+  // ?id= パラメータでスクロール＆ハイライト
+  var targetId = new URLSearchParams(location.search).get('id');
+  if(targetId){
+    var el = document.getElementById('art-'+targetId);
+    if(el) setTimeout(function(){
+      el.scrollIntoView({behavior:'smooth',block:'center'});
+      el.style.boxShadow='0 0 0 3px var(--orange)';
+    },700);
+    // 自動でモーダルを開く
+    var art = arts.find(function(a){ return String(a.id)===targetId; });
+    if(art) setTimeout(function(){ openArt(art); },800);
+  }
+}
+
+// ---------- GitHub articles.json or LocalStorage ----------
+var host = location.hostname;
+var pathParts = location.pathname.split('/').filter(Boolean);
+var ghUser = host.replace('.github.io','');
+var ghRepo = pathParts[0]||'';
+
+function loadLocal(){
+  try{ renderArts(JSON.parse(localStorage.getItem('rp_arts')||'[]')); }catch(e){}
+}
+
+if(ghUser && ghRepo && host.includes('github.io')){
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET','https://raw.githubusercontent.com/'+ghUser+'/'+ghRepo+'/main/articles.json?t='+Date.now(),true);
+  xhr.onload=function(){ try{ renderArts(JSON.parse(xhr.responseText)); }catch(e){ loadLocal(); } };
+  xhr.onerror=loadLocal;
+  xhr.send();
+} else {
+  loadLocal();
+}
+
+// ---------- モーダル背景クリックで閉じる ----------
+document.getElementById('art-modal').addEventListener('click',function(e){
+  if(e.target===this)this.style.display='none';
+});
+
 })();
 </script>
 </body>
 </html>
+
+
