@@ -1,1 +1,54 @@
+name: RayPhoneAI 自動投稿
+
+on:
+  schedule:
+    - cron: '0 23 * * *'   # 毎日 08:00 JST (23:00 UTC)
+    - cron: '0 3 * * *'    # 毎日 12:00 JST (03:00 UTC)
+    - cron: '0 12 * * *'   # 毎日 21:00 JST (12:00 UTC)
+  workflow_dispatch:        # 手動実行ボタン
+
+jobs:
+  auto-post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Python セットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 依存ライブラリをインストール
+        run: |
+          pip install requests playwright python-dotenv
+          playwright install chromium
+          playwright install-deps chromium
+
+      - name: 記事生成＆投稿を実行
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          NOTE_EMAIL:     ${{ secrets.NOTE_EMAIL }}
+          NOTE_PASSWORD:  ${{ secrets.NOTE_PASSWORD }}
+          BLOG_URL:       ${{ secrets.BLOG_URL }}
+          NOTE_URL:       ${{ secrets.NOTE_URL }}
+          NOTE_SHOP_URL:  ${{ secrets.NOTE_SHOP_URL }}
+          GH_TOKEN:       ${{ secrets.GH_TOKEN }}
+          GH_USER:        ${{ secrets.GH_USER }}
+          GH_REPO:        ${{ secrets.GH_REPO }}
+          X_COOKIES_B64:  ${{ secrets.X_COOKIES_B64 }}
+          X_AUTO:         ${{ secrets.X_AUTO }}
+          HEADLESS:       "true"
+          CAT_INDEX_FILE: "cat_index.txt"
+        run: python auto_post.py
+
+      - name: cat_index.txt を保存（カテゴリローテーション維持）
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cat-index
+          path: cat_index.txt
+          retention-days: 90
 
