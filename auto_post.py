@@ -15,6 +15,7 @@ except Exception as e:
     sys.exit(1)
 
 # ── 環境変数 ───────────────────────────────────────────────
+print("環境変数を読み込み中...", flush=True)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 NOTE_EMAIL     = os.getenv("NOTE_EMAIL", "")
 NOTE_PASSWORD  = os.getenv("NOTE_PASSWORD", "")
@@ -37,6 +38,8 @@ CATEGORIES = [
     "副業xAI",
     "プロンプト集解説",
 ]
+
+print("✓ CATEGORIES定義完了", flush=True)
 
 def log(msg):
     print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}", flush=True)
@@ -537,4 +540,7 @@ def post_to_note_api(title: str, body: str, art_url: str) -> dict:
     log(f"✓ note API投稿完了: {note_url}")
     return {"ok": True, "message": "note投稿完了", "url": note_url}
 
+print("✓ 全関数定義完了。main()を実行します", flush=True)
 
+if __name__ == "__main__":
+    main()
