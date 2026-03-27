@@ -382,7 +382,19 @@ def post_to_x_actions(content, art_url):
     cleaned = re.sub(r"■[^\n]*|【[^】]*】|#\S+|https?://\S+", "", content)
     cleaned = re.sub(r"\s+", " ", cleaned).strip()
     summary = cleaned[:95]
-    tweet = f"{summary}\n\n{art_url}"
+    # 句読点・文末で自然に切る（Xは280文字制限）
+    _url_part = "\n\n" + art_url
+    _max_body = 275 - len(_url_part)
+    _body = summary
+    if len(_body) > _max_body:
+        _cut = _max_body
+        for _e in ["。", "！", "？", "\n", "、"]:
+            _p = _body.rfind(_e, 0, _max_body)
+            if _p > int(_max_body * 0.6):
+                _cut = _p + 1
+                break
+        _body = _body[:_cut].rstrip()
+    tweet = _body + _url_part
 
     from playwright.sync_api import sync_playwright
     with sync_playwright() as pw:
