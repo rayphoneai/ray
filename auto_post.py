@@ -466,40 +466,31 @@ def post_to_x_actions(content, art_url):
             # 投稿ボタンが有効になるまで待つ
             time.sleep(2)
             posted = False
-            for sel in ['[data-testid="tweetButton"]', '[data-testid="tweetButtonInline"]', 'button:has-text("ポストする")', 'button:has-text("Post")']:
+            for sel in ['[data-testid="tweetButton"]', '[data-testid="tweetButtonInline"]', 'button:has-text("ポストする")', 'button:has-text("ポスト")', 'button:has-text("Post")']:
                 try:
                     btn = page.locator(sel).last
                     if not btn.is_visible(timeout=3000):
                         continue
-                    # JavaScriptでdisabled状態を確認（Githubのシークレットマスクを回避）
-                    is_disabled = page.evaluate(f"""
-                        const b = document.querySelector('[data-testid="tweetButton"]') || document.querySelector('[data-testid="tweetButtonInline"]');
-                        return b ? (b.disabled || b.getAttribute('aria-disabled') === 'true') : true;
-                    """)
-                    log(f"X: ボタン disabled状態={is_disabled}")
-                    if is_disabled:
-                        log(f"X: ボタンがdisabled → スキップ")
-                        break  # 全ボタン同じ状態なのでbreakして再入力へ
-                    btn.scroll_into_view_if_needed()
-                    time.sleep(0.3)
+                    log(f"X: ボタン発見: {sel}")
+                    # force=Trueでdisabled状態でも強制クリック
                     btn.click(force=True)
                     time.sleep(3)
                     log(f"✓ X投稿完了: {sel}")
                     posted = True
                     break
                 except Exception as e:
-                    log(f"X: 投稿ボタン試行失敗 {sel}: {e}")
+                    log(f"X: 投稿ボタン試行失敗 {sel}: {str(e)[:100]}")
                     continue
 
             if not posted:
-                # 最終手段: Enterキーで送信
+                # 最終手段: Ctrl+Enterで送信
                 try:
                     page.keyboard.press("Control+Return")
                     time.sleep(3)
-                    log("X: Ctrl+Enterで送信試行")
+                    log("✓ X: Ctrl+Enterで送信")
                     posted = True
-                except Exception:
-                    pass
+                except Exception as e:
+                    log(f"X: Ctrl+Enter失敗: {e}")
 
             if not posted:
                 log("✗ X: 投稿ボタンが見つかりません")
@@ -516,97 +507,128 @@ def post_to_note_playwright(title: str, body: str, svg_code: str, art_url: str) 
     try:
         from playwright.sync_api import sync_playwright
         with sync_playwright() as pw:
-            browser = pw.chromium.launch(headless=True)
-            ctx = browser.new_context(viewport={"width": 1280, "height": 900})
+            browser = pw.chromium.launch(
+                headless=True,
+                args=["--no-sandbox", "--disable-dev-shm-usage"]
+            )
+            ctx = browser.new_context(
+                viewport={"width": 1280, "height": 900},
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+            )
             page = ctx.new_page()
 
             # ログイン
+            log("note: ログインページにアクセス...")
             page.goto("https://note.com/login", wait_until="domcontentloaded", timeout=30000)
-            time.sleep(2)
+            time.sleep(3)
+            log(f"note: URL={page.url}")
 
             # メール入力
-            for sel in ['input[name="email"]', 'input[type="email"]', 'input[placeholder*="mail"]']:
+            email_filled = False
+            for sel in ['input[name="email"]', 'input[type="email"]', 'input[placeholder*="mail"]', 'input[placeholder*="note"]']:
                 try:
                     el = page.locator(sel).first
                     if el.is_visible(timeout=3000):
                         el.fill("")
                         el.type(NOTE_EMAIL, delay=40)
+                        log(f"note: メール入力完了: {sel}")
+                        email_filled = True
                         break
                 except Exception:
                     continue
+            if not email_filled:
+                log("note: メール欄が見つかりません")
+
+            time.sleep(0.5)
 
             # パスワード入力
             pw_el = page.locator('input[type="password"]').first
-            pw_el.wait_for(state="visible", timeout=5000)
+            pw_el.wait_for(state="visible", timeout=8000)
             pw_el.fill("")
             pw_el.type(NOTE_PASSWORD, delay=40)
+            log("note: パスワード入力完了")
             time.sleep(0.5)
 
-            # ログインボタン
-            for sel in ['button[type="submit"]', 'button:has-text("ログイン")']:
+            # ログインボタンクリック
+            for sel in ['button[type="submit"]', 'button:has-text("ログイン")', 'button:has-text("Log in")']:
                 try:
                     b = page.locator(sel).first
                     if b.is_visible(timeout=2000):
                         b.click()
+                        log(f"note: ログインボタンクリック: {sel}")
                         break
                 except Exception:
                     continue
+            else:
+                pw_el.press("Enter")
+                log("note: Enterで送信")
 
-            # ログイン完了待機
-            for i in range(30):
+            # ログイン完了待機（最大60秒）
+            log("note: ログイン待機中...")
+            for i in range(60):
                 time.sleep(1)
-                if "/login" not in page.url:
-                    log(f"note: ログイン成功 {page.url}")
+                cur = page.url
+                if "/login" not in cur:
+                    log(f"note: ログイン成功 ({i+1}秒) {cur}")
                     break
+                if i % 10 == 9:
+                    log(f"note: 待機中 {i+1}秒... {cur}")
             else:
                 browser.close()
-                return {"ok": False, "message": "noteログイン失敗（30秒タイムアウト）"}
+                return {"ok": False, "message": "noteログイン失敗（60秒タイムアウト）"}
+
+            time.sleep(2)
 
             # 新規記事ページ
-            page.goto("https://note.com/notes/new", wait_until="networkidle", timeout=30000)
-            time.sleep(3)
+            log("note: 新規記事ページへ...")
+            page.goto("https://note.com/notes/new", wait_until="domcontentloaded", timeout=30000)
+            time.sleep(4)
+            log(f"note: エディタURL={page.url}")
 
             # タイトル入力
-            for sel in ['[placeholder*="タイトル"]', 'input.title', '.title-input']:
+            for sel in ['[placeholder*="タイトル"]', 'input.title', '.title-input', 'textarea']:
                 try:
                     t = page.locator(sel).first
                     if t.is_visible(timeout=3000):
                         t.click()
                         t.type(title, delay=30)
+                        log(f"note: タイトル入力完了: {sel}")
                         break
                 except Exception:
                     continue
 
-            # 本文入力
+            # 本文入力（Tab移動してから入力）
+            page.keyboard.press("Tab")
+            time.sleep(0.5)
             try:
-                body_el = page.locator('.m-editor-body, .ProseMirror, [data-placeholder]').first
-                body_el.click()
-                time.sleep(0.5)
-                page.evaluate(f"""
-                    const el = document.querySelector('.m-editor-body, .ProseMirror, [data-placeholder]');
-                    if (el) {{ el.focus(); document.execCommand('insertText', false, {json.dumps(body)}); }}
-                """)
-                time.sleep(1)
+                body_lines = body.split("\n")
+                for line in body_lines:
+                    page.keyboard.type(line, delay=5)
+                    page.keyboard.press("Enter")
+                log(f"note: 本文入力完了 ({len(body)}文字)")
             except Exception as e:
                 log(f"note: 本文入力エラー {e}")
 
-            # 公開
-            time.sleep(1)
-            for sel in ['button:has-text("公開に進む")', 'button:has-text("投稿設定へ")']:
+            time.sleep(2)
+
+            # 公開ボタン
+            for sel in ['button:has-text("公開に進む")', 'button:has-text("投稿設定へ")', 'button:has-text("公開する")']:
                 try:
                     b = page.locator(sel).first
-                    if b.is_visible(timeout=3000):
+                    if b.is_visible(timeout=5000):
                         b.click()
-                        time.sleep(2)
+                        log(f"note: 公開ボタンクリック: {sel}")
+                        time.sleep(3)
                         break
                 except Exception:
                     continue
 
-            for sel in ['button:has-text("投稿する")', 'button:has-text("公開する")']:
+            for sel in ['button:has-text("投稿する")', 'button:has-text("公開する")', 'button:has-text("今すぐ公開")']:
                 try:
                     b = page.locator(sel).first
-                    if b.is_visible(timeout=3000):
+                    if b.is_visible(timeout=5000):
                         b.click()
+                        log(f"note: 投稿確認クリック: {sel}")
                         time.sleep(3)
                         break
                 except Exception:
