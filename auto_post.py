@@ -111,33 +111,117 @@ def push_articles(arts):
 
 # ── SVG アイキャッチ生成 ─────────────────────────────────
 def generate_eyecatch_svg(title, cat, art_id):
-    short = re.sub(r"【.*?】", "", title).strip()[:18]
-    short2 = re.sub(r"【.*?】", "", title).strip()[18:36]
+    raw = re.sub(r"[【-】「-』].*?[【-】「-』]|\u3010.*?\u3011", "", title).strip()
+    short  = raw[:18]
+    short2 = raw[18:36]
     idx = abs(int(str(art_id)[-2:])) % 10
+    cat_u = cat.upper()
 
-    patterns = [
+    def t2(x, y, size, color, text, anchor="start", weight="900"):
+        return '<text x="{}" y="{}" font-size="{}" font-weight="{}" fill="{}" text-anchor="{}" font-family="Arial,sans-serif">{}</text>'.format(
+            x, y, size, weight, color, anchor, text)
+
+    def extra(x, y, size, color):
+        if not short2:
+            return ""
+        return t2(x, y, size, color, short2)
+
+    svg = [
         # 0: 白×左オレンジ縦帯
-        f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><rect x="0" y="0" width="6" height="670" fill="#FF6B00"/><circle cx="1000" cy="335" r="220" fill="none" stroke="rgba(255,107,0,.12)" stroke-width="40"/><rect x="0" y="600" width="1280" height="70" fill="#1A1A1A"/><text x="50" y="140" font-size="10" fill="#FF6B00" letter-spacing="5" font-weight="700" font-family="Arial,sans-serif">{cat.upper()}</text><text x="50" y="280" font-size="60" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">{short}</text>{"<text x='50' y='350' font-size='60' font-weight='900' fill='#1A1A1A' font-family='Arial,sans-serif'>"+short2+"</text>" if short2 else ""}<text x="50" y="638" font-size="13" fill="#FF6B00" font-weight="700" font-family="Arial,sans-serif">RayPhoneAI</text></svg>',
+        '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
+        '<rect width="1280" height="670" fill="#fff"/>'
+        '<rect x="0" y="0" width="6" height="670" fill="#FF6B00"/>'
+        '<circle cx="1000" cy="335" r="220" fill="none" stroke="rgba(255,107,0,.12)" stroke-width="40"/>'
+        '<rect x="0" y="600" width="1280" height="70" fill="#1A1A1A"/>'
+        + t2(50,140,10,"#FF6B00",cat_u,weight="700") + t2(50,280,60,"#1A1A1A",short) + extra(50,350,60,"#1A1A1A")
+        + t2(50,638,13,"#FF6B00","RayPhoneAI",weight="700") + "</svg>",
+
         # 1: 白×右ハーフブラック
-        f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><rect x="700" y="0" width="580" height="670" fill="#1A1A1A"/><rect x="0" y="0" width="1280" height="4" fill="#FF6B00"/><rect x="700" y="0" width="4" height="670" fill="#FF6B00"/><text x="50" y="140" font-size="10" fill="#FF6B00" letter-spacing="5" font-weight="700" font-family="Arial,sans-serif">{cat.upper()}</text><text x="50" y="280" font-size="60" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">{short}</text>{"<text x='50' y='350' font-size='60' font-weight='900' fill='#1A1A1A' font-family='Arial,sans-serif'>"+short2+"</text>" if short2 else ""}</svg>',
-        # 2: マガジン白×大ナンバー
-        f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#F8F8F8"/><rect x="0" y="0" width="1280" height="80" fill="#1A1A1A"/><rect x="0" y="78" width="1280" height="4" fill="#FF6B00"/><text x="40" y="52" font-size="13" fill="#FF6B00" letter-spacing="5" font-weight="700" font-family="Arial,sans-serif">RAYPHONEAI</text><text x="40" y="68" font-size="9" fill="rgba(255,255,255,.5)" letter-spacing="3" font-family="Arial,sans-serif">{cat.upper()}</text><text x="80" y="270" font-size="66" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">{short}</text>{"<text x='80' y='345' font-size='66' font-weight='900' fill='#1A1A1A' font-family='Arial,sans-serif'>"+short2+"</text>" if short2 else ""}<rect x="0" y="610" width="1280" height="60" fill="#1A1A1A"/><text x="640" y="648" font-size="11" fill="rgba(255,107,0,.8)" text-anchor="middle" letter-spacing="4" font-family="Arial,sans-serif">AI BLOG — RAYPHONEAI.COM</text></svg>',
+        '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
+        '<rect width="1280" height="670" fill="#fff"/>'
+        '<rect x="700" y="0" width="580" height="670" fill="#1A1A1A"/>'
+        '<rect x="0" y="0" width="1280" height="4" fill="#FF6B00"/>'
+        '<rect x="700" y="0" width="4" height="670" fill="#FF6B00"/>'
+        + t2(50,140,10,"#FF6B00",cat_u,weight="700") + t2(50,280,60,"#1A1A1A",short) + extra(50,350,60,"#1A1A1A")
+        + "</svg>",
+
+        # 2: マガジン白×黒ヘッダー
+        '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
+        '<rect width="1280" height="670" fill="#F8F8F8"/>'
+        '<rect x="0" y="0" width="1280" height="80" fill="#1A1A1A"/>'
+        '<rect x="0" y="78" width="1280" height="4" fill="#FF6B00"/>'
+        + t2(40,52,13,"#FF6B00","RAYPHONEAI",weight="700")
+        + t2(80,270,66,"#1A1A1A",short) + extra(80,345,66,"#1A1A1A")
+        + '<rect x="0" y="610" width="1280" height="60" fill="#1A1A1A"/>'
+        + t2(640,648,11,"rgba(255,107,0,.8)","AI BLOG — RAYPHONEAI.COM","middle","400")
+        + "</svg>",
+
         # 3: 白×斜め黒帯
-        f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><polygon points="800,0 1280,0 1280,670 480,670" fill="#1A1A1A"/><rect x="0" y="0" width="1280" height="4" fill="#FF6B00"/><text x="60" y="140" font-size="10" fill="#FF6B00" letter-spacing="5" font-weight="700" font-family="Arial,sans-serif">{cat.upper()}</text><text x="60" y="280" font-size="62" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">{short}</text>{"<text x='60' y='352' font-size='62' font-weight='900' fill='#1A1A1A' font-family='Arial,sans-serif'>"+short2+"</text>" if short2 else ""}</svg>',
-        # 4: ミニマル白×グリッド
-        f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fafafa"/><rect x="0" y="610" width="1280" height="60" fill="#1A1A1A"/><rect x="60" y="180" width="2" height="260" fill="#FF6B00"/><text x="85" y="230" font-size="10" fill="#FF6B00" letter-spacing="5" font-weight="700" font-family="Arial,sans-serif">{cat.upper()}</text><text x="85" y="330" font-size="62" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">{short}</text>{"<text x='85' y='402' font-size='62' font-weight='900' fill='#1A1A1A' font-family='Arial,sans-serif'>"+short2+"</text>" if short2 else ""}<text x="640" y="648" font-size="11" fill="#FF6B00" text-anchor="middle" letter-spacing="4" font-family="Arial,sans-serif">RAYPHONEAI</text></svg>',
-        # 5: 白×下部ブラックバー
-        f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><rect x="0" y="430" width="1280" height="240" fill="#1A1A1A"/><rect x="0" y="428" width="1280" height="4" fill="#FF6B00"/><text x="80" y="130" font-size="10" fill="#FF6B00" letter-spacing="5" font-weight="700" font-family="Arial,sans-serif">{cat.upper()}</text><text x="80" y="250" font-size="64" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">{short}</text>{"<text x='80' y='328' font-size='64' font-weight='900' fill='#1A1A1A' font-family='Arial,sans-serif'>"+short2+"</text>" if short2 else ""}<text x="80" y="510" font-size="13" fill="#fff" font-family="Arial,sans-serif">RayPhoneAI — Rayphone</text></svg>',
-        # 6: 白×ドット
-        f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><rect x="0" y="0" width="4" height="670" fill="#FF6B00"/><rect x="0" y="620" width="1280" height="50" fill="#1A1A1A"/><text x="50" y="130" font-size="10" fill="#FF6B00" letter-spacing="5" font-weight="700" font-family="Arial,sans-serif">{cat.upper()}</text><text x="50" y="280" font-size="62" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">{short}</text>{"<text x='50' y='352' font-size='62' font-weight='900' fill='#1A1A1A' font-family='Arial,sans-serif'>"+short2+"</text>" if short2 else ""}<text x="640" y="648" font-size="11" fill="#FF6B00" text-anchor="middle" letter-spacing="4" font-family="Arial,sans-serif">RAYPHONEAI</text></svg>',
+        '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
+        '<rect width="1280" height="670" fill="#fff"/>'
+        '<polygon points="800,0 1280,0 1280,670 480,670" fill="#1A1A1A"/>'
+        '<rect x="0" y="0" width="1280" height="4" fill="#FF6B00"/>'
+        + t2(60,140,10,"#FF6B00",cat_u,weight="700") + t2(60,280,62,"#1A1A1A",short) + extra(60,352,62,"#1A1A1A")
+        + "</svg>",
+
+        # 4: ミニマル白×縦ライン
+        '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
+        '<rect width="1280" height="670" fill="#fafafa"/>'
+        '<rect x="0" y="610" width="1280" height="60" fill="#1A1A1A"/>'
+        '<rect x="60" y="180" width="2" height="260" fill="#FF6B00"/>'
+        + t2(85,230,10,"#FF6B00",cat_u,weight="700") + t2(85,330,62,"#1A1A1A",short) + extra(85,402,62,"#1A1A1A")
+        + t2(640,648,11,"#FF6B00","RAYPHONEAI","middle","700")
+        + "</svg>",
+
+        # 5: 白×下部黒バー
+        '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
+        '<rect width="1280" height="670" fill="#fff"/>'
+        '<rect x="0" y="430" width="1280" height="240" fill="#1A1A1A"/>'
+        '<rect x="0" y="428" width="1280" height="4" fill="#FF6B00"/>'
+        + t2(80,130,10,"#FF6B00",cat_u,weight="700") + t2(80,250,64,"#1A1A1A",short) + extra(80,328,64,"#1A1A1A")
+        + t2(80,510,13,"#fff","RayPhoneAI — Rayphone","start","400")
+        + "</svg>",
+
+        # 6: 白×左縦ライン
+        '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
+        '<rect width="1280" height="670" fill="#fff"/>'
+        '<rect x="0" y="0" width="4" height="670" fill="#FF6B00"/>'
+        '<rect x="0" y="620" width="1280" height="50" fill="#1A1A1A"/>'
+        + t2(50,130,10,"#FF6B00",cat_u,weight="700") + t2(50,280,62,"#1A1A1A",short) + extra(50,352,62,"#1A1A1A")
+        + t2(640,648,11,"#FF6B00","RAYPHONEAI","middle","700")
+        + "</svg>",
+
         # 7: 白×オレンジ上帯×黒下帯
-        f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><rect x="0" y="0" width="1280" height="100" fill="#FF6B00"/><rect x="0" y="580" width="1280" height="90" fill="#1A1A1A"/><text x="640" y="62" font-size="22" font-weight="900" fill="#fff" text-anchor="middle" letter-spacing="4" font-family="Arial,sans-serif">RAYPHONEAI</text><text x="640" y="84" font-size="10" fill="rgba(255,255,255,.7)" text-anchor="middle" letter-spacing="3" font-family="Arial,sans-serif">{cat.upper()}</text><text x="80" y="270" font-size="64" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">{short}</text>{"<text x='80' y='345' font-size='64' font-weight='900' fill='#1A1A1A' font-family='Arial,sans-serif'>"+short2+"</text>" if short2 else ""}</svg>',
+        '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
+        '<rect width="1280" height="670" fill="#fff"/>'
+        '<rect x="0" y="0" width="1280" height="100" fill="#FF6B00"/>'
+        '<rect x="0" y="580" width="1280" height="90" fill="#1A1A1A"/>'
+        + t2(640,62,22,"#fff","RAYPHONEAI","middle")
+        + t2(80,270,64,"#1A1A1A",short) + extra(80,345,64,"#1A1A1A")
+        + "</svg>",
+
         # 8: 白×額縁
-        f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><rect x="30" y="30" width="1220" height="610" fill="none" stroke="#1A1A1A" stroke-width="2"/><rect x="30" y="30" width="300" height="4" fill="#FF6B00"/><rect x="950" y="30" width="300" height="4" fill="#FF6B00"/><text x="640" y="180" font-size="11" fill="#FF6B00" text-anchor="middle" letter-spacing="6" font-family="Arial,sans-serif">{cat.upper()}</text><text x="640" y="320" font-size="62" font-weight="900" fill="#1A1A1A" text-anchor="middle" font-family="Arial,sans-serif">{short}</text>{"<text x='640' y='392' font-size='62' font-weight='900' fill='#1A1A1A' text-anchor='middle' font-family='Arial,sans-serif'>"+short2+"</text>" if short2 else ""}<text x="640" y="490" font-size="12" fill="#bbb" text-anchor="middle" letter-spacing="2" font-family="Arial,sans-serif">RAYPHONEAI</text></svg>',
+        '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
+        '<rect width="1280" height="670" fill="#fff"/>'
+        '<rect x="30" y="30" width="1220" height="610" fill="none" stroke="#1A1A1A" stroke-width="2"/>'
+        '<rect x="30" y="30" width="300" height="4" fill="#FF6B00"/>'
+        '<rect x="950" y="30" width="300" height="4" fill="#FF6B00"/>'
+        + t2(640,180,11,"#FF6B00",cat_u,"middle","700")
+        + t2(640,320,62,"#1A1A1A",short,"middle") + (t2(640,392,62,"#1A1A1A",short2,"middle") if short2 else "")
+        + t2(640,490,12,"#bbb","RAYPHONEAI","middle","400")
+        + "</svg>",
+
         # 9: 白×三角ブラック
-        f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><polygon points="700,0 1280,0 1280,670" fill="#1A1A1A"/><line x1="700" y1="0" x2="1280" y2="670" stroke="#FF6B00" stroke-width="3"/><rect x="0" y="0" width="1280" height="4" fill="#FF6B00"/><text x="60" y="140" font-size="10" fill="#FF6B00" letter-spacing="5" font-weight="700" font-family="Arial,sans-serif">{cat.upper()}</text><text x="60" y="290" font-size="64" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">{short}</text>{"<text x='60' y='364' font-size='64' font-weight='900' fill='#1A1A1A' font-family='Arial,sans-serif'>"+short2+"</text>" if short2 else ""}</svg>',
+        '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
+        '<rect width="1280" height="670" fill="#fff"/>'
+        '<polygon points="700,0 1280,0 1280,670" fill="#1A1A1A"/>'
+        '<line x1="700" y1="0" x2="1280" y2="670" stroke="#FF6B00" stroke-width="3"/>'
+        '<rect x="0" y="0" width="1280" height="4" fill="#FF6B00"/>'
+        + t2(60,140,10,"#FF6B00",cat_u,weight="700") + t2(60,290,64,"#1A1A1A",short) + extra(60,364,64,"#1A1A1A")
+        + "</svg>",
     ]
-    return patterns[idx]
+    return svg[idx]
+
 
 # ── メイン処理 ───────────────────────────────────────────
 def main():
