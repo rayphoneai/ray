@@ -560,5 +560,55 @@ function toggleMenu(){
   </div>
 </footer>
 
+<script>
+// ===== 管理画面から生成された記事をLocalStorageから表示 =====
+(function(){
+  var arts = [];
+  try { arts = JSON.parse(localStorage.getItem('rp_arts') || '[]'); } catch(e){}
+  if (!arts.length) return;
+
+  // 新着記事セクションに追加
+  var grid = document.querySelector('.card-grid');
+  if (!grid) return;
+
+  arts.slice(0, 10).forEach(function(art) {
+    var card = document.createElement('div');
+    card.className = 'art-card';
+    card.id = 'art-' + art.id;
+    card.setAttribute('data-art-id', art.id);
+    var thumb = '';
+    if (art.svg) {
+      thumb = '<div class="art-card-thumb" style="background:#FFF0E3;overflow:hidden;">'
+        + '<img src="data:image/svg+xml;charset=utf-8,' + encodeURIComponent(art.svg)
+        + '" style="width:100%;height:100%;object-fit:cover;" alt="アイキャッチ"></div>';
+    } else {
+      thumb = '<div class="art-card-thumb" style="background:#FFF0E3;">'
+        + '<div class="art-card-thumb-text" style="color:var(--black);">'
+        + (art.title||'').slice(0,20) + '</div></div>';
+    }
+    card.innerHTML = thumb
+      + '<div class="art-card-body">'
+      + '<div class="art-card-cat" style="color:var(--orange);">' + (art.cat||'') + '</div>'
+      + '<div class="art-card-title">' + (art.title||'') + '</div>'
+      + '<div class="art-card-desc">' + (art.content||'').slice(0,80) + '…</div>'
+      + '<div class="art-card-footer">'
+      + '<span class="art-card-date">' + (art.date||'') + '</span>'
+      + '<span class="art-card-tag">新着</span>'
+      + '</div></div>';
+    grid.insertBefore(card, grid.firstChild);
+  });
+
+  // URLパラメータ ?id=xxx でその記事にスクロール
+  var params = new URLSearchParams(window.location.search);
+  var targetId = params.get('id');
+  if (targetId) {
+    var el = document.getElementById('art-' + targetId)
+          || document.querySelector('[data-art-id="' + targetId + '"]');
+    if (el) {
+      setTimeout(function(){ el.scrollIntoView({behavior:'smooth', block:'center'}); el.style.boxShadow='0 0 0 3px var(--orange)'; }, 500);
+    }
+  }
+})();
+</script>
 </body>
 </html>
