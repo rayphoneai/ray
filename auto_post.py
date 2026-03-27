@@ -442,19 +442,39 @@ def post_to_x_actions(content, art_url):
                 log("X: 作成ボタンが見つかりません")
                 page.screenshot(path="debug_x_no_button.png")
 
-            # テキストエリアに入力
+            # テキストエリアに入力（clipboard経由で確実に入力）
             typed = False
             for sel in ['[data-testid="tweetTextarea_0"]', 'div[role="textbox"][aria-multiline="true"]', 'div[contenteditable="true"]']:
                 try:
                     ed = page.locator(sel).first
                     if ed.is_visible(timeout=5000):
                         ed.click()
-                        time.sleep(0.8)
-                        ed.type(tweet, delay=15)
+                        time.sleep(1)
+                        # JavaScriptで直接テキストを挿入（最も確実）
+                        page.evaluate(f"""
+                            const el = document.querySelector('[data-testid="tweetTextarea_0"] div[contenteditable], div[data-testid="tweetTextarea_0"]');
+                            if (el) {{
+                                el.focus();
+                                document.execCommand('selectAll', false, null);
+                                document.execCommand('delete', false, null);
+                                document.execCommand('insertText', false, {json.dumps(tweet)});
+                            }}
+                        """)
                         time.sleep(2)
-                        log(f"X: テキスト入力完了: {sel}")
-                        typed = True
-                        break
+                        # テキストが入力されているか確認
+                        val = ed.inner_text()
+                        log(f"X: テキスト確認 ({len(val)}文字): {val[:30]}...")
+                        if len(val) > 5:
+                            typed = True
+                            log(f"X: テキスト入力完了: {sel}")
+                            break
+                        else:
+                            # フォールバック: type()メソッド
+                            ed.type(tweet, delay=10)
+                            time.sleep(2)
+                            typed = True
+                            log(f"X: テキスト入力完了(type): {sel}")
+                            break
                 except Exception as e:
                     log(f"X: テキストエリア試行失敗 {sel}: {e}")
                     continue
@@ -465,19 +485,41 @@ def post_to_x_actions(content, art_url):
                 browser.close()
                 return
 
-            # 投稿ボタンクリック
+            # 投稿ボタンが有効になるまで待つ（テキスト入力後に有効化される）
+            time.sleep(2)
             posted = False
             for sel in ['[data-testid="tweetButton"]', '[data-testid="tweetButtonInline"]', 'button:has-text("ポストする")', 'button:has-text("Post")']:
                 try:
                     btn = page.locator(sel).last
-                    if btn.is_visible(timeout=3000):
-                        btn.scroll_into_view_if_needed()
-                        time.sleep(0.3)
-                        btn.click()
-                        time.sleep(3)
-                        log(f"✓ X投稿完了: {sel}")
-                        posted = True
-                        break
+                    # まず存在確認（タイムアウト短め）
+                    if not btn.is_visible(timeout=3000):
+                        continue
+                    # disabled でないか確認
+                    disabled = btn.get_attribute("disabled")
+                    aria_disabled = btn.get_attribute("aria-disabled")
+                    log(f"X: ボタン確認 {sel} disabled={disabled} aria-disabled={aria_disabled}")
+                    if disabled is not None or aria_disabled == "true":
+                        log(f"X: ボタンがdisabled → テキスト再入力を試みます")
+                        # テキストが入っていないので再度入力
+                        try:
+                            ed = page.locator('[data-testid="tweetTextarea_0"]').first
+                            ed.click()
+                            time.sleep(0.5)
+                            page.evaluate(f"""
+                                const el = document.querySelector('[data-testid="tweetTextarea_0"] div[contenteditable]') || document.querySelector('div[data-testid="tweetTextarea_0"]');
+                                if (el) {{ el.focus(); document.execCommand('insertText', false, {json.dumps(tweet)}); }}
+                            """)
+                            time.sleep(2)
+                        except Exception:
+                            pass
+                        continue
+                    btn.scroll_into_view_if_needed()
+                    time.sleep(0.3)
+                    btn.click()
+                    time.sleep(3)
+                    log(f"✓ X投稿完了: {sel}")
+                    posted = True
+                    break
                 except Exception as e:
                     log(f"X: 投稿ボタン試行失敗 {sel}: {e}")
                     continue
@@ -492,24 +534,40 @@ def post_to_x_actions(content, art_url):
 
 
 def post_to_note_api(title: str, body: str, art_url: str) -> dict:
-    """note.com非公式APIで記事を投稿（GitHub Actions向け）"""
+    """note.com APIで記事を投稿（GitHub Actions向け）"""
     session = requests.Session()
     session.headers.update({
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "ja,en;q=0.9",
         "Referer": "https://note.com/",
         "Origin": "https://note.com",
     })
 
-    # 1. セッションCookieを取得
+    # 1. ログインページにアクセスしてCSRFトークンを取得
     r = session.get("https://note.com/login", timeout=15)
-    if r.status_code != 200:
-        return {"ok": False, "message": f"note.comアクセス失敗: {r.status_code}"}
+    log(f"note: ログインページ {r.status_code}")
 
-    # 2. ログイン
+    # 2. ログイン（新エンドポイント）
     login_data = {"login": NOTE_EMAIL, "password": NOTE_PASSWORD}
-    r = session.post("https://note.com/api/v1/sessions", json=login_data, timeout=15)
+    r = session.post(
+        "https://note.com/api/v3/users/sign_in",
+        json=login_data,
+        headers={"Content-Type": "application/json"},
+        timeout=15
+    )
+    log(f"note: ログイン試行 status={r.status_code}")
     if r.status_code not in (200, 201):
-        return {"ok": False, "message": f"noteログイン失敗: {r.status_code} {r.text[:200]}"}
+        # v2も試す
+        r = session.post(
+            "https://note.com/api/v2/sessions",
+            json={"login": NOTE_EMAIL, "password": NOTE_PASSWORD},
+            timeout=15
+        )
+        log(f"note: v2ログイン試行 status={r.status_code}")
+        if r.status_code not in (200, 201):
+            return {"ok": False, "message": f"noteログイン失敗: {r.status_code} {r.text[:300]}"}
+
     log("note API: ログイン成功")
 
     # 3. 下書き作成
@@ -521,22 +579,30 @@ def post_to_note_api(title: str, body: str, art_url: str) -> dict:
             "status": "draft",
         }
     }
-    r = session.post("https://note.com/api/v1/text_notes", json=note_data, timeout=30)
+    r = session.post(
+        "https://note.com/api/v1/text_notes",
+        json=note_data,
+        timeout=30
+    )
+    log(f"note: 下書き作成 status={r.status_code}")
     if r.status_code not in (200, 201):
         return {"ok": False, "message": f"note下書き作成失敗: {r.status_code} {r.text[:200]}"}
 
     note_key = r.json().get("data", {}).get("key", "")
     if not note_key:
-        return {"ok": False, "message": "note記事キーが取得できませんでした"}
+        return {"ok": False, "message": f"note記事キーが取得できませんでした: {r.text[:200]}"}
     log(f"note API: 下書き作成完了 key={note_key}")
 
     # 4. 公開
     publish_data = {"draft": {"status": "published"}}
     r = session.put(f"https://note.com/api/v1/text_notes/{note_key}", json=publish_data, timeout=15)
+    log(f"note: 公開 status={r.status_code}")
     if r.status_code not in (200, 201):
         return {"ok": False, "message": f"note公開失敗: {r.status_code} {r.text[:200]}"}
 
-    note_url = f"https://note.com/{r.json().get('data', {}).get('user', {}).get('urlname', '')}/n/{note_key}"
+    data = r.json().get("data", {})
+    urlname = data.get("user", {}).get("urlname", "") or data.get("user", {}).get("nickname", "")
+    note_url = f"https://note.com/{urlname}/n/{note_key}" if urlname else f"https://note.com/n/{note_key}"
     log(f"✓ note API投稿完了: {note_url}")
     return {"ok": True, "message": "note投稿完了", "url": note_url}
 
