@@ -105,19 +105,17 @@ def post_to_note(title: str, body: str, svg_code: str = None,
 
             try:
                 # メール欄に入力
-                email_input = page.locator('input').first
+                email_input = page.locator('input[type="email"], input[name="email"], input').first
+                email_input.wait_for(state="visible", timeout=10000)
                 email_input.click()
                 time.sleep(0.5)
                 email_input.fill(NOTE_EMAIL)
                 print(f"  メール入力完了: {NOTE_EMAIL[:6]}...")
                 time.sleep(0.8)
 
-                # Tabキーでパスワード欄へ移動
-                page.keyboard.press("Tab")
-                time.sleep(0.5)
-
                 # パスワード入力
                 pass_input = page.locator('input[type="password"]').first
+                pass_input.wait_for(state="visible", timeout=5000)
                 pass_input.click()
                 time.sleep(0.3)
                 pass_input.fill(NOTE_PASSWORD)
@@ -128,26 +126,40 @@ def post_to_note(title: str, body: str, svg_code: str = None,
                 page.screenshot(path="debug_before_submit.png")
                 print("  送信前スクリーンショット保存: debug_before_submit.png")
 
-                # Enterで送信
-                pass_input.press("Enter")
-                print("  Enterキーで送信")
+                # 送信：複数の方法を試す
+                submitted = False
+                # 1. ボタンクリックを最初に試す
+                for sel in ['button[type="submit"]', 'button:has-text("ログイン")', 'button:has-text("次へ")', 'input[type="submit"]']:
+                    try:
+                        b = page.locator(sel).first
+                        if b.is_visible(timeout=2000):
+                            b.click()
+                            print(f"  ボタンクリック: {sel}")
+                            submitted = True
+                            break
+                    except Exception:
+                        continue
+                # 2. ボタンが見つからなければEnterで送信
+                if not submitted:
+                    pass_input.press("Enter")
+                    print("  Enterキーで送信")
                 time.sleep(3)
 
-                # ログインページから離脱するまで最大30秒待機
-                for i in range(30):
+                # ログインページから離脱するまで最大40秒待機
+                for i in range(40):
                     time.sleep(1)
                     cur = page.url
                     if "/login" not in cur:
                         print(f"  ✓ ログイン成功: {cur}")
                         break
                     print(f"  待機 {i+1}秒... {cur}")
-                    # 10秒後にまだログインページならボタンをクリック
-                    if i == 9:
-                        print("  ボタンクリックを試みます...")
-                        for sel in ['button[type="submit"]','button:has-text("ログイン")','button:has-text("次へ")']:
+                    # 15秒後にまだログインページなら再度ボタンクリック
+                    if i == 14:
+                        print("  再送信を試みます...")
+                        for sel in ['button[type="submit"]', 'button:has-text("ログイン")', 'button:has-text("次へ")']:
                             try:
                                 b = page.locator(sel).first
-                                if b.count() > 0 and b.is_visible(timeout=500):
+                                if b.is_visible(timeout=1000):
                                     b.click()
                                     print(f"  クリック: {sel}")
                                     break
@@ -796,18 +808,20 @@ def post_to_x(tweet_text: str) -> dict:
                     continue
 
             # テキストエリアに入力
-            # 句読点・文末で自然に切る（Xは280文字制限）
+            # 。で必ず終わるよう句点を探す（Xは280文字制限）
             _url_part = "\n\n" + card_url if card_url else ""
             _max_body = 275 - len(_url_part)
-            _body = tweet_text
-            if len(_body) > _max_body:
-                _cut = _max_body
-                for _e in ["。", "！", "？", "\n", "、"]:
-                    _p = _body.rfind(_e, 0, _max_body)
-                    if _p > int(_max_body * 0.6):
-                        _cut = _p + 1
+            _pos = tweet_text.rfind("。", 0, _max_body)
+            if _pos > 0:
+                _body = tweet_text[:_pos + 1]
+            else:
+                for _e in ["！", "？"]:
+                    _p = tweet_text.rfind(_e, 0, _max_body)
+                    if _p > 0:
+                        _body = tweet_text[:_p + 1]
                         break
-                _body = _body[:_cut].rstrip()
+                else:
+                    _body = tweet_text[:_max_body].rstrip()
             tweet_text_trimmed = _body + _url_part
             editor_typed = False
             for sel in [
@@ -968,18 +982,20 @@ def post_to_x(tweet_text: str) -> dict:
                     continue
 
             # テキストエリアに入力
-            # 句読点・文末で自然に切る（Xは280文字制限）
+            # 。で必ず終わるよう句点を探す（Xは280文字制限）
             _url_part = "\n\n" + card_url if card_url else ""
             _max_body = 275 - len(_url_part)
-            _body = tweet_text
-            if len(_body) > _max_body:
-                _cut = _max_body
-                for _e in ["。", "！", "？", "\n", "、"]:
-                    _p = _body.rfind(_e, 0, _max_body)
-                    if _p > int(_max_body * 0.6):
-                        _cut = _p + 1
+            _pos = tweet_text.rfind("。", 0, _max_body)
+            if _pos > 0:
+                _body = tweet_text[:_pos + 1]
+            else:
+                for _e in ["！", "？"]:
+                    _p = tweet_text.rfind(_e, 0, _max_body)
+                    if _p > 0:
+                        _body = tweet_text[:_p + 1]
                         break
-                _body = _body[:_cut].rstrip()
+                else:
+                    _body = tweet_text[:_max_body].rstrip()
             tweet_text_trimmed = _body + _url_part
             editor_typed = False
             for sel in [
@@ -1250,18 +1266,20 @@ def post_to_x(tweet_text: str) -> dict:
                     pass
 
             # テキスト入力（280文字制限を考慮）
-            # 句読点・文末で自然に切る（Xは280文字制限）
+            # 。で必ず終わるよう句点を探す（Xは280文字制限）
             _url_part = "\n\n" + card_url if card_url else ""
             _max_body = 275 - len(_url_part)
-            _body = tweet_text
-            if len(_body) > _max_body:
-                _cut = _max_body
-                for _e in ["。", "！", "？", "\n", "、"]:
-                    _p = _body.rfind(_e, 0, _max_body)
-                    if _p > int(_max_body * 0.6):
-                        _cut = _p + 1
+            _pos = tweet_text.rfind("。", 0, _max_body)
+            if _pos > 0:
+                _body = tweet_text[:_pos + 1]
+            else:
+                for _e in ["！", "？"]:
+                    _p = tweet_text.rfind(_e, 0, _max_body)
+                    if _p > 0:
+                        _body = tweet_text[:_p + 1]
                         break
-                _body = _body[:_cut].rstrip()
+                else:
+                    _body = tweet_text[:_max_body].rstrip()
             tweet_text_trimmed = _body + _url_part
             # エディタに確実にフォーカスを当ててから入力
             try:
