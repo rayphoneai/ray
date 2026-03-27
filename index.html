@@ -501,8 +501,7 @@ function toggleMenu(){
 var cfg = {};
 try{ cfg = JSON.parse(localStorage.getItem('rp_cfg')||'{}'); }catch(e){}
 var noteUrl     = cfg.noteUrl     || 'https://note.com/rayphone';
-  var noteShopUrl = cfg.noteShopUrl || cfg.noteUrl || 'https://note.com/rayphone';
-  // デバッグ用（コンソールで確認可能）
+  var noteShopUrl = cfg.noteShopUrl || 'https://note.com/rayphone/n/nf6e5688f3939';
   console.log('noteShopUrl:', noteShopUrl);
 var xUrl    = cfg.xUrl    || 'https://x.com/rayphone';
 var blogUrl = cfg.blogUrl || location.origin + location.pathname;
