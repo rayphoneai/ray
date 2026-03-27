@@ -104,42 +104,64 @@ def post_to_note(title: str, body: str, svg_code: str = None,
             time.sleep(3)
 
             try:
-                # メール欄に入力
-                email_input = page.locator('input[type="email"], input[name="email"], input').first
-                email_input.wait_for(state="visible", timeout=10000)
+                # ログインページが完全に読み込まれるまで待機
+                page.wait_for_load_state("networkidle", timeout=10000)
+                time.sleep(2)
+
+                # メール欄を探して入力（複数セレクタ試行）
+                email_input = None
+                for sel in ['input[name="email"]', 'input[type="email"]', 'input[placeholder*="mail"]', 'input[placeholder*="note"]', 'form input:first-of-type']:
+                    try:
+                        el = page.locator(sel).first
+                        if el.is_visible(timeout=3000):
+                            email_input = el
+                            print(f"  メール欄発見: {sel}")
+                            break
+                    except Exception:
+                        continue
+                if not email_input:
+                    # フォールバック: 最初のinput
+                    email_input = page.locator('input').first
+
                 email_input.click()
                 time.sleep(0.5)
-                email_input.fill(NOTE_EMAIL)
-                print(f"  メール入力完了: {NOTE_EMAIL[:6]}...")
-                time.sleep(0.8)
+                # fill()とtype()両方試す
+                email_input.fill("")
+                email_input.type(NOTE_EMAIL, delay=50)
+                time.sleep(0.5)
+                # 入力確認
+                val = email_input.input_value()
+                print(f"  メール入力: {val[:6]}... ({len(val)}文字)")
+                time.sleep(0.5)
 
                 # パスワード入力
                 pass_input = page.locator('input[type="password"]').first
                 pass_input.wait_for(state="visible", timeout=5000)
                 pass_input.click()
                 time.sleep(0.3)
-                pass_input.fill(NOTE_PASSWORD)
-                print("  パスワード入力完了")
-                time.sleep(1)
+                pass_input.fill("")
+                pass_input.type(NOTE_PASSWORD, delay=50)
+                time.sleep(0.5)
+                pval = pass_input.input_value()
+                print(f"  パスワード入力: {'*' * len(pval)} ({len(pval)}文字)")
+                time.sleep(0.5)
 
-                # スクリーンショット（入力確認用）
+                # スクリーンショット
                 page.screenshot(path="debug_before_submit.png")
                 print("  送信前スクリーンショット保存: debug_before_submit.png")
 
-                # 送信：複数の方法を試す
+                # ログインボタンをクリック
                 submitted = False
-                # 1. ボタンクリックを最初に試す
-                for sel in ['button[type="submit"]', 'button:has-text("ログイン")', 'button:has-text("次へ")', 'input[type="submit"]']:
+                for sel in ['button[type="submit"]', 'button:has-text("ログイン")', 'button:has-text("Log in")', 'input[type="submit"]']:
                     try:
                         b = page.locator(sel).first
                         if b.is_visible(timeout=2000):
                             b.click()
-                            print(f"  ボタンクリック: {sel}")
+                            print(f"  ログインボタンクリック: {sel}")
                             submitted = True
                             break
                     except Exception:
                         continue
-                # 2. ボタンが見つからなければEnterで送信
                 if not submitted:
                     pass_input.press("Enter")
                     print("  Enterキーで送信")
@@ -153,10 +175,9 @@ def post_to_note(title: str, body: str, svg_code: str = None,
                         print(f"  ✓ ログイン成功: {cur}")
                         break
                     print(f"  待機 {i+1}秒... {cur}")
-                    # 15秒後にまだログインページなら再度ボタンクリック
                     if i == 14:
                         print("  再送信を試みます...")
-                        for sel in ['button[type="submit"]', 'button:has-text("ログイン")', 'button:has-text("次へ")']:
+                        for sel in ['button[type="submit"]', 'button:has-text("ログイン")']:
                             try:
                                 b = page.locator(sel).first
                                 if b.is_visible(timeout=1000):
