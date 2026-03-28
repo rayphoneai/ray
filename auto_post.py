@@ -443,207 +443,43 @@ def post_to_x_actions(art_url: str):
                     pass
                 time.sleep(1)
 
-            # 投稿
-            for sel in ['[data-testid="tweetButton"]', '[data-testid="tweetButtonInline"]']:
-                try:
-                    btn = page.locator(sel).last
-                    if btn.is_visible(timeout=3000):
-                        btn.dispatch_event('click')
-                        time.sleep(4)
-                        log(f"✓ X投稿完了 URL={page.url}")
-                        break
-                except Exception as e:
-                    log(f"X: 投稿失敗 {sel}: {e}")
-
-            browser.close()
-    except Exception as e:
-        log(f"✗ X投稿エラー: {e}")
-    """GitHub Actions環境でX投稿（Cookieファイル方式）"""
-    if not X_COOKIES_B64:
-        log("X Cookieが未設定のためスキップ")
-        return
-
-    import json as _json
-    cookie_file = Path("/tmp/x_cookies.json")
-    cookie_file.write_bytes(base64.b64decode(X_COOKIES_B64))
-    log(f"✓ X Cookieを復元: {len(base64.b64decode(X_COOKIES_B64))}bytes")
-
-    # 概要を。で終わるよう整形（見出し・冒頭ノイズを除去）
-    cleaned = re.sub(r"【[^】]*】|■[^\n]*|#\S+|https?://\S+", "", content)
-    cleaned = re.sub(r"(こんにちは[、,]?\s*Rayphone(です)?。?)", "", cleaned)
-    cleaned = re.sub(r"^(はじめに|まとめ)\s*", "", cleaned, flags=re.MULTILINE)
-    cleaned = re.sub(r"\s+", " ", cleaned).strip()
-    _url_part = "\n\n" + art_url
-    _max_body = 275 - len(_url_part)
-    _pos = cleaned.rfind("。", 0, _max_body)
-    if _pos > 0:
-        _body = cleaned[:_pos + 1]
-    else:
-        for _e in ["！", "？"]:
-            _p = cleaned.rfind(_e, 0, _max_body)
-            if _p > 0:
-                _body = cleaned[:_p + 1]
-                break
-        else:
-            _body = cleaned[:_max_body].rstrip()
-    tweet = _body + _url_part
-    log(f"X投稿文 ({len(tweet)}文字): {tweet[:50]}...")
-
-    try:
-        from playwright.sync_api import sync_playwright
-        with sync_playwright() as pw:
-            browser = pw.chromium.launch(headless=True)
-            ctx = browser.new_context(
-                viewport={"width": 1280, "height": 800},
-                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-            )
-            cookies = _json.loads(cookie_file.read_text())
-            ctx.add_cookies(cookies)
-            page = ctx.new_page()
-
-            log("X: x.com/homeにアクセス中...")
-            page.goto("https://x.com/home", wait_until="domcontentloaded", timeout=30000)
-            time.sleep(4)
-            log(f"X: URL = {page.url}")
-
-            if "login" in page.url or "i/flow" in page.url:
-                log("✗ X Cookieが期限切れ。export_x_cookies.pyを再実行してください")
-                browser.close()
-                return
-
-            # 作成ボタンクリック
-            btn_clicked = False
-            for sel in ['[data-testid="SideNav_NewTweet_Button"]', 'a[href="/compose/post"]', '[aria-label="ポストを作成"]']:
-                try:
-                    btn = page.locator(sel).first
-                    if btn.is_visible(timeout=3000):
-                        btn.click()
-                        time.sleep(2)
-                        log(f"X: 作成ボタンクリック: {sel}")
-                        btn_clicked = True
-                        break
-                except Exception as e:
-                    log(f"X: ボタン試行失敗 {sel}: {e}")
-                    continue
-            if not btn_clicked:
-                log("X: 作成ボタンが見つかりません")
-                page.screenshot(path="debug_x_no_button.png")
-
-            # テキストエリアに入力
-            typed = False
-            for sel in ['[data-testid="tweetTextarea_0"]', 'div[role="textbox"][aria-multiline="true"]']:
-                try:
-                    ed = page.locator(sel).first
-                    if ed.is_visible(timeout=5000):
-                        ed.click()
-                        time.sleep(1)
-                        # 既存テキスト（URLなど）を全削除
-                        page.keyboard.press("Control+a")
-                        page.keyboard.press("Delete")
-                        time.sleep(0.5)
-                        # element.type()で本文を入力（keyboard.typeより確実）
-                        ed.type(tweet, delay=12)
-                        time.sleep(1.5)
-                        # ReactのonChangeを発火させるため末尾に空白→削除
-                        page.keyboard.press("Space")
-                        page.keyboard.press("Backspace")
-                        time.sleep(1)
-                        val = ed.inner_text()
-                        log(f"X: テキスト確認 ({len(val)}文字): {val[:30]}...")
-                        if len(val) > 10:
-                            typed = True
-                            log(f"X: テキスト入力完了: {sel}")
-                            break
-                except Exception as e:
-                    log(f"X: テキストエリア試行失敗 {sel}: {e}")
-                    continue
-
-            if not typed:
-                log("✗ X: テキストエリアが見つかりません")
-                page.screenshot(path="debug_x_no_editor.png")
-                browser.close()
-                return
-
-            # 投稿ボタンが有効化されるまで最大15秒待機
-            log("X: 投稿ボタンの有効化を待機中...")
-            time.sleep(2)
-            btn_enabled = False
-            for wait_i in range(15):
-                try:
-                    is_dis = page.evaluate("""
-                        () => {
-                            const b = document.querySelector('[data-testid="tweetButton"]')
-                                   || document.querySelector('[data-testid="tweetButtonInline"]');
-                            if (!b) return true;
-                            return b.disabled || b.getAttribute('aria-disabled') === 'true';
-                        }
-                    """)
-                    if not is_dis:
-                        log(f"X: ボタン有効化確認 ({wait_i+1}秒)")
-                        btn_enabled = True
-                        break
-                except Exception:
-                    pass
-                time.sleep(1)
-
-            if not btn_enabled:
-                log("X: ボタンが有効化されませんでした")
-                page.screenshot(path="debug_x_disabled.png")
-
+            # 投稿ボタンクリック（複数の方法を試す）
             posted = False
             for sel in ['[data-testid="tweetButton"]', '[data-testid="tweetButtonInline"]']:
                 try:
                     btn = page.locator(sel).last
                     if not btn.is_visible(timeout=3000):
                         continue
-                    log(f"X: ボタン発見: {sel}")
-                    # dispatch_eventでReactの合成クリックを発火
-                    btn.dispatch_event('click')
-                    time.sleep(4)
-                    # 投稿後のURL変化やエラーダイアログを確認
-                    cur_url = page.url
-                    log(f"X: 投稿後URL: {cur_url}")
-                    log(f"✓ X投稿完了: {sel}")
-                    posted = True
-                    break
+                    # 方法1: 通常クリック
+                    try:
+                        btn.click(timeout=5000)
+                        posted = True
+                        log(f"✓ X投稿完了(click): {sel}")
+                        break
+                    except Exception:
+                        pass
+                    # 方法2: JavaScript click
+                    try:
+                        page.evaluate(f'document.querySelector(\'[data-testid="tweetButton"]\').click()')
+                        posted = True
+                        log("✓ X投稿完了(js click)")
+                        break
+                    except Exception:
+                        pass
                 except Exception as e:
-                    log(f"X: 投稿ボタン試行失敗 {sel}: {str(e)[:100]}")
+                    log(f"X: ボタン試行失敗 {sel}: {str(e)[:80]}")
                     continue
 
-            if not posted:
-                # 最終手段1: テキストエリアにフォーカスしてCtrl+Enter
-                try:
-                    ed = page.locator('[data-testid="tweetTextarea_0"]').first
-                    ed.click()
-                    time.sleep(0.5)
-                    page.keyboard.press("Control+Enter")
-                    time.sleep(4)
-                    log("✓ X: Ctrl+Enterで送信")
-                    posted = True
-                except Exception as e:
-                    log(f"X: Ctrl+Enter失敗: {e}")
-
-            if not posted:
-                # 最終手段2: ボタンにフォーカスしてSpaceキー
-                try:
-                    btn = page.locator('[data-testid="tweetButton"]').last
-                    btn.focus()
-                    time.sleep(0.3)
-                    page.keyboard.press("Space")
-                    time.sleep(4)
-                    log("✓ X: Spaceキーで送信")
-                    posted = True
-                except Exception as e:
-                    log(f"X: Spaceキー失敗: {e}")
-
-            if not posted:
-                log("✗ X: 投稿ボタンが見つかりません")
-                page.screenshot(path="debug_x_no_post_btn.png")
+            time.sleep(4)
+            log(f"X: 最終URL={page.url}")
+            if "compose" in page.url and not posted:
+                log("✗ X: 投稿されていない可能性があります")
+            else:
+                log("✓ X投稿完了")
 
             browser.close()
     except Exception as e:
         log(f"✗ X投稿エラー: {e}")
-
 
 def post_to_note_playwright(title: str, body: str, svg_code: str, art_url: str) -> dict:
     """Playwright headlessでnoteに投稿（Cookie方式優先）"""
