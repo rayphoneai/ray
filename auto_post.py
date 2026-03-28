@@ -447,33 +447,39 @@ def post_to_x_actions(content, art_url):
                     if ed.is_visible(timeout=5000):
                         ed.click()
                         time.sleep(1)
-                        # execCommand('insertText')でReactのonChangeを確実に発火
-                        # これはローカル環境で動作実績あり
-                        page.evaluate(f"""
-                            (text) => {{
+                        # まず既存テキストを全削除
+                        page.keyboard.press("Control+a")
+                        page.keyboard.press("Delete")
+                        time.sleep(0.5)
+                        # execCommand('insertText')でReactのonChangeを発火
+                        page.evaluate("""
+                            (text) => {
                                 const el = document.querySelector('[data-testid="tweetTextarea_0"] div[contenteditable]')
-                                         || document.querySelector('div[data-testid="tweetTextarea_0"]')
                                          || document.querySelector('div[role="textbox"]');
-                                if (el) {{
+                                if (el) {
                                     el.focus();
                                     document.execCommand('selectAll', false, null);
                                     document.execCommand('insertText', false, text);
-                                }}
-                            }}
+                                }
+                            }
                         """, tweet)
                         time.sleep(2)
                         val = ed.inner_text()
                         log(f"X: テキスト確認 ({len(val)}文字): {val[:30]}...")
-                        if len(val) > 5:
+                        if len(val) > 10:
                             typed = True
                             log(f"X: テキスト入力完了: {sel}")
                             break
                         else:
-                            # fallback: element.type()
-                            ed.type(tweet, delay=15)
+                            # fallback: element.type()で入力
+                            page.keyboard.press("Control+a")
+                            page.keyboard.press("Delete")
+                            time.sleep(0.3)
+                            ed.type(tweet, delay=10)
                             time.sleep(2)
                             val2 = ed.inner_text()
-                            if len(val2) > 5:
+                            log(f"X: type()確認 ({len(val2)}文字)")
+                            if len(val2) > 10:
                                 typed = True
                                 log(f"X: テキスト入力完了(type): {sel}")
                                 break
@@ -760,10 +766,10 @@ with sync_playwright() as pw:
                 return {"ok": False, "message": "note公開ボタンが見つかりません"}
 
             confirm_clicked = False
-            for sel in ['button:has-text("投稿する")', 'button:has-text("今すぐ公開")', 'button:has-text("公開する")']:
+            for sel in ['button:has-text("投稿する")', 'button:has-text("今すぐ公開")', 'button:has-text("公開する")', 'button:has-text("公開")', 'button[type="submit"]']:
                 try:
                     b = page.locator(sel).first
-                    if b.is_visible(timeout=5000):
+                    if b.is_visible(timeout=8000):
                         b.click()
                         log(f"note: 投稿確認: {sel}")
                         time.sleep(4)
