@@ -22,6 +22,7 @@ NOTE_PASSWORD  = os.getenv("NOTE_PASSWORD", "")
 BLOG_URL       = os.getenv("BLOG_URL", "https://rayphoneai.github.io/ray/").rstrip("/")
 NOTE_URL       = os.getenv("NOTE_URL", "https://note.com/rayphone")
 NOTE_SHOP_URL  = os.getenv("NOTE_SHOP_URL", NOTE_URL)
+NOTE_COOKIES_B64 = os.getenv("NOTE_COOKIES_B64", "")  # noteのCookie（GitHub Secret）
 GH_TOKEN       = os.getenv("GH_TOKEN", "")
 GH_USER        = os.getenv("GH_USER", "rayphoneai")
 GH_REPO        = os.getenv("GH_REPO", "ray")
@@ -502,8 +503,157 @@ def post_to_x_actions(content, art_url):
 
 
 def post_to_note_playwright(title: str, body: str, svg_code: str, art_url: str) -> dict:
-    """Playwright headlessでnoteに投稿（GitHub Actions向け）"""
-    log("note: Playwright headlessで投稿を試みます...")
+    """Playwright headlessでnoteに投稿（Cookie方式優先）"""
+    log("note: 投稿を開始します...")
+    try:
+        from playwright.sync_api import sync_playwright
+        import json as _json
+        with sync_playwright() as pw:
+            browser = pw.chromium.launch(
+                headless=True,
+                args=["--no-sandbox", "--disable-dev-shm-usage"]
+            )
+            ctx = browser.new_context(
+                viewport={"width": 1280, "height": 900},
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+            )
+
+            # Cookie方式（GitHub Actions向け）
+            if NOTE_COOKIES_B64:
+                try:
+                    cookies = _json.loads(base64.b64decode(NOTE_COOKIES_B64).decode())
+                    ctx.add_cookies(cookies)
+                    log(f"note: Cookie読み込み {len(cookies)}件")
+                except Exception as e:
+                    log(f"note: Cookie読み込みエラー: {e}")
+
+            page = ctx.new_page()
+
+            # セッション確認
+            page.goto("https://note.com/", wait_until="domcontentloaded", timeout=20000)
+            time.sleep(2)
+            log(f"note: トップページ URL={page.url}")
+
+            # ログイン確認（Cookie未使用 or 期限切れの場合）
+            is_logged_in = False
+            try:
+                # ログイン済みならアバターや投稿ボタンが見える
+                if page.locator('a[href*="/notes/new"], [data-testid="post-button"], a[href="/login"]').count() > 0:
+                    login_link = page.locator('a[href="/login"]')
+                    is_logged_in = not login_link.is_visible(timeout=2000)
+                else:
+                    is_logged_in = "/login" not in page.url
+            except Exception:
+                is_logged_in = "/login" not in page.url
+
+            if not is_logged_in:
+                log("note: Cookie無効 → ログインを試みます")
+                page.goto("https://note.com/login", wait_until="domcontentloaded", timeout=20000)
+                time.sleep(3)
+
+                for sel in ['input[placeholder*="mail"]', 'input[type="email"]', 'input[name="email"]']:
+                    try:
+                        el = page.locator(sel).first
+                        if el.is_visible(timeout=3000):
+                            el.type(NOTE_EMAIL, delay=40)
+                            break
+                    except Exception:
+                        continue
+
+                pw_el = page.locator('input[type="password"]').first
+                pw_el.wait_for(state="visible", timeout=5000)
+                pw_el.type(NOTE_PASSWORD, delay=40)
+                time.sleep(0.5)
+
+                for sel in ['button[type="submit"]', 'button:has-text("ログイン")']:
+                    try:
+                        b = page.locator(sel).first
+                        if b.is_visible(timeout=2000):
+                            b.click()
+                            break
+                    except Exception:
+                        continue
+
+                for i in range(60):
+                    time.sleep(1)
+                    if "/login" not in page.url:
+                        log(f"note: ログイン成功 ({i+1}秒)")
+                        break
+                    if i % 10 == 9:
+                        log(f"note: ログイン待機 {i+1}秒... {page.url}")
+                else:
+                    browser.close()
+                    return {"ok": False, "message": "noteログイン失敗（Cookie期限切れ。export_note_cookies.pyを再実行してください）"}
+            else:
+                log("note: Cookie認証成功")
+
+            time.sleep(2)
+
+            # 新規記事ページ
+            log("note: 新規記事ページへ...")
+            page.goto("https://note.com/notes/new", wait_until="domcontentloaded", timeout=30000)
+            time.sleep(4)
+            log(f"note: エディタURL={page.url}")
+
+            if "/login" in page.url:
+                browser.close()
+                return {"ok": False, "message": "noteセッション切れ"}
+
+            # タイトル入力
+            for sel in ['[placeholder*="タイトル"]', 'input.title', 'textarea']:
+                try:
+                    t = page.locator(sel).first
+                    if t.is_visible(timeout=3000):
+                        t.click()
+                        t.type(title, delay=20)
+                        log(f"note: タイトル入力完了")
+                        break
+                except Exception:
+                    continue
+
+            # 本文入力
+            page.keyboard.press("Tab")
+            time.sleep(0.5)
+            try:
+                for line in body.split("\n"):
+                    page.keyboard.type(line, delay=3)
+                    page.keyboard.press("Enter")
+                log(f"note: 本文入力完了 ({len(body)}文字)")
+            except Exception as e:
+                log(f"note: 本文入力エラー {e}")
+
+            time.sleep(2)
+
+            # 公開
+            for sel in ['button:has-text("公開に進む")', 'button:has-text("投稿設定へ")']:
+                try:
+                    b = page.locator(sel).first
+                    if b.is_visible(timeout=5000):
+                        b.click()
+                        log(f"note: 公開ボタン: {sel}")
+                        time.sleep(3)
+                        break
+                except Exception:
+                    continue
+
+            for sel in ['button:has-text("投稿する")', 'button:has-text("今すぐ公開")', 'button:has-text("公開する")']:
+                try:
+                    b = page.locator(sel).first
+                    if b.is_visible(timeout=5000):
+                        b.click()
+                        log(f"note: 投稿確認: {sel}")
+                        time.sleep(3)
+                        break
+                except Exception:
+                    continue
+
+            note_url = page.url
+            browser.close()
+            log(f"✓ note投稿完了: {note_url}")
+            return {"ok": True, "message": "note投稿完了", "url": note_url}
+
+    except Exception as e:
+        return {"ok": False, "message": f"note Playwright エラー: {e}"}
     try:
         from playwright.sync_api import sync_playwright
         with sync_playwright() as pw:
