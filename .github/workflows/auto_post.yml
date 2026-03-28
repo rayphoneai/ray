@@ -7,6 +7,10 @@ on:
     - cron: '0 12 * * *'   # 毎日 21:00 JST (12:00 UTC)
   workflow_dispatch:        # 手動実行ボタン
 
+concurrency:
+  group: auto-post
+  cancel-in-progress: false
+
 permissions:
   contents: write           # articles.jsonのプッシュに必要
 
