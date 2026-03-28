@@ -126,97 +126,99 @@ def generate_eyecatch_svg(title, cat, art_id):
         return t2(x, y, size, color, short2)
 
     svg = [
-        # 0: 白×左オレンジ縦帯
+        # 0: 白×左オレンジ縦帯（テキスト中央白エリア）
         '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
         '<rect width="1280" height="670" fill="#fff"/>'
-        '<rect x="0" y="0" width="6" height="670" fill="#FF6B00"/>'
-        '<circle cx="1000" cy="335" r="220" fill="none" stroke="rgba(255,107,0,.12)" stroke-width="40"/>'
+        '<rect x="0" y="0" width="8" height="670" fill="#FF6B00"/>'
         '<rect x="0" y="600" width="1280" height="70" fill="#1A1A1A"/>'
-        + t2(50,140,10,"#FF6B00",cat_u,weight="700") + t2(50,280,60,"#1A1A1A",short) + extra(50,350,60,"#1A1A1A")
-        + t2(50,638,13,"#FF6B00","RayPhoneAI",weight="700") + "</svg>",
+        + t2(80,120,10,"#FF6B00",cat_u,weight="700") + t2(80,260,62,"#1A1A1A",short) + extra(80,332,62,"#1A1A1A")
+        + t2(80,638,13,"#FF6B00","RayPhoneAI",weight="700") + "</svg>",
 
-        # 1: 白×右ハーフブラック
+        # 1: 白左半分×黒右半分（テキストは必ず白背景左側）
         '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
         '<rect width="1280" height="670" fill="#fff"/>'
-        '<rect x="700" y="0" width="580" height="670" fill="#1A1A1A"/>'
+        '<rect x="650" y="0" width="630" height="670" fill="#1A1A1A"/>'
         '<rect x="0" y="0" width="1280" height="4" fill="#FF6B00"/>'
-        '<rect x="700" y="0" width="4" height="670" fill="#FF6B00"/>'
-        + t2(50,140,10,"#FF6B00",cat_u,weight="700") + t2(50,280,60,"#1A1A1A",short) + extra(50,350,60,"#1A1A1A")
-        + "</svg>",
+        '<rect x="648" y="0" width="4" height="670" fill="#FF6B00"/>'
+        + t2(50,120,10,"#FF6B00",cat_u,weight="700") + t2(50,270,58,"#1A1A1A",short) + extra(50,338,58,"#1A1A1A")
+        + t2(870,335,13,"#FF6B00","RayPhoneAI","middle","700") + "</svg>",
 
-        # 2: マガジン白×黒ヘッダー
+        # 2: マガジン白×黒ヘッダー（テキストは中央白エリア）
         '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
         '<rect width="1280" height="670" fill="#F8F8F8"/>'
-        '<rect x="0" y="0" width="1280" height="80" fill="#1A1A1A"/>'
-        '<rect x="0" y="78" width="1280" height="4" fill="#FF6B00"/>'
-        + t2(40,52,13,"#FF6B00","RAYPHONEAI",weight="700")
-        + t2(80,270,66,"#1A1A1A",short) + extra(80,345,66,"#1A1A1A")
-        + '<rect x="0" y="610" width="1280" height="60" fill="#1A1A1A"/>'
-        + t2(640,648,11,"rgba(255,107,0,.8)","AI BLOG — RAYPHONEAI.COM","middle","400")
+        '<rect x="0" y="0" width="1280" height="90" fill="#1A1A1A"/>'
+        '<rect x="0" y="88" width="1280" height="4" fill="#FF6B00"/>'
+        '<rect x="0" y="600" width="1280" height="70" fill="#1A1A1A"/>'
+        + t2(640,52,16,"#FF6B00","RAYPHONEAI","middle","700")
+        + t2(80,270,62,"#1A1A1A",short) + extra(80,342,62,"#1A1A1A")
+        + t2(640,638,11,"rgba(255,107,0,.9)","AI BLOG — RAYPHONEAI.COM","middle","400")
         + "</svg>",
 
-        # 3: 白×斜め黒帯
+        # 3: 白×右斜め黒帯（テキストは左白エリアのみ・右の黒に侵入しない）
         '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
         '<rect width="1280" height="670" fill="#fff"/>'
-        '<polygon points="800,0 1280,0 1280,670 480,670" fill="#1A1A1A"/>'
+        '<polygon points="850,0 1280,0 1280,670 550,670" fill="#1A1A1A"/>'
         '<rect x="0" y="0" width="1280" height="4" fill="#FF6B00"/>'
-        + t2(60,140,10,"#FF6B00",cat_u,weight="700") + t2(60,280,62,"#1A1A1A",short) + extra(60,352,62,"#1A1A1A")
+        + t2(60,120,10,"#FF6B00",cat_u,weight="700") + t2(60,270,58,"#1A1A1A",short) + extra(60,338,58,"#1A1A1A")
+        + t2(950,200,13,"#FF6B00","RayPhoneAI","middle","700")
         + "</svg>",
 
-        # 4: ミニマル白×縦ライン
+        # 4: ミニマル白×縦ライン（テキストは左白エリア）
         '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
         '<rect width="1280" height="670" fill="#fafafa"/>'
-        '<rect x="0" y="610" width="1280" height="60" fill="#1A1A1A"/>'
-        '<rect x="60" y="180" width="2" height="260" fill="#FF6B00"/>'
-        + t2(85,230,10,"#FF6B00",cat_u,weight="700") + t2(85,330,62,"#1A1A1A",short) + extra(85,402,62,"#1A1A1A")
-        + t2(640,648,11,"#FF6B00","RAYPHONEAI","middle","700")
-        + "</svg>",
-
-        # 5: 白×下部黒バー
-        '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
-        '<rect width="1280" height="670" fill="#fff"/>'
-        '<rect x="0" y="430" width="1280" height="240" fill="#1A1A1A"/>'
-        '<rect x="0" y="428" width="1280" height="4" fill="#FF6B00"/>'
-        + t2(80,130,10,"#FF6B00",cat_u,weight="700") + t2(80,250,64,"#1A1A1A",short) + extra(80,328,64,"#1A1A1A")
-        + t2(80,510,13,"#fff","RayPhoneAI — Rayphone","start","400")
-        + "</svg>",
-
-        # 6: 白×左縦ライン
-        '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
-        '<rect width="1280" height="670" fill="#fff"/>'
-        '<rect x="0" y="0" width="4" height="670" fill="#FF6B00"/>'
         '<rect x="0" y="620" width="1280" height="50" fill="#1A1A1A"/>'
-        + t2(50,130,10,"#FF6B00",cat_u,weight="700") + t2(50,280,62,"#1A1A1A",short) + extra(50,352,62,"#1A1A1A")
+        '<rect x="60" y="160" width="3" height="280" fill="#FF6B00"/>'
+        + t2(90,210,10,"#FF6B00",cat_u,weight="700") + t2(90,320,60,"#1A1A1A",short) + extra(90,392,60,"#1A1A1A")
         + t2(640,648,11,"#FF6B00","RAYPHONEAI","middle","700")
         + "</svg>",
 
-        # 7: 白×オレンジ上帯×黒下帯
+        # 5: 白上部×黒下帯（テキストは白背景上部のみ・黒帯に侵入しない）
         '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
         '<rect width="1280" height="670" fill="#fff"/>'
-        '<rect x="0" y="0" width="1280" height="100" fill="#FF6B00"/>'
-        '<rect x="0" y="580" width="1280" height="90" fill="#1A1A1A"/>'
-        + t2(640,62,22,"#fff","RAYPHONEAI","middle")
-        + t2(80,270,64,"#1A1A1A",short) + extra(80,345,64,"#1A1A1A")
+        '<rect x="0" y="460" width="1280" height="210" fill="#1A1A1A"/>'
+        '<rect x="0" y="458" width="1280" height="4" fill="#FF6B00"/>'
+        + t2(80,110,10,"#FF6B00",cat_u,weight="700") + t2(80,240,60,"#1A1A1A",short) + extra(80,310,60,"#1A1A1A")
+        + t2(80,530,14,"#fff","RayPhoneAI × Rayphone","start","400")
         + "</svg>",
 
-        # 8: 白×額縁
+        # 6: 白×左縦ライン（テキストは白背景左部）
+        '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
+        '<rect width="1280" height="670" fill="#fff"/>'
+        '<rect x="0" y="0" width="5" height="670" fill="#FF6B00"/>'
+        '<rect x="0" y="625" width="1280" height="45" fill="#1A1A1A"/>'
+        + t2(60,120,10,"#FF6B00",cat_u,weight="700") + t2(60,270,60,"#1A1A1A",short) + extra(60,342,60,"#1A1A1A")
+        + t2(640,648,11,"#FF6B00","RAYPHONEAI","middle","700")
+        + "</svg>",
+
+        # 7: オレンジ上帯×白中央×黒下帯（テキストは白中央エリア）
+        '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
+        '<rect width="1280" height="670" fill="#fff"/>'
+        '<rect x="0" y="0" width="1280" height="90" fill="#FF6B00"/>'
+        '<rect x="0" y="590" width="1280" height="80" fill="#1A1A1A"/>'
+        + t2(640,55,18,"#fff","RAYPHONEAI","middle","700")
+        + t2(80,230,60,"#1A1A1A",short) + extra(80,302,60,"#1A1A1A")
+        + t2(80,636,13,"#FF6B00","Rayphone","start","400")
+        + "</svg>",
+
+        # 8: 白×額縁（テキストは中央白エリア）
         '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
         '<rect width="1280" height="670" fill="#fff"/>'
         '<rect x="30" y="30" width="1220" height="610" fill="none" stroke="#1A1A1A" stroke-width="2"/>'
-        '<rect x="30" y="30" width="300" height="4" fill="#FF6B00"/>'
-        '<rect x="950" y="30" width="300" height="4" fill="#FF6B00"/>'
-        + t2(640,180,11,"#FF6B00",cat_u,"middle","700")
-        + t2(640,320,62,"#1A1A1A",short,"middle") + (t2(640,392,62,"#1A1A1A",short2,"middle") if short2 else "")
+        '<rect x="30" y="30" width="280" height="4" fill="#FF6B00"/>'
+        '<rect x="970" y="30" width="280" height="4" fill="#FF6B00"/>'
+        + t2(640,100,11,"#FF6B00",cat_u,"middle","700")
+        + t2(640,300,60,"#1A1A1A",short,"middle") + (t2(640,372,60,"#1A1A1A",short2,"middle") if short2 else "")
         + t2(640,490,12,"#bbb","RAYPHONEAI","middle","400")
         + "</svg>",
 
-        # 9: 白×三角ブラック
+        # 9: 白左×黒右三角（テキストは白左エリアのみ・三角に侵入しない）
         '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
         '<rect width="1280" height="670" fill="#fff"/>'
-        '<polygon points="700,0 1280,0 1280,670" fill="#1A1A1A"/>'
-        '<line x1="700" y1="0" x2="1280" y2="670" stroke="#FF6B00" stroke-width="3"/>'
+        '<polygon points="750,0 1280,0 1280,670" fill="#1A1A1A"/>'
+        '<line x1="750" y1="0" x2="1280" y2="670" stroke="#FF6B00" stroke-width="4"/>'
         '<rect x="0" y="0" width="1280" height="4" fill="#FF6B00"/>'
-        + t2(60,140,10,"#FF6B00",cat_u,weight="700") + t2(60,290,64,"#1A1A1A",short) + extra(60,364,64,"#1A1A1A")
+        + t2(60,120,10,"#FF6B00",cat_u,weight="700") + t2(60,270,58,"#1A1A1A",short) + extra(60,342,58,"#1A1A1A")
+        + t2(980,200,13,"#FF6B00","RayPhoneAI","middle","700")
         + "</svg>",
     ]
     return svg[idx]
@@ -447,42 +449,23 @@ def post_to_x_actions(content, art_url):
                     if ed.is_visible(timeout=5000):
                         ed.click()
                         time.sleep(1)
-                        # まず既存テキストを全削除
+                        # 既存テキスト（URLなど）を全削除
                         page.keyboard.press("Control+a")
                         page.keyboard.press("Delete")
                         time.sleep(0.5)
-                        # execCommand('insertText')でReactのonChangeを発火
-                        page.evaluate("""
-                            (text) => {
-                                const el = document.querySelector('[data-testid="tweetTextarea_0"] div[contenteditable]')
-                                         || document.querySelector('div[role="textbox"]');
-                                if (el) {
-                                    el.focus();
-                                    document.execCommand('selectAll', false, null);
-                                    document.execCommand('insertText', false, text);
-                                }
-                            }
-                        """, tweet)
-                        time.sleep(2)
+                        # element.type()で本文を入力（keyboard.typeより確実）
+                        ed.type(tweet, delay=12)
+                        time.sleep(1.5)
+                        # ReactのonChangeを発火させるため末尾に空白→削除
+                        page.keyboard.press("Space")
+                        page.keyboard.press("Backspace")
+                        time.sleep(1)
                         val = ed.inner_text()
                         log(f"X: テキスト確認 ({len(val)}文字): {val[:30]}...")
                         if len(val) > 10:
                             typed = True
                             log(f"X: テキスト入力完了: {sel}")
                             break
-                        else:
-                            # fallback: element.type()で入力
-                            page.keyboard.press("Control+a")
-                            page.keyboard.press("Delete")
-                            time.sleep(0.3)
-                            ed.type(tweet, delay=10)
-                            time.sleep(2)
-                            val2 = ed.inner_text()
-                            log(f"X: type()確認 ({len(val2)}文字)")
-                            if len(val2) > 10:
-                                typed = True
-                                log(f"X: テキスト入力完了(type): {sel}")
-                                break
                 except Exception as e:
                     log(f"X: テキストエリア試行失敗 {sel}: {e}")
                     continue
