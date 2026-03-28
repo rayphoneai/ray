@@ -684,12 +684,35 @@ function renderArts(arts){
     });
   }
 
+  // カテゴリ件数更新
   var catCount={};
   arts.forEach(function(a){ catCount[a.cat||'']=(catCount[a.cat||'']||0)+1; });
   document.querySelectorAll('.cat-item').forEach(function(el){
     var name=el.querySelector('.cat-name'); var cnt=el.querySelector('.cat-count');
-    if(name&&cnt&&catCount[name.textContent]) cnt.textContent=catCount[name.textContent];
+    if(name&&cnt) cnt.textContent=catCount[name.textContent]||0;
+    // カテゴリフィルタークリック
+    el.onclick=function(e){
+      e.preventDefault();
+      var catName=el.querySelector('.cat-name').textContent;
+      var filtered=arts.filter(function(a){return (a.cat||'')===catName;});
+      // フィルター結果を描画
+      var fg=document.getElementById('featured-grid');
+      if(fg){fg.innerHTML='';filtered.slice(0,2).forEach(function(a){fg.appendChild(makeCard(a,'normal'));});}
+      var lr=document.getElementById('latest-row');
+      if(lr){lr.innerHTML='';filtered.slice(2,5).forEach(function(a){lr.appendChild(makeCard(a,'feat'));});}
+      var mg=document.getElementById('more-grid');var ms=document.getElementById('more-sec');
+      if(mg){mg.innerHTML='';if(filtered.length>5){if(ms)ms.style.display='flex';filtered.slice(5).forEach(function(a){mg.appendChild(makeCard(a,'normal'));});}else{if(ms)ms.style.display='none';}}
+      // アクティブ表示
+      document.querySelectorAll('.cat-item').forEach(function(ci){ci.style.fontWeight='';ci.style.color='';});
+      el.style.fontWeight='700'; el.style.color='var(--orange)';
+      // 「すべて見る」クリックでリセット
+      var allLink=document.getElementById('all-arts-link');
+      if(allLink) allLink.onclick=function(e){e.preventDefault();renderArts(arts);};
+    };
   });
+  // 「すべて見る」初期設定
+  var allLink=document.getElementById('all-arts-link');
+  if(allLink) allLink.onclick=function(e){e.preventDefault();renderArts(arts);};
 
   try{ localStorage.setItem('rp_arts', JSON.stringify(arts)); }catch(e){}
 
