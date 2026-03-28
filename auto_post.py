@@ -447,19 +447,20 @@ def post_to_x_actions(content, art_url):
                     if ed.is_visible(timeout=5000):
                         ed.click()
                         time.sleep(1)
-                        # 1文字ずつ入力してReactのonChangeを確実に発火
-                        page.keyboard.type(tweet, delay=30)
-                        time.sleep(1)
-                        # inputイベントを強制発火してReact状態を更新
-                        page.evaluate("""
-                            const el = document.querySelector('[data-testid="tweetTextarea_0"] div[contenteditable]')
-                                     || document.querySelector('div[data-testid="tweetTextarea_0"]')
-                                     || document.querySelector('div[role="textbox"]');
-                            if (el) {
-                                el.dispatchEvent(new Event('input', {bubbles: true}));
-                                el.dispatchEvent(new Event('change', {bubbles: true}));
-                            }
-                        """)
+                        # execCommand('insertText')でReactのonChangeを確実に発火
+                        # これはローカル環境で動作実績あり
+                        page.evaluate(f"""
+                            (text) => {{
+                                const el = document.querySelector('[data-testid="tweetTextarea_0"] div[contenteditable]')
+                                         || document.querySelector('div[data-testid="tweetTextarea_0"]')
+                                         || document.querySelector('div[role="textbox"]');
+                                if (el) {{
+                                    el.focus();
+                                    document.execCommand('selectAll', false, null);
+                                    document.execCommand('insertText', false, text);
+                                }}
+                            }}
+                        """, tweet)
                         time.sleep(2)
                         val = ed.inner_text()
                         log(f"X: テキスト確認 ({len(val)}文字): {val[:30]}...")
@@ -467,6 +468,15 @@ def post_to_x_actions(content, art_url):
                             typed = True
                             log(f"X: テキスト入力完了: {sel}")
                             break
+                        else:
+                            # fallback: element.type()
+                            ed.type(tweet, delay=15)
+                            time.sleep(2)
+                            val2 = ed.inner_text()
+                            if len(val2) > 5:
+                                typed = True
+                                log(f"X: テキスト入力完了(type): {sel}")
+                                break
                 except Exception as e:
                     log(f"X: テキストエリア試行失敗 {sel}: {e}")
                     continue
