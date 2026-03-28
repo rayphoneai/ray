@@ -488,7 +488,11 @@ def post_to_x_actions(content, art_url):
                     if not btn.is_visible(timeout=3000):
                         continue
                     log(f"X: ボタン発見: {sel}")
-                    btn.click()  # force=Trueなし（確実に有効なボタンをクリック）
+                    # JavaScriptで直接クリック（disabled状態を回避）
+                    page.evaluate(f"""
+                        const btn = document.querySelector('[data-testid="tweetButton"]') || document.querySelector('[data-testid="tweetButtonInline"]');
+                        if (btn) btn.click();
+                    """)
                     time.sleep(4)
                     log(f"✓ X投稿完了: {sel}")
                     posted = True
@@ -500,8 +504,8 @@ def post_to_x_actions(content, art_url):
             if not posted:
                 # 最終手段: Ctrl+Enterで送信
                 try:
-                    page.keyboard.press("Control+Return")
-                    time.sleep(3)
+                    page.keyboard.press("Control+Enter")
+                    time.sleep(4)
                     log("✓ X: Ctrl+Enterで送信")
                     posted = True
                 except Exception as e:
@@ -630,14 +634,25 @@ def post_to_note_playwright(title: str, body: str, svg_code: str, art_url: str) 
                     tmp_svg.write(svg_code)
                     tmp_svg.close()
                     png_path = tmp_svg.name.replace(".svg", ".png")
-                    with sync_playwright() as pw2:
-                        b2 = pw2.chromium.launch(headless=True, args=["--no-sandbox"])
-                        p2 = b2.new_page()
-                        p2.set_viewport_size({"width": 1280, "height": 670})
-                        p2.set_content(f"<!DOCTYPE html><html><body style='margin:0;padding:0;background:#fff;'>{svg_code}</body></html>", wait_until="networkidle")
-                        time.sleep(0.5)
-                        p2.screenshot(path=png_path, clip={"x":0,"y":0,"width":1280,"height":670})
-                        b2.close()
+                    # subprocess経由でPNG変換（同一プロセス内のPlaywright二重起動を回避）
+                    import subprocess as _sp, sys as _sys
+                    svg_script = f"""
+import sys
+from playwright.sync_api import sync_playwright
+with sync_playwright() as pw:
+    b = pw.chromium.launch(headless=True, args=["--no-sandbox"])
+    p = b.new_page()
+    p.set_viewport_size({{"width": 1280, "height": 670}})
+    p.set_content("<!DOCTYPE html><html><body style='margin:0;padding:0;background:#fff;'>{{}}</body></html>".format(open(sys.argv[1]).read()), wait_until="networkidle")
+    import time; time.sleep(0.5)
+    p.screenshot(path=sys.argv[2], clip={{"x":0,"y":0,"width":1280,"height":670}})
+    b.close()
+"""
+                    script_path = tmp_svg.name + "_conv.py"
+                    with open(script_path, 'w') as sf: sf.write(svg_script)
+                    r = _sp.run([_sys.executable, script_path, tmp_svg.name, png_path], capture_output=True, timeout=30)
+                    if r.returncode != 0:
+                        raise Exception(f"PNG変換失敗: {r.stderr.decode()[:200]}")
                     log("note: SVG→PNG変換完了")
                     page.evaluate("window.scrollTo(0, 0)")
                     time.sleep(1)
