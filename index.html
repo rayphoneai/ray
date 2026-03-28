@@ -690,6 +690,213 @@ window.addEventListener('popstate',function(e){
 });
 
 
+// ---------- 記事を全セクションに描画 ----------
+function renderArts(arts){
+  if(!arts||!arts.length){
+    var fg=document.getElementById('featured-grid');
+    if(fg) fg.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:60px;color:#aaa;">記事がありません</div>';
+    return;
+  }
+
+  // FEATURED: 最新2件
+  var fg=document.getElementById('featured-grid');
+  if(fg){ fg.innerHTML=''; arts.slice(0,2).forEach(function(a){ fg.appendChild(makeCard(a,'normal')); }); }
+
+  // LATEST: 次3件
+  var lr=document.getElementById('latest-row');
+  if(lr){ lr.innerHTML=''; arts.slice(2,5).forEach(function(a){ lr.appendChild(makeCard(a,'feat')); }); }
+
+  // MORE: 残り全件
+  var mg=document.getElementById('more-grid');
+  if(mg){
+    mg.innerHTML='';
+    if(arts.length>5){
+      document.getElementById('more-sec').style.display='flex';
+      arts.slice(5).forEach(function(a){ mg.appendChild(makeCard(a,'normal')); });
+    }
+  }
+
+  // サイドバーランキング
+  var sr=document.getElementById('sidebar-rank');
+  if(sr){
+    sr.innerHTML='';
+    arts.slice(0,5).forEach(function(a,i){
+      var item=document.createElement('div');
+      item.className='rank-item'; item.style.cursor='pointer';
+      item.innerHTML='<span class="rank-num'+(i<3?' top':'')+'">0'+(i+1)+'</span>'
+        +'<div><span class="rank-title">'+(a.title||'')+'</span>'
+        +'<div class="rank-cat">'+(a.cat||'')+'</div></div>';
+      item.onclick=(function(art){ return function(){ openArt(art); }; })(a);
+      sr.appendChild(item);
+    });
+  }
+
+  // カテゴリ件数
+  var catCount={};
+  arts.forEach(function(a){ catCount[a.cat||'']=(catCount[a.cat||'']||0)+1; });
+  document.querySelectorAll('.cat-item').forEach(function(el){
+    var name=el.querySelector('.cat-name');
+    var cnt=el.querySelector('.cat-count');
+    if(name&&cnt&&catCount[name.textContent]) cnt.textContent=catCount[name.textContent];
+  });
+
+  // localStorageに保存（戻る時用）
+  try{ localStorage.setItem('rp_arts', JSON.stringify(arts)); }catch(e){}
+
+  // ?id= パラメータで記事を直接開く
+  var _tid=new URLSearchParams(location.search).get('id');
+  if(_tid){
+    var _art=arts.find(function(a){ return String(a.id)===_tid; });
+    if(_art) setTimeout(function(){
+      _showPage(_art);
+      try{history.replaceState({artId:_art.id},_art.title||'',location.pathname+'?id='+_art.id);}catch(e){}
+    },300);
+  } else {
+    var _pb=document.getElementById('page-body'); if(_pb) _pb.style.display='';
+    var _ap=document.getElementById('art-page');  if(_ap) _ap.style.display='none';
+  }
+}
+
+
+// ---------- 初期化: page-bodyを表示・art-pageを非表示 ----------
+(function initLayout(){
+  var pb = document.getElementById('page-body');
+  var ap = document.getElementById('art-page');
+  var hasId = new URLSearchParams(location.search).get('id');
+  if(!hasId){
+    if(pb) pb.style.display = '';
+    if(ap) ap.style.display = 'none';
+  }
+})();
+
+// ---------- GitHub articles.json or LocalStorage ----------
+var host = location.hostname;
+var pathParts = location.pathname.split('/').filter(Boolean);
+var ghUser = host.replace('.github.io','');
+var ghRepo = pathParts[0]||'';
+
+function loadLocal(){
+  try{ renderArts(JSON.parse(localStorage.getItem('rp_arts')||'[]')); }catch(e){}
+}
+
+if(ghUser && ghRepo && host.includes('github.io')){
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET','https://raw.githubusercontent.com/'+ghUser+'/'+ghRepo+'/main/articles.json?t='+Date.now(),true);
+  xhr.onload=function(){ try{ renderArts(JSON.parse(xhr.responseText)); }catch(e){ loadLocal(); } };
+  xhr.onerror=loadLocal;
+  xhr.send();
+} else {
+  loadLocal();
+}
+
+// 記事ページはcloseArtPage()で閉じる
+
+})();
+  // ?id= パラメータで記事を直接開く
+  var _tid = new URLSearchParams(location.search).get('id');
+  if(_tid){
+    var _art = arts.find(function(a){ return String(a.id)===_tid; });
+    if(_art) setTimeout(function(){
+      _showPage(_art);
+      try{history.replaceState({artId:_art.id},_art.title||'',location.pathname+'?id='+_art.id);}catch(e){}
+    },300);
+  } else {
+    var _pb=document.getElementById('page-body'); if(_pb) _pb.style.display='';
+    var _ap=document.getElementById('art-page');  if(_ap) _ap.style.display='none';
+  }
+
+// ===== RayPhoneAI 動的ブログエンジン =====
+(function(){
+
+// ---------- 設定読み込み ----------
+var cfg = {};
+try{ cfg = JSON.parse(localStorage.getItem('rp_cfg')||'{}'); }catch(e){}
+var noteUrl     = cfg.noteUrl     || 'https://note.com/rayphone';
+  var noteShopUrl = cfg.noteShopUrl || 'https://note.com/rayphone/n/nf6e5688f3939';
+  console.log('noteShopUrl:', noteShopUrl);
+var xUrl    = cfg.xUrl    || 'https://x.com/rayphone';
+var blogUrl = cfg.blogUrl || location.origin + location.pathname;
+
+// ---------- noteリンクを全設定 ----------
+function setNoteLinks(){
+  document.querySelectorAll('a.header-cta,a.cta-btn,a.note-cta-btn,a.mobile-cta,#cta-note-btn').forEach(function(a){
+    a.href=noteShopUrl; a.target='_blank';
+  });
+  document.querySelectorAll('a.btn-primary').forEach(function(a){ a.href=noteShopUrl; a.target='_blank'; });
+  document.querySelectorAll('a.btn-secondary').forEach(function(a){ a.href='#featured-grid'; });
+  document.querySelectorAll('a.sec-more,#all-arts-link').forEach(function(a){ a.href=noteUrl; a.target='_blank'; });
+  document.querySelectorAll('a.cat-item').forEach(function(a){ a.href=noteUrl; a.target='_blank'; });
+  document.querySelectorAll('.footer-link').forEach(function(a){
+    if(a.textContent.includes('X')){ a.href=xUrl; a.target='_blank'; }
+    else if(a.textContent.includes('note')){ a.href=noteUrl; a.target='_blank'; }
+    else if(a.textContent.includes('プロフィール')){ a.href=noteUrl; a.target='_blank'; }
+  });
+}
+setNoteLinks();
+
+
+// ---------- 記事ページを開く ----------
+// ─── 記事ページ表示・非表示（SPA routing） ───────────────
+// ─── 記事ページ表示（SPA routing） ─────────────────────────
+function _showPage(art){
+  var ogUrl  = document.getElementById('og-url');
+  var ogTitle= document.getElementById('og-title');
+  var ogDesc = document.getElementById('og-desc');
+  if(ogUrl)  ogUrl.setAttribute('content', location.href);
+  if(ogTitle)ogTitle.setAttribute('content', (art.title||'記事')+' | RayPhoneAI');
+  if(ogDesc) ogDesc.setAttribute('content', (art.content||'').replace(/\s+/g,' ').slice(0,120));
+  var ec=document.getElementById('ap-eyecatch');
+  if(art.svg){ec.innerHTML='<img src="data:image/svg+xml;charset=utf-8,'+encodeURIComponent(art.svg)+'" style="width:100%;height:100%;object-fit:cover;">';}
+  else{ec.innerHTML=makeEyecatch(art).replace(/width="1280" height="670"/,'style="width:100%;height:100%;object-fit:cover;"');}
+  document.getElementById('ap-cat').textContent  = art.cat||'';
+  document.getElementById('ap-title').textContent= art.title||'';
+  document.getElementById('ap-date').textContent = art.date||'';
+  document.getElementById('ap-body').textContent = art.content||'';
+  var nl=document.getElementById('ap-note-link');
+  if(nl){var cfg={};try{cfg=JSON.parse(localStorage.getItem('rp_cfg')||'{}');}catch(e){}nl.href=cfg.noteUrl||'https://note.com/rayphone';}
+  document.title=(art.title||'記事')+' | RayPhoneAI';
+  var pb=document.getElementById('page-body'); if(pb) pb.style.display='none';
+  var ap=document.getElementById('art-page');  if(ap) ap.style.display='block';
+  window.scrollTo(0,0);
+}
+function openArt(art){
+  _showPage(art);
+  try{history.pushState({artId:art.id},art.title||'',location.pathname+'?id='+art.id);}catch(e){}
+}
+function openArtNoHistory(art){ _showPage(art); }
+function closeArtPage(){
+  var ap=document.getElementById('art-page');  if(ap) ap.style.display='none';
+  var pb=document.getElementById('page-body'); if(pb) pb.style.display='';
+  var ogUrl  = document.getElementById('og-url');
+  var ogTitle= document.getElementById('og-title');
+  var ogDesc = document.getElementById('og-desc');
+  if(ogUrl)  ogUrl.setAttribute('content','https://rayphoneai.github.io/ray/');
+  if(ogTitle)ogTitle.setAttribute('content','RayPhoneAI | プロンプト設計士Rayphoneの公式ブログ');
+  if(ogDesc) ogDesc.setAttribute('content','商品開発15年×Claude副業月収15万を達成したプロンプト設計士が、現場で本当に使えるAI活用法と業務時短術を届けます。');
+  document.title='RayPhoneAI';
+  try{history.pushState({},'RayPhoneAI',location.pathname);}catch(e){}
+  window.scrollTo(0,0);
+}
+window.addEventListener('popstate',function(e){
+  if(e.state&&e.state.artId){
+    var arts=[]; try{arts=JSON.parse(localStorage.getItem('rp_arts')||'[]');}catch(ex){}
+    var art=arts.find(function(a){return String(a.id)===String(e.state.artId);});
+    if(art) _showPage(art); else closeArtPage();
+  } else { closeArtPage(); }
+});
+
+
+// ---------- 初期化: page-bodyを表示・art-pageを非表示 ----------
+(function initLayout(){
+  var pb = document.getElementById('page-body');
+  var ap = document.getElementById('art-page');
+  var hasId = new URLSearchParams(location.search).get('id');
+  if(!hasId){
+    if(pb) pb.style.display = '';
+    if(ap) ap.style.display = 'none';
+  }
+})();
+
 // ---------- GitHub articles.json or LocalStorage ----------
 var host = location.hostname;
 var pathParts = location.pathname.split('/').filter(Boolean);
