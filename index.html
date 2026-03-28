@@ -490,7 +490,7 @@ function toggleMenu(){
       <div class="footer-copy">© 2025 RayPhoneAI. All rights reserved.</div>
       <div class="footer-badge">Powered by <span>Claude × Rayphone</span></div>
       <div style="margin-top:8px;">
-        <a href="rayphoneai_admin_v2.html" title="" style="opacity:0.15;display:inline-block;transition:opacity .3s;" onmouseover="this.style.opacity='0.6'" onmouseout="this.style.opacity='0.15'">
+        <a href="#" id="admin-footer-link" title="" style="opacity:0.15;display:inline-block;transition:opacity .3s;" onmouseover="this.style.opacity='0.6'" onmouseout="this.style.opacity='0.15'" onclick="var u=localStorage.getItem('rp_admin_url')||'rayphoneai_admin_v2.html';location.href=u;return false;">
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="9" cy="9" r="8.5" stroke="#888" stroke-width="1"/>
             <path d="M9 4.5L12.5 7.5H10.5V13.5H7.5V7.5H5.5L9 4.5Z" fill="#888"/>
@@ -638,57 +638,39 @@ setNoteLinks();
 
 
 // ---------- 記事ページを開く ----------
-function openArt(art){
-  var ec = document.getElementById('ap-eyecatch');
-  if(art.svg){
-    ec.innerHTML='<img src="data:image/svg+xml;charset=utf-8,'+encodeURIComponent(art.svg)+'" style="width:100%;height:100%;object-fit:cover;">';
-  } else {
-    ec.innerHTML=makeEyecatch(art).replace(/width="1280" height="670"/, 'style="width:100%;height:100%;object-fit:cover;"');
-  }
-  document.getElementById('ap-cat').textContent   = art.cat||'';
-  document.getElementById('ap-title').textContent = art.title||'';
-  document.getElementById('ap-date').textContent  = art.date||'';
-  document.getElementById('ap-body').textContent  = art.content||'';
-  var noteLink = document.getElementById('ap-note-link');
-  if(noteLink){ var cfg={}; try{cfg=JSON.parse(localStorage.getItem('rp_cfg')||'{}');}catch(e){} noteLink.href=cfg.noteUrl||'https://note.com/rayphone'; }
-  history.pushState({artId:art.id}, art.title||'', location.pathname+'?id='+art.id);
-  document.title = (art.title||'記事')+' | RayPhoneAI';
-  document.getElementById('art-page').style.display='block';
-  var main=document.querySelector('main'); if(main) main.style.display='none';
-  var sb=document.querySelector('.sidebar'); if(sb) sb.style.display='none';
-  var hero=document.getElementById('hero'); if(hero) hero.style.display='none';
-  window.scrollTo(0,0);
-}
-function closeArtPage(){
-  document.getElementById('art-page').style.display='none';
-  var main=document.querySelector('main'); if(main) main.style.display='';
-  var sb=document.querySelector('.sidebar'); if(sb) sb.style.display='';
-  var hero=document.getElementById('hero'); if(hero) hero.style.display='';
-  document.title='RayPhoneAI';
-  history.pushState({},  'RayPhoneAI', location.pathname);
-  window.scrollTo(0,0);
-}
-window.addEventListener('popstate',function(e){
-  if(e.state&&e.state.artId){
-    var arts=[]; try{arts=JSON.parse(localStorage.getItem('rp_arts')||'[]');}catch(ex){}
-    var art=arts.find(function(a){return String(a.id)===String(e.state.artId);});
-    if(art) openArtNoHistory(art);
-  } else { closeArtPage(); }
-});
-function openArtNoHistory(art){
+function _showPage(art){
   var ec=document.getElementById('ap-eyecatch');
-  if(art.svg){ ec.innerHTML='<img src="data:image/svg+xml;charset=utf-8,'+encodeURIComponent(art.svg)+'" style="width:100%;height:100%;object-fit:cover;">'; }
-  else { ec.innerHTML=makeEyecatch(art).replace(/width="1280" height="670"/,'style="width:100%;height:100%;object-fit:cover;"'); }
+  if(art.svg){ec.innerHTML='<img src="data:image/svg+xml;charset=utf-8,'+encodeURIComponent(art.svg)+'" style="width:100%;height:100%;object-fit:cover;">';}
+  else{ec.innerHTML=makeEyecatch(art).replace(/width="1280" height="670"/,'style="width:100%;height:100%;object-fit:cover;"');}
   document.getElementById('ap-cat').textContent=art.cat||'';
   document.getElementById('ap-title').textContent=art.title||'';
   document.getElementById('ap-date').textContent=art.date||'';
   document.getElementById('ap-body').textContent=art.content||'';
-  document.getElementById('art-page').style.display='block';
-  var main=document.querySelector('main'); if(main) main.style.display='none';
-  var sb=document.querySelector('.sidebar'); if(sb) sb.style.display='none';
-  var hero=document.getElementById('hero'); if(hero) hero.style.display='none';
+  var nl=document.getElementById('ap-note-link');
+  if(nl){var cfg={};try{cfg=JSON.parse(localStorage.getItem('rp_cfg')||'{}');}catch(e){}nl.href=cfg.noteUrl||'https://note.com/rayphone';}
   document.title=(art.title||'記事')+' | RayPhoneAI';
+  document.getElementById('art-page').style.display='block';
+  var m=document.querySelector('.main');if(m)m.style.display='none';
+  var s=document.querySelector('.sidebar');if(s)s.style.display='none';
+  var h=document.querySelector('.hero');if(h)h.style.display='none';
+  window.scrollTo(0,0);
 }
+function openArt(art){
+  _showPage(art);
+  try{history.pushState({artId:art.id},art.title||'',location.pathname+'?id='+art.id);}catch(e){}
+}
+
+function closeArtPage(){
+  document.getElementById('art-page').style.display='none';
+  var m=document.querySelector('.main');if(m)m.style.display='';
+  var s=document.querySelector('.sidebar');if(s)s.style.display='';
+  var h=document.querySelector('.hero');if(h)h.style.display='';
+  document.title='RayPhoneAI';
+  try{history.pushState({},'RayPhoneAI',location.pathname);}catch(e){}
+  window.scrollTo(0,0);
+}
+
+function openArtNoHistory(art){ _showPage(art); }
 
 // ---------- カード生成 ----------
 function makeCard(art, size){
