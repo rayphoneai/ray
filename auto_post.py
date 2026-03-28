@@ -447,8 +447,19 @@ def post_to_x_actions(content, art_url):
                     if ed.is_visible(timeout=5000):
                         ed.click()
                         time.sleep(1)
-                        # keyboard.type()でReactのonChangeを発火
-                        page.keyboard.type(tweet, delay=8)
+                        # 1文字ずつ入力してReactのonChangeを確実に発火
+                        page.keyboard.type(tweet, delay=30)
+                        time.sleep(1)
+                        # inputイベントを強制発火してReact状態を更新
+                        page.evaluate("""
+                            const el = document.querySelector('[data-testid="tweetTextarea_0"] div[contenteditable]')
+                                     || document.querySelector('div[data-testid="tweetTextarea_0"]')
+                                     || document.querySelector('div[role="textbox"]');
+                            if (el) {
+                                el.dispatchEvent(new Event('input', {bubbles: true}));
+                                el.dispatchEvent(new Event('change', {bubbles: true}));
+                            }
+                        """)
                         time.sleep(2)
                         val = ed.inner_text()
                         log(f"X: テキスト確認 ({len(val)}文字): {val[:30]}...")
@@ -466,20 +477,31 @@ def post_to_x_actions(content, art_url):
                 browser.close()
                 return
 
-            # 投稿ボタンが有効化されるまで最大10秒待機
+            # 投稿ボタンが有効化されるまで最大15秒待機
             log("X: 投稿ボタンの有効化を待機中...")
             time.sleep(2)
-            for wait_i in range(10):
+            btn_enabled = False
+            for wait_i in range(15):
                 try:
-                    btn_check = page.locator('[data-testid="tweetButton"]').last
-                    if btn_check.is_visible(timeout=1000):
-                        is_dis = page.evaluate("() => { const b = document.querySelector('[data-testid=\"tweetButton\"]'); return b ? b.disabled : true; }")
-                        if not is_dis:
-                            log(f"X: ボタン有効化確認 ({wait_i+1}秒)")
-                            break
+                    is_dis = page.evaluate("""
+                        () => {
+                            const b = document.querySelector('[data-testid="tweetButton"]')
+                                   || document.querySelector('[data-testid="tweetButtonInline"]');
+                            if (!b) return true;
+                            return b.disabled || b.getAttribute('aria-disabled') === 'true';
+                        }
+                    """)
+                    if not is_dis:
+                        log(f"X: ボタン有効化確認 ({wait_i+1}秒)")
+                        btn_enabled = True
+                        break
                 except Exception:
                     pass
                 time.sleep(1)
+
+            if not btn_enabled:
+                log("X: ボタンが有効化されませんでした")
+                page.screenshot(path="debug_x_disabled.png")
 
             posted = False
             for sel in ['[data-testid="tweetButton"]', '[data-testid="tweetButtonInline"]']:
