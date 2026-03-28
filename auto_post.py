@@ -125,39 +125,169 @@ def push_articles(arts):
 
 # ── SVG アイキャッチ生成 ─────────────────────────────────────
 def generate_eyecatch_svg(title, cat, art_id):
-    raw = re.sub(r"[【】「」『』]", "", title).strip()
+    raw    = re.sub(r"[【】「」『』]", "", title).strip()
     short  = raw[:18]
     short2 = raw[18:36] if len(raw) > 18 else ""
-    idx = abs(int(str(art_id)[-2:])) % 10
-    cu = cat.upper()
+    idx    = abs(int(str(art_id)[-2:])) % 10
+    cu     = cat.upper()
 
+    # テキスト生成ヘルパー
     def t(x, y, sz, color, text, anchor="start", weight="900"):
-        return f'<text x="{x}" y="{y}" font-size="{sz}" font-weight="{weight}" fill="{color}" text-anchor="{anchor}" font-family="Arial,sans-serif">{text}</text>'
+        return (f'<text x="{x}" y="{y}" font-size="{sz}" font-weight="{weight}" '
+                f'fill="{color}" text-anchor="{anchor}" '
+                f'font-family="Arial,sans-serif">{text}</text>')
+
+    # Y座標が暗い帯(#1A1A1A)に入るか判定 → 入れば白、外ならデフォルト色を返す
+    def safe(default_color, y, dark_y_ranges):
+        for y0, y1 in dark_y_ranges:
+            if y0 <= y <= y1:
+                return "#fff"
+        return default_color
+
+    # X座標が暗い帯に入るか判定
+    def safe_x(default_color, x, dark_x_ranges):
+        for x0, x1 in dark_x_ranges:
+            if x0 <= x <= x1:
+                return "#fff"
+        return default_color
 
     def ex(x, y, sz, color):
         return t(x, y, sz, color, short2) if short2 else ""
 
     s = [
-        # 0
-        f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><rect x="0" y="0" width="8" height="670" fill="#FF6B00"/><rect x="0" y="600" width="1280" height="70" fill="#1A1A1A"/>{t(80,120,10,"#FF6B00",cu,weight="700")}{t(80,260,62,"#1A1A1A",short)}{ex(80,332,62,"#1A1A1A")}{t(80,638,13,"#FF6B00","RayPhoneAI",weight="700")}</svg>',
-        # 1
-        f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><rect x="650" y="0" width="630" height="670" fill="#1A1A1A"/><rect x="0" y="0" width="1280" height="4" fill="#FF6B00"/><rect x="648" y="0" width="4" height="670" fill="#FF6B00"/>{t(50,120,10,"#FF6B00",cu,weight="700")}{t(50,270,58,"#1A1A1A",short)}{ex(50,338,58,"#1A1A1A")}{t(870,335,13,"#FF6B00","RayPhoneAI","middle","700")}</svg>',
-        # 2
-        f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#F8F8F8"/><rect x="0" y="0" width="1280" height="90" fill="#1A1A1A"/><rect x="0" y="88" width="1280" height="4" fill="#FF6B00"/><rect x="0" y="600" width="1280" height="70" fill="#1A1A1A"/>{t(640,52,16,"#FF6B00","RAYPHONEAI","middle","700")}{t(80,270,62,"#1A1A1A",short)}{ex(80,342,62,"#1A1A1A")}{t(640,638,11,"rgba(255,107,0,.9)","AI BLOG — RAYPHONEAI.COM","middle","400")}</svg>',
-        # 3
-        f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><polygon points="850,0 1280,0 1280,670 550,670" fill="#1A1A1A"/><rect x="0" y="0" width="1280" height="4" fill="#FF6B00"/>{t(60,120,10,"#FF6B00",cu,weight="700")}{t(60,270,58,"#1A1A1A",short)}{ex(60,338,58,"#1A1A1A")}{t(950,200,13,"#FF6B00","RayPhoneAI","middle","700")}</svg>',
-        # 4
-        f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fafafa"/><rect x="0" y="620" width="1280" height="50" fill="#1A1A1A"/><rect x="60" y="160" width="3" height="280" fill="#FF6B00"/>{t(90,210,10,"#FF6B00",cu,weight="700")}{t(90,320,60,"#1A1A1A",short)}{ex(90,392,60,"#1A1A1A")}{t(640,648,11,"#FF6B00","RAYPHONEAI","middle","700")}</svg>',
-        # 5
-        f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><rect x="0" y="460" width="1280" height="210" fill="#1A1A1A"/><rect x="0" y="458" width="1280" height="4" fill="#FF6B00"/>{t(80,110,10,"#FF6B00",cu,weight="700")}{t(80,240,60,"#1A1A1A",short)}{ex(80,310,60,"#1A1A1A")}{t(80,530,14,"#fff","RayPhoneAI × Rayphone","start","400")}</svg>',
-        # 6
-        f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><rect x="0" y="0" width="5" height="670" fill="#FF6B00"/><rect x="0" y="625" width="1280" height="45" fill="#1A1A1A"/>{t(60,120,10,"#FF6B00",cu,weight="700")}{t(60,270,60,"#1A1A1A",short)}{ex(60,342,60,"#1A1A1A")}{t(640,648,11,"#FF6B00","RAYPHONEAI","middle","700")}</svg>',
-        # 7
-        f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><rect x="0" y="0" width="1280" height="90" fill="#FF6B00"/><rect x="0" y="590" width="1280" height="80" fill="#1A1A1A"/>{t(640,55,18,"#fff","RAYPHONEAI","middle","700")}{t(80,230,60,"#1A1A1A",short)}{ex(80,302,60,"#1A1A1A")}{t(80,636,13,"#FF6B00","Rayphone","start","400")}</svg>',
-        # 8
-        f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><rect x="30" y="30" width="1220" height="610" fill="none" stroke="#1A1A1A" stroke-width="2"/><rect x="30" y="30" width="280" height="4" fill="#FF6B00"/><rect x="970" y="30" width="280" height="4" fill="#FF6B00"/>{t(640,100,11,"#FF6B00",cu,"middle","700")}{t(640,300,60,"#1A1A1A",short,"middle")}{(t(640,372,60,"#1A1A1A",short2,"middle") if short2 else "")}{t(640,490,12,"#bbb","RAYPHONEAI","middle","400")}</svg>',
-        # 9
-        f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><polygon points="750,0 1280,0 1280,670" fill="#1A1A1A"/><line x1="750" y1="0" x2="1280" y2="670" stroke="#FF6B00" stroke-width="4"/><rect x="0" y="0" width="1280" height="4" fill="#FF6B00"/>{t(60,120,10,"#FF6B00",cu,weight="700")}{t(60,270,58,"#1A1A1A",short)}{ex(60,342,58,"#1A1A1A")}{t(980,200,13,"#FF6B00","RayPhoneAI","middle","700")}</svg>',
+        # 0: 白×左オレンジ縦帯 / 下部黒帯(y=600-670)
+        (lambda dr=[(600,670)]: (
+            f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
+            f'<rect width="1280" height="670" fill="#fff"/>'
+            f'<rect x="0" y="0" width="8" height="670" fill="#FF6B00"/>'
+            f'<rect x="0" y="600" width="1280" height="70" fill="#1A1A1A"/>'
+            + t(80,120,10,"#FF6B00",cu,weight="700")
+            + t(80,260,62,safe("#1A1A1A",260,dr),short)
+            + ex(80,332,62,safe("#1A1A1A",332,dr))
+            + t(80,638,13,safe("#FF6B00",638,dr),"RayPhoneAI",weight="700")
+            + '</svg>'
+        ))(),
+
+        # 1: 白左半分×黒右半分 / テキストは白エリア(x<650)
+        (lambda dxr=[(650,1280)]: (
+            f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
+            f'<rect width="1280" height="670" fill="#fff"/>'
+            f'<rect x="650" y="0" width="630" height="670" fill="#1A1A1A"/>'
+            f'<rect x="0" y="0" width="1280" height="4" fill="#FF6B00"/>'
+            f'<rect x="648" y="0" width="4" height="670" fill="#FF6B00"/>'
+            + t(50,120,10,"#FF6B00",cu,weight="700")
+            + t(50,270,58,safe_x("#1A1A1A",50,dxr),short)
+            + ex(50,338,58,safe_x("#1A1A1A",50,dxr))
+            + t(870,335,13,"#FF6B00","RayPhoneAI","middle","700")
+            + '</svg>'
+        ))(),
+
+        # 2: マガジン / 上部黒帯(y=0-90) + 下部黒帯(y=600-670)
+        (lambda dr=[(0,90),(600,670)]: (
+            f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
+            f'<rect width="1280" height="670" fill="#F8F8F8"/>'
+            f'<rect x="0" y="0" width="1280" height="90" fill="#1A1A1A"/>'
+            f'<rect x="0" y="88" width="1280" height="4" fill="#FF6B00"/>'
+            f'<rect x="0" y="600" width="1280" height="70" fill="#1A1A1A"/>'
+            + t(640,52,16,safe("#FF6B00",52,dr),"RAYPHONEAI","middle","700")
+            + t(80,270,62,safe("#1A1A1A",270,dr),short)
+            + ex(80,342,62,safe("#1A1A1A",342,dr))
+            + t(640,638,11,safe("rgba(255,107,0,.9)",638,dr),"AI BLOG — RAYPHONEAI.COM","middle","400")
+            + '</svg>'
+        ))(),
+
+        # 3: 右斜め黒帯 / テキストは左白エリア(x<500)
+        (lambda: (
+            f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
+            f'<rect width="1280" height="670" fill="#fff"/>'
+            f'<polygon points="850,0 1280,0 1280,670 550,670" fill="#1A1A1A"/>'
+            f'<rect x="0" y="0" width="1280" height="4" fill="#FF6B00"/>'
+            + t(60,120,10,"#FF6B00",cu,weight="700")
+            + t(60,270,58,"#1A1A1A",short)
+            + ex(60,338,58,"#1A1A1A")
+            + t(950,200,13,"#FF6B00","RayPhoneAI","middle","700")
+            + '</svg>'
+        ))(),
+
+        # 4: ミニマル / 下部黒帯(y=620-670)
+        (lambda dr=[(620,670)]: (
+            f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
+            f'<rect width="1280" height="670" fill="#fafafa"/>'
+            f'<rect x="0" y="620" width="1280" height="50" fill="#1A1A1A"/>'
+            f'<rect x="60" y="160" width="3" height="280" fill="#FF6B00"/>'
+            + t(90,210,10,"#FF6B00",cu,weight="700")
+            + t(90,320,60,safe("#1A1A1A",320,dr),short)
+            + ex(90,392,60,safe("#1A1A1A",392,dr))
+            + t(640,648,11,safe("#FF6B00",648,dr),"RAYPHONEAI","middle","700")
+            + '</svg>'
+        ))(),
+
+        # 5: 白上部×黒下帯(y=460-670)
+        (lambda dr=[(460,670)]: (
+            f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
+            f'<rect width="1280" height="670" fill="#fff"/>'
+            f'<rect x="0" y="460" width="1280" height="210" fill="#1A1A1A"/>'
+            f'<rect x="0" y="458" width="1280" height="4" fill="#FF6B00"/>'
+            + t(80,110,10,"#FF6B00",cu,weight="700")
+            + t(80,240,60,safe("#1A1A1A",240,dr),short)
+            + ex(80,310,60,safe("#1A1A1A",310,dr))
+            + t(80,530,14,safe("#FF6B00",530,dr),"RayPhoneAI × Rayphone","start","400")
+            + '</svg>'
+        ))(),
+
+        # 6: 白×左縦ライン / 下部黒帯(y=625-670)
+        (lambda dr=[(625,670)]: (
+            f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
+            f'<rect width="1280" height="670" fill="#fff"/>'
+            f'<rect x="0" y="0" width="5" height="670" fill="#FF6B00"/>'
+            f'<rect x="0" y="625" width="1280" height="45" fill="#1A1A1A"/>'
+            + t(60,120,10,"#FF6B00",cu,weight="700")
+            + t(60,270,60,safe("#1A1A1A",270,dr),short)
+            + ex(60,342,60,safe("#1A1A1A",342,dr))
+            + t(640,648,11,safe("#FF6B00",648,dr),"RAYPHONEAI","middle","700")
+            + '</svg>'
+        ))(),
+
+        # 7: オレンジ上帯(y=0-90)×白中央×黒下帯(y=590-670)
+        (lambda dr=[(0,90),(590,670)]: (
+            f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
+            f'<rect width="1280" height="670" fill="#fff"/>'
+            f'<rect x="0" y="0" width="1280" height="90" fill="#FF6B00"/>'
+            f'<rect x="0" y="590" width="1280" height="80" fill="#1A1A1A"/>'
+            + t(640,55,18,safe("#fff",55,dr),"RAYPHONEAI","middle","700")
+            + t(80,230,60,safe("#1A1A1A",230,dr),short)
+            + ex(80,302,60,safe("#1A1A1A",302,dr))
+            + t(80,636,13,safe("#FF6B00",636,dr),"Rayphone","start","400")
+            + '</svg>'
+        ))(),
+
+        # 8: 白×額縁 / 暗い領域なし
+        (lambda: (
+            f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
+            f'<rect width="1280" height="670" fill="#fff"/>'
+            f'<rect x="30" y="30" width="1220" height="610" fill="none" stroke="#1A1A1A" stroke-width="2"/>'
+            f'<rect x="30" y="30" width="280" height="4" fill="#FF6B00"/>'
+            f'<rect x="970" y="30" width="280" height="4" fill="#FF6B00"/>'
+            + t(640,100,11,"#FF6B00",cu,"middle","700")
+            + t(640,300,60,"#1A1A1A",short,"middle")
+            + (t(640,372,60,"#1A1A1A",short2,"middle") if short2 else "")
+            + t(640,490,12,"#bbb","RAYPHONEAI","middle","400")
+            + '</svg>'
+        ))(),
+
+        # 9: 白左×黒右三角 / テキストは左白エリア(x<650)
+        (lambda: (
+            f'<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
+            f'<rect width="1280" height="670" fill="#fff"/>'
+            f'<polygon points="750,0 1280,0 1280,670" fill="#1A1A1A"/>'
+            f'<line x1="750" y1="0" x2="1280" y2="670" stroke="#FF6B00" stroke-width="4"/>'
+            f'<rect x="0" y="0" width="1280" height="4" fill="#FF6B00"/>'
+            + t(60,120,10,"#FF6B00",cu,weight="700")
+            + t(60,270,58,"#1A1A1A",short)
+            + ex(60,342,58,"#1A1A1A")
+            + t(980,200,13,"#FF6B00","RayPhoneAI","middle","700")
+            + '</svg>'
+        ))(),
     ]
     return s[idx]
 
