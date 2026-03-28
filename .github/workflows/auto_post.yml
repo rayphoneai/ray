@@ -42,6 +42,7 @@ jobs:
           GH_USER:        ${{ secrets.GH_USER }}
           GH_REPO:        ${{ secrets.GH_REPO }}
           X_COOKIES_B64:  ${{ secrets.X_COOKIES_B64 }}
+          NOTE_COOKIES_B64: ${{ secrets.NOTE_COOKIES_B64 }}
           X_AUTO:         ${{ secrets.X_AUTO }}
           HEADLESS:       "true"
           CAT_INDEX_FILE: "cat_index.txt"
