@@ -488,12 +488,12 @@ def post_to_x_actions(content, art_url):
                     if not btn.is_visible(timeout=3000):
                         continue
                     log(f"X: ボタン発見: {sel}")
-                    # JavaScriptで直接クリック（disabled状態を回避）
-                    page.evaluate(f"""
-                        const btn = document.querySelector('[data-testid="tweetButton"]') || document.querySelector('[data-testid="tweetButtonInline"]');
-                        if (btn) btn.click();
-                    """)
+                    # dispatch_eventでReactの合成クリックを発火
+                    btn.dispatch_event('click')
                     time.sleep(4)
+                    # 投稿後のURL変化やエラーダイアログを確認
+                    cur_url = page.url
+                    log(f"X: 投稿後URL: {cur_url}")
                     log(f"✓ X投稿完了: {sel}")
                     posted = True
                     break
@@ -502,14 +502,30 @@ def post_to_x_actions(content, art_url):
                     continue
 
             if not posted:
-                # 最終手段: Ctrl+Enterで送信
+                # 最終手段1: テキストエリアにフォーカスしてCtrl+Enter
                 try:
+                    ed = page.locator('[data-testid="tweetTextarea_0"]').first
+                    ed.click()
+                    time.sleep(0.5)
                     page.keyboard.press("Control+Enter")
                     time.sleep(4)
                     log("✓ X: Ctrl+Enterで送信")
                     posted = True
                 except Exception as e:
                     log(f"X: Ctrl+Enter失敗: {e}")
+
+            if not posted:
+                # 最終手段2: ボタンにフォーカスしてSpaceキー
+                try:
+                    btn = page.locator('[data-testid="tweetButton"]').last
+                    btn.focus()
+                    time.sleep(0.3)
+                    page.keyboard.press("Space")
+                    time.sleep(4)
+                    log("✓ X: Spaceキーで送信")
+                    posted = True
+                except Exception as e:
+                    log(f"X: Spaceキー失敗: {e}")
 
             if not posted:
                 log("✗ X: 投稿ボタンが見つかりません")
