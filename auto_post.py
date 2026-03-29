@@ -705,6 +705,154 @@ with sync_playwright() as pw:
         log(f"note: エラー: {traceback.format_exc()[:400]}")
         return {"ok": False, "message": str(e)}
 
+
+# ── メイン処理 ────────────────────────────────────────────────
+def main():
+    log("=== RayPhoneAI 自動投稿開始 ===")
+
+    cat_idx = get_cat_index()
+    cat = CATEGORIES[cat_idx % len(CATEGORIES)]
+    log(f"カテゴリ: {cat} (idx={cat_idx})")
+
+    # STEP 1: 記事企画
+    log("[1/5] 記事企画を生成中...")
+    seed_words = ["初心者でも即実践できる","上級者向け深掘り","意外と知らない","失敗から学んだ",
+                  "現場で本当に使える","5分でわかる","収益につながる","時短を極める",
+                  "プロが教える","実例で解説する","よくある間違いと対策","活用アイデア10選"]
+    angles = ["初心者向け入門","実践者向け応用","業務効率化","副業・収益化","時短・自動化",
+              "プロンプト設計","失敗事例と改善","ビフォーアフター事例","ステップバイステップ"]
+    rand_word  = random.choice(seed_words)
+    rand_angle = random.choice(angles)
+    rand_num   = random.randint(1000, 9999)
+    now_str    = datetime.now().strftime("%Y年%m月%d日 %H:%M")
+
+    plan_text = gemini(f"""あなたはRayphoneブログ「RayPhoneAI」の記事企画担当です。
+カテゴリ「{cat}」で実践的な記事企画を1件作成してください。
+
+生成日時: {now_str} / キーワードヒント: {rand_word}×{rand_angle} / シード: {rand_num}
+毎回ユニークで具体的なタイトルにしてください。
+
+JSONのみ出力（前置き不要）:
+{{"title":"タイトル30字以内","target":"ターゲット読者","keywords":"SEOキーワード","hook":"読者の悩み"}}""", 500)
+
+    try:
+        meta = json.loads(re.sub(r"```json|```", "", plan_text).strip())
+    except Exception:
+        meta = {"title": f"{cat}×AI活用 実践{rand_num}", "target": "AI初心者", "keywords": f"{cat} AI", "hook": "AIをうまく使いたい"}
+    log(f"✓ タイトル: {meta['title']}")
+
+    # STEP 2: ブログ記事
+    log("[2/5] ブログ記事を生成中（約3000字）...")
+    article = strip_preamble(gemini(f"""あなたはRayphoneのブログライターです。
+
+【タイトル】{meta['title']}
+【カテゴリ】{cat}
+【ターゲット】{meta.get('target','AI初心者のビジネスパーソン')}
+【SEO】{meta.get('keywords', cat+' AI活用')}
+【文字数】約3000字
+
+【絶対禁止】# ## * ** などのマークダウン記号禁止。見出しは【】形式。箇条書きは「・」。
+【構成】タイトル行→【はじめに】200字→【見出し1〜4】各500字（Claudeプロンプト例必須）→【まとめ】note: {NOTE_URL}へCTA
+
+Rayphoneの一人称・体験談必須。""", 4500))
+    log(f"✓ 記事生成完了({len(article)}字)")
+
+    # STEP 3: アイキャッチ
+    log(f"[3/5] アイキャッチを生成中... (モデル: {EYECATCH_MODEL})")
+    art_id      = int(datetime.now().timestamp() * 1000)
+    svg_code    = None
+    eyecatch_png: bytes = b""
+
+    if EYECATCH_MODEL == "svg":
+        svg_code = generate_eyecatch_svg(meta['title'], cat, art_id)
+        log(f"✓ アイキャッチSVG生成完了({len(svg_code)}字)")
+    else:
+        png_bytes = generate_eyecatch_image(meta['title'], cat)
+        if png_bytes:
+            eyecatch_png = png_bytes
+            svg_code = "data:image/png;base64," + base64.b64encode(png_bytes).decode()
+            log(f"✓ アイキャッチ画像生成完了({len(png_bytes)//1024}KB)")
+        else:
+            log("アイキャッチ画像生成失敗 → SVGにフォールバック")
+            svg_code = generate_eyecatch_svg(meta['title'], cat, art_id)
+            log(f"✓ アイキャッチSVG生成完了({len(svg_code)}字)")
+
+    # STEP 4: GitHub push
+    log("[4/5] GitHubにarticles.jsonをプッシュ中...")
+    art_url = f"{BLOG_URL}/?id={art_id}"
+    new_art = {
+        "id": art_id, "title": meta['title'], "cat": cat,
+        "content": article, "svg": svg_code,
+        "date": datetime.now().strftime("%Y.%m.%d"),
+        "status": "published", "url": art_url,
+    }
+    arts = []
+    if GH_TOKEN:
+        r = requests.get(
+            f"https://api.github.com/repos/{GH_USER}/{GH_REPO}/contents/articles.json",
+            headers=_gh_headers())
+        if r.status_code == 200:
+            try:
+                arts = json.loads(base64.b64decode(r.json()["content"]).decode())
+            except Exception:
+                arts = []
+    arts.insert(0, new_art)
+    push_articles(arts)
+    log(f"✓ ブログURL: {art_url}")
+
+    # STEP 5a: note生成・投稿
+    log("[5/5] note専用コンテンツを生成中...")
+    note_body = strip_preamble(gemini(f"""あなたはRayphoneです。ブログ記事のnote版（約2000字）を書いてください。
+
+【タイトル】{meta['title']}
+【カテゴリ】{cat}
+【ブログURL】{art_url}
+【本文抜粋】{article[:500]}...
+
+【構成】
+■はじめに（300字）
+■この記事で解決できること（箇条書き3つ）
+
+▼ ブログ記事はこちら
+{art_url}
+
+■深掘り解説（1000字）
+■Rayphoneからの一言（300字）
+
+【禁止】# * マークダウン禁止。見出しは■。箇条書きは「・」。前置き・承諾文禁止。""", 3500))
+
+    # URL強制置換（1回のre.subで確実に正しい記事URLに統一）
+    note_body = re.sub(
+        r'https://rayphoneai\.github\.io/ray(?:/?\?id=\d+|/?)',
+        art_url,
+        note_body
+    )
+    if art_url not in note_body:
+        note_body += f"\n\n▼ ブログ記事はこちら\n{art_url}\n"
+        log("note: URLを末尾に追加")
+    m = re.search(r'https://rayphoneai\.github\.io/\S+', note_body)
+    log(f"✓ noteコンテンツ生成完了({len(note_body)}字) / 記事URL: {m.group(0) if m else 'なし'}")
+
+    log("noteに投稿中...")
+    note_result = post_to_note(f"【深掘り】{meta['title']}", note_body, svg_code, eyecatch_png=eyecatch_png)
+    if note_result["ok"]:
+        log(f"✓ note投稿完了: {note_result.get('url','')}")
+    else:
+        log(f"✗ note投稿失敗: {note_result.get('message','')}")
+
+    # STEP 5b: X投稿
+    if X_AUTO and X_COOKIES_B64:
+        log("Xに投稿中...")
+        x_url = note_result.get("url", "") if note_result.get("ok") else art_url
+        post_to_x(x_url)
+
+    # カテゴリを進める
+    next_idx = (cat_idx + 1) % len(CATEGORIES)
+    save_cat_index(next_idx)
+    log(f"次回カテゴリ: {CATEGORIES[next_idx]} (idx={next_idx})")
+    log("=== 完了 ===")
+
+
 print("✓ 全関数定義完了。main()を実行します", flush=True)
 
 if __name__ == "__main__":
