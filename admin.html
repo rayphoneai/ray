@@ -274,6 +274,12 @@ input:checked+.sw2-slider::before{transform:translateX(16px);}
           <div class="out" id="art-out">
             <div class="out-label">生成された記事<button class="btn bg2 bsm" id="art-copy-btn">コピー</button></div>
             <div class="out-content" id="art-content"></div>
+            <div id="art-ec-wrap" style="margin-bottom:16px;display:none;">
+              <div class="out-label">生成されたアイキャッチ
+                <button class="btn bg2 bsm" id="art-ec-regen-btn" onclick="regenEC()">🔄 再生成</button>
+              </div>
+              <div id="art-ec-preview" style="width:100%;aspect-ratio:1280/670;background:#111;border-radius:8px;overflow:hidden;margin-bottom:8px;"></div>
+            </div>
             <div class="brow">
               <button class="btn bp" id="art-save-btn">下書きに保存</button>
               <button class="btn bg2" id="art-to-note-btn" style="border:1.5px solid var(--bd);">📝 保存してnoteに投稿</button>
@@ -622,7 +628,7 @@ function generateArticle(){
   document.getElementById('art-log').textContent='';document.getElementById('art-log').classList.add('show');
   document.getElementById('art-lt').textContent='記事を執筆中...';
   document.getElementById('art-out').classList.remove('show');
-  var p='あなたはRayphone（プロンプト設計士・商品開発15年・Claude副業月収15万達成）のブログ「RayPhoneAI」専属ライターです。\n\n【タイトル】'+title+'\n【カテゴリ】'+cat+'\n【ターゲット】'+(tgt||'AI初心者のビジネスパーソン')+'\n【文字数】約'+len+'字\n【SEO】'+(kw||'Claude 活用 業務効率化')+'\n【方向性】'+(memo||'実践的な内容で')+'\n\n【絶対禁止】# ## * ** などのマークダウン記号は一切使用禁止。見出しは【】形式。箇条書きは「・」。\n\n【構成】\nタイトル行\n【はじめに】（200字）\n【見出し1〜4】（各400〜600字・Claudeのプロンプト例を必ず1つ以上含める）\n【まとめ】（CTAでnote: '+noteUrl+'に誘導）\n\nRayphoneの一人称・体験談必須。# * 絶対禁止。合計'+len+'字前後。';
+  var p='あなたはRayphone（プロンプト設計士・商品開発15年・Claude副業月収15万達成）のブログ「RayPhoneAI」専属ライターです。\n\n【タイトル】'+title+'\n【カテゴリ】'+cat+'\n【ターゲット】'+(tgt||'AI初心者のビジネスパーソン')+'\n【文字数】約'+len+'字\n【SEO】'+(kw||'Claude 活用 業務効率化')+'\n【方向性】'+(memo||'実践的な内容で')+'\n\n【絶対禁止】# ## * ** などのマークダウン記号は一切使用禁止。見出しは■のみ使用（【】禁止）。箇条書きは「・」。URLはそのまま出力。\n\n【構成】\nタイトル行\n【はじめに】（200字）\n【見出し1〜4】（各400〜600字・Claudeのプロンプト例を必ず1つ以上含める）\n【まとめ】（CTAでnote: '+noteUrl+'に誘導）\n\nRayphoneの一人称・体験談必須。# * 絶対禁止。合計'+len+'字前後。';
   claudeCall(p,4000,function(err,text){
     document.getElementById('art-gen-btn').disabled=false;
     document.getElementById('art-gp').classList.remove('show');
@@ -643,6 +649,7 @@ function generateArticle(){
         document.getElementById('art-gp').classList.remove('show');
         document.getElementById('art-ld').classList.remove('show');
         document.getElementById('art-lt').textContent='✓ 記事＋アイキャッチ生成完了';
+        showECPreview();
         document.getElementById('art-out').classList.add('show');
         document.getElementById('art-gen-btn').disabled=false;
         alog('✓ 全ての生成が完了しました。下書きに保存 または 📝 保存してnoteに投稿 を押してください。');
@@ -695,6 +702,30 @@ function clearArticle(){
   K.lastArt='';K.curSVG='';
 }
 
+function showECPreview(){
+  var wrap=document.getElementById('art-ec-wrap');
+  var prev=document.getElementById('art-ec-preview');
+  if(!wrap||!prev) return;
+  if(K.curSVG){
+    wrap.style.display='block';
+    if(K.curSVG.startsWith('data:image')){
+      prev.innerHTML='<img src="'+K.curSVG+'" style="width:100%;height:100%;object-fit:contain;">';
+    } else {
+      prev.innerHTML='<img src="data:image/svg+xml;charset=utf-8,'+encodeURIComponent(K.curSVG)+'" style="width:100%;height:100%;object-fit:contain;">';
+    }
+  }
+}
+function regenEC(){
+  var title=document.getElementById('art-title')?document.getElementById('art-title').value:'';
+  var cat=document.getElementById('art-cat')?document.getElementById('art-cat').value:CATEGORIES[0];
+  if(!title){alert('先に記事を生成してください');return;}
+  var btn=document.getElementById('art-ec-regen-btn');
+  if(btn){btn.disabled=true;btn.textContent='生成中...';}
+  genEC(title,cat,function(){
+    showECPreview();
+    if(btn){btn.disabled=false;btn.textContent='🔄 再生成';}
+  });
+}
 function genEC(title,cat,done){
   var styles=['split','center','namecard','diagonal','bold','minimal','frame'];
   var s=styles[Math.floor(Math.random()*styles.length)];
@@ -711,6 +742,7 @@ function genEC(title,cat,done){
   claudeCall(ecPrompt,2000,function(err,text){
     try{
       if(!err&&text){var m=text.match(/<svg[\s\S]*<\/svg>/i);K.curSVG=m?m[0]:text;}
+      showECPreview();
     }catch(e){}
     try{if(done)done();}catch(e){console.error('genEC done error:',e);}
   });
@@ -736,7 +768,7 @@ function runFullAuto(targetCat){
     document.getElementById('art-title').value=meta.title;document.getElementById('art-cat').value=cat;
     document.getElementById('art-kw').value=meta.keywords;document.getElementById('art-target').value=meta.target;document.getElementById('art-memo').value=meta.hook;
     document.getElementById('art-lt').textContent='[2/5] 約3,000字の記事を執筆中...';
-    var artP='あなたはRayphone（プロンプト設計士・商品開発15年・Claude副業月収15万達成）のブログライターです。\n\n【タイトル】'+meta.title+'\n【カテゴリ】'+cat+'\n【ターゲット】'+meta.target+'\n【文字数】約3000字\n【SEO】'+meta.keywords+'\n【方向性】'+meta.hook+'\n\n【絶対禁止】# ## * ** は使用禁止。見出しは【】形式。箇条書きは「・」。\n\n【構成】\nタイトル行\n【はじめに】（200字）\n【見出し1〜4】（各500〜600字・Claudeプロンプト例を必ず含める）\n【まとめ】（CTAでnote: '+noteUrl+'へ誘導）\n\nRayphoneの体験談・一人称必須。# * 絶対禁止。';
+    var artP='あなたはRayphone（プロンプト設計士・商品開発15年・Claude副業月収15万達成）のブログライターです。\n\n【タイトル】'+meta.title+'\n【カテゴリ】'+cat+'\n【ターゲット】'+meta.target+'\n【文字数】約3000字\n【SEO】'+meta.keywords+'\n【方向性】'+meta.hook+'\n\n【絶対禁止】# ## * ** は使用禁止。見出しは■のみ使用（【】禁止）。箇条書きは「・」。URLはそのまま出力。\n\n【構成】\nタイトル行\n【はじめに】（200字）\n【見出し1〜4】（各500〜600字・Claudeプロンプト例を必ず含める）\n【まとめ】（CTAでnote: '+noteUrl+'へ誘導）\n\nRayphoneの体験談・一人称必須。# * 絶対禁止。';
     claudeCall(artP,4000,function(err2,artText){
       K.lastArt=artText||'';
       if(artText){document.getElementById('art-content').textContent=artText;document.getElementById('art-out').classList.add('show');}
