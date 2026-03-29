@@ -671,15 +671,20 @@ with sync_playwright() as pw:
                 log(f"note: アイキャッチエラー（スキップ）: {e}")
             time.sleep(3)
 
-            # 公開に進む
+            # 公開に進む（通常クリック→JS clickフォールバック）
             pub_ok = False
             for sel in ['button:has-text("公開に進む")', 'button:has-text("投稿設定へ")', 'button:has-text("公開設定")']:
                 try:
                     b = page.locator(sel).first
                     if b.is_visible(timeout=10000):
-                        b.click()
+                        b.scroll_into_view_if_needed()
+                        time.sleep(0.5)
+                        try:
+                            b.click(timeout=5000)
+                        except Exception:
+                            page.evaluate("(sel) => { const b = document.evaluate(\"//button[contains(text(),'公開に進む')]\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; if(b) b.click(); }", sel)
                         log(f"note: 公開ボタン: {sel}")
-                        time.sleep(8)  # モーダル表示待ち
+                        time.sleep(8)
                         pub_ok = True
                         break
                 except Exception:
@@ -689,7 +694,7 @@ with sync_playwright() as pw:
                 browser.close()
                 return {"ok": False, "message": "note公開ボタン見つからず"}
 
-            # 投稿する（モーダルが開くまで最大20秒待機）
+            # 投稿する（モーダル表示後15秒待機・複数手段）
             confirm_ok = False
             for sel in ['button:has-text("投稿する")', 'button:has-text("今すぐ公開")',
                         'button:has-text("公開する")', 'button:has-text("公開")',
@@ -697,6 +702,8 @@ with sync_playwright() as pw:
                 try:
                     b = page.locator(sel).first
                     if b.is_visible(timeout=15000):
+                        b.scroll_into_view_if_needed()
+                        time.sleep(0.5)
                         b.click()
                         log(f"note: 投稿確認: {sel}")
                         time.sleep(5)
@@ -705,7 +712,6 @@ with sync_playwright() as pw:
                 except Exception:
                     pass
             if not confirm_ok:
-                # ページ状態をログに出してデバッグ
                 btns = page.locator('button').all_text_contents()
                 log(f"note: 現在のボタン一覧: {btns[:10]}")
                 page.screenshot(path="debug_note_confirm.png")
