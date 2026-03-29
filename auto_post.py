@@ -322,17 +322,17 @@ def generate_eyecatch_image(title: str, cat: str) -> bytes | None:
     if model == "svg":
         return None
 
-    # タイトルを18文字以内に短縮（長すぎると文字化け・改行が増える）
+    # タイトルを22文字以内に短縮
     short_title = title[:22] if len(title) <= 22 else title[:20] + "…"
+
+    # Geminiにはテキストなしの背景デザインのみ生成させる
     prompt = (
-        f"Create a blog eyecatch image (16:9 landscape) with the following EXACT Japanese text. "
-        f"Do NOT translate or change the text. Use it exactly as provided.\n"
-        f"Main title text (large, bold): {short_title}\n"
-        f"Small label text: {cat}\n"
-        f"Small logo text: RayPhoneAI\n"
+        f"Create a professional blog header image (16:9 landscape ratio). "
         f"Design: white background, orange (#FF6B00) and dark gray (#1A1A1A) accents, "
-        f"modern minimal layout, no people, geometric decorations only. "
-        f"The text must be in Japanese (日本語). Do not use Chinese characters."
+        f"modern minimal layout with geometric decorations (lines, circles, triangles). "
+        f"Leave the left-center area empty for text overlay. "
+        f"No text, no letters, no characters in the image. "
+        f"Clean professional Japanese tech blog aesthetic."
     )
 
     try:
@@ -350,8 +350,8 @@ def generate_eyecatch_image(title: str, cat: str) -> bytes | None:
             # 画像データを取得
             for part in data.get("candidates", [{}])[0].get("content", {}).get("parts", []):
                 if "inlineData" in part:
-                    img_b64 = part["inlineData"]["data"]
-                    return base64.b64decode(img_b64)
+                    img_bytes = base64.b64decode(part["inlineData"]["data"])
+                    return _overlay_japanese_text(img_bytes, short_title, cat)
             log(f"note: 画像データが見つかりません: {str(data)[:200]}")
             return None
 
@@ -371,7 +371,8 @@ def generate_eyecatch_image(title: str, cat: str) -> bytes | None:
             data = r.json()
             images = data.get("images", [])
             if images:
-                return base64.b64decode(images[0]["bytesBase64Encoded"])
+                img_bytes = base64.b64decode(images[0]["bytesBase64Encoded"])
+                return _overlay_japanese_text(img_bytes, short_title, cat)
             log(f"note: Imagen応答に画像なし: {str(data)[:200]}")
             return None
 
@@ -382,6 +383,89 @@ def generate_eyecatch_image(title: str, cat: str) -> bytes | None:
     except Exception as e:
         log(f"note: 画像生成エラー ({model}): {e}")
         return None
+
+
+def _overlay_japanese_text(img_bytes: bytes, title: str, cat: str) -> bytes:
+    """Pillowで日本語テキストをGemini生成画像に合成する"""
+    try:
+        import io as _io, urllib.request as _ur, tempfile as _tf, os as _os
+        from PIL import Image as _Img, ImageDraw as _Draw, ImageFont as _Font
+
+        # Noto Sans JPフォントをダウンロード（なければシステムフォントを使用）
+        font_path = "/tmp/NotoSansJP-Bold.ttf"
+        if not _os.path.exists(font_path):
+            try:
+                font_url = "https://github.com/googlefonts/noto-cjk/raw/main/Sans/OTF/Japanese/NotoSansCJKjp-Bold.otf"
+                _ur.urlretrieve(font_url, font_path)
+            except Exception:
+                # フォールバック: IPAゴシック
+                try:
+                    font_url2 = "https://moji.or.jp/wp-content/ipafont/IPAexfont/IPAexfont00401.zip"
+                    import zipfile as _zf
+                    zip_path = "/tmp/ipafont.zip"
+                    _ur.urlretrieve(font_url2, zip_path)
+                    with _zf.ZipFile(zip_path) as z:
+                        for n in z.namelist():
+                            if n.endswith('.ttf') and 'Gothic' in n:
+                                z.extract(n, "/tmp/")
+                                _os.rename(f"/tmp/{n}", font_path)
+                                break
+                except Exception:
+                    font_path = None
+
+        img = _Img.open(_io.BytesIO(img_bytes)).convert("RGBA")
+        w, h = img.size
+        # 16:9に合わせてリサイズ
+        target_w, target_h = 1280, 720
+        img = img.resize((target_w, target_h), _Img.LANCZOS)
+
+        draw = _Draw.Draw(img)
+
+        # フォントサイズ設定
+        if font_path and _os.path.exists(font_path):
+            try:
+                font_title = _Font.truetype(font_path, 72)
+                font_cat   = _Font.truetype(font_path, 28)
+                font_logo  = _Font.truetype(font_path, 24)
+            except Exception:
+                font_title = font_cat = font_logo = _Font.load_default()
+        else:
+            font_title = font_cat = font_logo = _Font.load_default()
+
+        # 半透明白背景をテキストエリアに追加（可読性向上）
+        overlay = _Img.new("RGBA", (target_w, target_h), (0,0,0,0))
+        ov_draw = _Draw.Draw(overlay)
+        ov_draw.rectangle([60, 160, 820, 520], fill=(255,255,255,200))
+        img = _Img.alpha_composite(img, overlay)
+        draw = _Draw.Draw(img)
+
+        # カテゴリラベル（オレンジ背景）
+        draw.rectangle([80, 180, 80 + len(cat)*18 + 20, 220], fill=(255,107,0,255))
+        draw.text((90, 185), cat, fill=(255,255,255,255), font=font_cat)
+
+        # タイトル（2行まで）
+        title_y = 240
+        if len(title) > 14:
+            line1 = title[:14]
+            line2 = title[14:]
+            draw.text((80, title_y),      line1, fill=(26,26,26,255), font=font_title)
+            draw.text((80, title_y + 85), line2, fill=(26,26,26,255), font=font_title)
+        else:
+            draw.text((80, title_y), title, fill=(26,26,26,255), font=font_title)
+
+        # RayPhoneAI ロゴ（右下）
+        draw.text((target_w - 180, target_h - 45), "RayPhoneAI", fill=(255,107,0,255), font=font_logo)
+
+        # PNG出力
+        img = img.convert("RGB")
+        buf = _io.BytesIO()
+        img.save(buf, format="PNG", optimize=True)
+        log("note: 日本語テキストオーバーレイ完了")
+        return buf.getvalue()
+
+    except Exception as e:
+        log(f"note: テキストオーバーレイエラー: {e} → 元画像を使用")
+        return img_bytes
 
 
 # ── X 投稿 ───────────────────────────────────────────────────
@@ -690,6 +774,10 @@ with sync_playwright() as pw:
                         break
                 except Exception:
                     break
+
+            # スクロールを一番上に戻してから公開ボタンを探す
+            page.evaluate("window.scrollTo(0, 0)")
+            time.sleep(2)
 
             # 公開に進む（1回だけクリック）
             pub_ok = False
