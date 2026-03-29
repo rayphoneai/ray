@@ -721,19 +721,20 @@ Rayphoneの一人称・体験談必須。""", 4500))
 ■Rayphoneからの一言（300字）
 
 【禁止】# * マークダウン禁止。見出しは■。箇条書きは「・」。前置き・承諾文禁止。""", 3500))
-    # URL強制置換（Geminiがどんな形で出力しても正しい記事URLに変換）
-    # パターン1: トップページURL（?idなし）
-    note_body = re.sub(r'https://rayphoneai\.github\.io/ray/?(?:\s|$)', art_url + '\n', note_body)
-    # パターン2: ?id=付きURLを正しい記事URLで上書き
-    note_body = re.sub(r'https://rayphoneai\.github\.io/ray/?\?id=\d+', art_url, note_body)
-    # パターン3: まだトップURLが残っていたら全置換
-    note_body = note_body.replace('https://rayphoneai.github.io/ray/', art_url)
-    note_body = note_body.replace('https://rayphoneai.github.io/ray', art_url)
+    # URL強制置換（1回のre.subで確実に正しい記事URLに統一）
+    # rayphoneai.github.io/ray のURLをすべて art_url に置換（?id=あり・なし両対応）
+    note_body = re.sub(
+        r'https://rayphoneai\.github\.io/ray(?:/?\?id=\d+|/?)',
+        art_url,
+        note_body
+    )
     # URLが本文に含まれているか確認、なければ末尾に追加
     if art_url not in note_body:
         note_body += f"\n\n▼ ブログ記事はこちら\n{art_url}\n"
-        log(f"note: URLを末尾に追加しました")
-    log(f"✓ noteコンテンツ生成完了({len(note_body)}字) / 記事URL確認: {'OK' if art_url in note_body else 'NG'}")
+        log("note: URLを末尾に追加")
+    # 実際に入っているURLをログに出力して確認
+    m = re.search(r'https://rayphoneai\.github\.io/\S+', note_body)
+    log(f"✓ noteコンテンツ生成完了({len(note_body)}字) / 記事URL: {m.group(0) if m else 'なし'}")
 
     log("noteに投稿中...")
     note_result = post_to_note(f"【深掘り】{meta['title']}", note_body, svg_code)
