@@ -323,16 +323,14 @@ def generate_eyecatch_image(title: str, cat: str) -> bytes | None:
         return None
 
     prompt = (
-        f"Professional blog eyecatch image for a Japanese AI blog 'RayPhoneAI'. "
-        f"Article: '{title}' / Category: '{cat}'. "
-        f"REQUIREMENTS: "
-        f"- Use Japanese language text with proper Japanese fonts (Noto Sans JP or similar). "
-        f"- Write the article title in Japanese characters clearly and legibly. "
-        f"- Write 'RayPhoneAI' in small text as the blog name. "
-        f"- White background (#FFFFFF) with orange (#FF6B00) and dark (#1A1A1A) accent colors. "
-        f"- Modern minimal Japanese blog design, 16:9 ratio. "
-        f"- No faces, no people, geometric shapes and typography only. "
-        f"- High contrast, clean professional layout."
+        f"日本語のAIブログ「RayPhoneAI」のアイキャッチ画像を作成してください。"
+        f"横長（16:9）のシンプルでプロフェッショナルなデザインにしてください。"
+        f"記事タイトル（日本語）を大きく正確に表示してください: 「{title}」"
+        f"カテゴリ名を小さく表示してください: 「{cat}」"
+        f"「RayPhoneAI」のロゴを小さく入れてください。"
+        f"デザイン仕様: 白背景、オレンジ(#FF6B00)と黒(#1A1A1A)のアクセント、"
+        f"モダンでミニマルな日本のブログデザイン。"
+        f"文字は必ず正確な日本語で表示すること。人物なし、幾何学的な装飾のみ。"
     )
 
     try:
@@ -671,38 +669,69 @@ with sync_playwright() as pw:
                 log(f"note: アイキャッチエラー（スキップ）: {e}")
             time.sleep(3)
 
-            # AIアシスタントパネルが開いていれば閉じる
+            # Escapeキーで全パネル・ダイアログを閉じる
             try:
-                close_btn = page.locator('button:has-text("閉じる")').first
-                if close_btn.is_visible(timeout=2000):
-                    close_btn.click()
-                    log("note: AIパネルを閉じました")
-                    time.sleep(1)
+                page.keyboard.press("Escape")
+                time.sleep(1)
             except Exception:
                 pass
 
-            # 公開に進む（通常クリック→JS clickフォールバック）
-            pub_ok = False
-            for sel in ['button:has-text("公開に進む")', 'button:has-text("投稿設定へ")', 'button:has-text("公開設定")']:
+            # AIアシスタントパネルが開いていれば閉じる
+            for _ in range(3):
                 try:
-                    b = page.locator(sel).first
-                    if b.is_visible(timeout=10000):
-                        b.scroll_into_view_if_needed()
-                        time.sleep(0.5)
-                        try:
-                            b.click(timeout=5000)
-                        except Exception:
-                            page.evaluate("() => { const b = document.evaluate(\"//button[contains(text(),'公開に進む')]\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; if(b) b.click(); }")
-                        log(f"note: 公開ボタン: {sel}")
-                        time.sleep(8)
-                        pub_ok = True
+                    close_btn = page.locator('button:has-text("閉じる")').first
+                    if close_btn.is_visible(timeout=1500):
+                        close_btn.click()
+                        log("note: AIパネルを閉じました")
+                        time.sleep(1)
+                    else:
                         break
                 except Exception:
+                    break
+
+            # 公開に進む
+            pub_ok = False
+            for attempt in range(3):
+                for sel in ['button:has-text("公開に進む")', 'button:has-text("投稿設定へ")']:
+                    try:
+                        b = page.locator(sel).first
+                        if b.is_visible(timeout=5000):
+                            b.scroll_into_view_if_needed()
+                            time.sleep(0.5)
+                            b.click(timeout=5000)
+                            log(f"note: 公開ボタン: {sel} (attempt {attempt+1})")
+                            time.sleep(8)
+                            # モーダルが開いたか確認
+                            try:
+                                if page.locator('button:has-text("投稿する")').is_visible(timeout=2000):
+                                    pub_ok = True
+                                    break
+                                elif page.locator('button:has-text("今すぐ公開")').is_visible(timeout=1000):
+                                    pub_ok = True
+                                    break
+                            except Exception:
+                                pass
+                    except Exception:
+                        pass
+                if pub_ok:
+                    break
+                # 次の試みの前にパネルを再度閉じる
+                try:
+                    page.keyboard.press("Escape")
+                    time.sleep(1)
+                    close_btn = page.locator('button:has-text("閉じる")').first
+                    if close_btn.is_visible(timeout=1000):
+                        close_btn.click()
+                        time.sleep(1)
+                except Exception:
                     pass
+
             if not pub_ok:
+                btns = page.locator('button').all_text_contents()
+                log(f"note: 公開後ボタン一覧: {[b.strip() for b in btns if b.strip()][:10]}")
                 page.screenshot(path="debug_note_pub.png")
                 browser.close()
-                return {"ok": False, "message": "note公開ボタン見つからず"}
+                return {"ok": False, "message": "note公開モーダルが開きませんでした"}
 
             # 投稿する（モーダル表示後15秒待機・複数手段）
             confirm_ok = False
