@@ -577,8 +577,8 @@ function makeCard(art, size){
   var thumbH = size==='feat' ? '130px' : '160px';
   var thumbHtml;
   var thumbSrc;
-  if(art.svg && art.svg.startsWith('data:image/png')){
-    // Gemini生成PNG画像
+  if(art.svg && art.svg.startsWith('data:image')){
+    // Gemini生成画像（PNG/JPEG）
     thumbSrc = art.svg;
   } else if(art.svg){
     // SVGアイキャッチ
