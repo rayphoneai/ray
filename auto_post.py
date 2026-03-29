@@ -322,15 +322,17 @@ def generate_eyecatch_image(title: str, cat: str) -> bytes | None:
     if model == "svg":
         return None
 
+    # タイトルを18文字以内に短縮（長すぎると文字化け・改行が増える）
+    short_title = title[:22] if len(title) <= 22 else title[:20] + "…"
     prompt = (
-        f"日本語のAIブログ「RayPhoneAI」のアイキャッチ画像を作成してください。"
-        f"横長（16:9）のシンプルでプロフェッショナルなデザインにしてください。"
-        f"記事タイトル（日本語）を大きく正確に表示してください: 「{title}」"
-        f"カテゴリ名を小さく表示してください: 「{cat}」"
-        f"「RayPhoneAI」のロゴを小さく入れてください。"
-        f"デザイン仕様: 白背景、オレンジ(#FF6B00)と黒(#1A1A1A)のアクセント、"
-        f"モダンでミニマルな日本のブログデザイン。"
-        f"文字は必ず正確な日本語で表示すること。人物なし、幾何学的な装飾のみ。"
+        f"Create a blog eyecatch image (16:9 landscape) with the following EXACT Japanese text. "
+        f"Do NOT translate or change the text. Use it exactly as provided.\n"
+        f"Main title text (large, bold): {short_title}\n"
+        f"Small label text: {cat}\n"
+        f"Small logo text: RayPhoneAI\n"
+        f"Design: white background, orange (#FF6B00) and dark gray (#1A1A1A) accents, "
+        f"modern minimal layout, no people, geometric decorations only. "
+        f"The text must be in Japanese (日本語). Do not use Chinese characters."
     )
 
     try:
@@ -689,70 +691,56 @@ with sync_playwright() as pw:
                 except Exception:
                     break
 
-            # 公開に進む
+            # 公開に進む（1回だけクリック）
             pub_ok = False
-            for attempt in range(3):
-                for sel in ['button:has-text("公開に進む")', 'button:has-text("投稿設定へ")']:
-                    try:
-                        b = page.locator(sel).first
-                        if b.is_visible(timeout=5000):
-                            b.scroll_into_view_if_needed()
-                            time.sleep(0.5)
-                            b.click(timeout=5000)
-                            log(f"note: 公開ボタン: {sel} (attempt {attempt+1})")
-                            time.sleep(8)
-                            # モーダルが開いたか確認
-                            try:
-                                if page.locator('button:has-text("投稿する")').is_visible(timeout=2000):
-                                    pub_ok = True
-                                    break
-                                elif page.locator('button:has-text("今すぐ公開")').is_visible(timeout=1000):
-                                    pub_ok = True
-                                    break
-                            except Exception:
-                                pass
-                    except Exception:
-                        pass
-                if pub_ok:
-                    break
-                # 次の試みの前にパネルを再度閉じる
-                try:
-                    page.keyboard.press("Escape")
-                    time.sleep(1)
-                    close_btn = page.locator('button:has-text("閉じる")').first
-                    if close_btn.is_visible(timeout=1000):
-                        close_btn.click()
-                        time.sleep(1)
-                except Exception:
-                    pass
-
-            if not pub_ok:
-                btns = page.locator('button').all_text_contents()
-                log(f"note: 公開後ボタン一覧: {[b.strip() for b in btns if b.strip()][:10]}")
-                page.screenshot(path="debug_note_pub.png")
-                browser.close()
-                return {"ok": False, "message": "note公開モーダルが開きませんでした"}
-
-            # 投稿する（モーダル表示後15秒待機・複数手段）
-            confirm_ok = False
-            for sel in ['button:has-text("投稿する")', 'button:has-text("今すぐ公開")',
-                        'button:has-text("公開する")', 'button:has-text("公開")',
-                        '[class*="publish"] button', 'button[type="submit"]']:
+            for sel in ['button:has-text("公開に進む")', 'button:has-text("投稿設定へ")']:
                 try:
                     b = page.locator(sel).first
-                    if b.is_visible(timeout=15000):
+                    if b.is_visible(timeout=8000):
                         b.scroll_into_view_if_needed()
                         time.sleep(0.5)
-                        b.click()
-                        log(f"note: 投稿確認: {sel}")
-                        time.sleep(5)
-                        confirm_ok = True
+                        b.click(timeout=5000)
+                        log(f"note: 公開ボタン: {sel}")
+                        pub_ok = True
                         break
                 except Exception:
                     pass
+            if not pub_ok:
+                page.screenshot(path="debug_note_pub.png")
+                browser.close()
+                return {"ok": False, "message": "note公開ボタン見つからず"}
+
+            # 最大20秒待って「投稿する」モーダルを探す
+            confirm_ok = False
+            for wait_i in range(20):
+                time.sleep(1)
+                # URLが変わっていれば既に投稿完了
+                if 'editor.note.com/notes/' in page.url and '/publish' in page.url:
+                    # publish URLにいる → 投稿ボタンを探す
+                    pass
+                elif 'note.com' in page.url and 'editor' not in page.url:
+                    # 記事ページに遷移済み → 投稿完了
+                    log(f"note: URL変化で投稿完了を検知: {page.url}")
+                    confirm_ok = True
+                    break
+                for sel in ['button:has-text("投稿する")', 'button:has-text("今すぐ公開")', 'button:has-text("公開する")']:
+                    try:
+                        b = page.locator(sel).first
+                        if b.is_visible(timeout=500):
+                            b.click()
+                            log(f"note: 投稿確認: {sel} ({wait_i+1}秒後)")
+                            time.sleep(5)
+                            confirm_ok = True
+                            break
+                    except Exception:
+                        pass
+                if confirm_ok:
+                    break
+
             if not confirm_ok:
                 btns = page.locator('button').all_text_contents()
-                log(f"note: 現在のボタン一覧: {btns[:10]}")
+                log(f"note: 現在URL={page.url}")
+                log(f"note: ボタン一覧: {[b.strip() for b in btns if b.strip()][:10]}")
                 page.screenshot(path="debug_note_confirm.png")
                 browser.close()
                 return {"ok": False, "message": "note投稿確認ボタン見つからず"}
