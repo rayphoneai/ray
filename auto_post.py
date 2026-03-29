@@ -938,20 +938,18 @@ Rayphoneの一人称・体験談必須。""", 4500))
     else:
         png_bytes = generate_eyecatch_image(meta['title'], cat)
         if png_bytes:
-            # note用: 1280×670にリサイズしてアスペクト比を統一
+            # note用・ブログ用ともに1280×670にリサイズ
             try:
                 from PIL import Image as _Img
                 import io as _io
                 img_orig = _Img.open(_io.BytesIO(png_bytes))
-                img_note = img_orig.resize((1280, 670), _Img.LANCZOS)
-                buf_note = _io.BytesIO()
-                img_note.save(buf_note, format='PNG')
-                eyecatch_png = buf_note.getvalue()
-                # ブログ用: JPEG圧縮
-                buf_blog = _io.BytesIO()
-                img_note.save(buf_blog, format='JPEG', quality=85)
-                svg_code = "data:image/jpeg;base64," + base64.b64encode(buf_blog.getvalue()).decode()
-                log(f"✓ アイキャッチ画像生成完了(note:{len(eyecatch_png)//1024}KB / blog:{len(buf_blog.getvalue())//1024}KB)")
+                img_resized = img_orig.resize((1280, 670), _Img.LANCZOS)
+                buf = _io.BytesIO()
+                img_resized.save(buf, format='PNG')
+                resized_bytes = buf.getvalue()
+                eyecatch_png = resized_bytes  # note用
+                svg_code = "data:image/png;base64," + base64.b64encode(resized_bytes).decode()  # ブログ用（圧縮なし）
+                log(f"✓ アイキャッチ画像生成完了({len(resized_bytes)//1024}KB)")
             except Exception:
                 eyecatch_png = png_bytes
                 svg_code = "data:image/png;base64," + base64.b64encode(png_bytes).decode()
