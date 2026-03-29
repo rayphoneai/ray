@@ -468,7 +468,7 @@ function toggleMenu(){
       </button>
     </div>
     <!-- アイキャッチ -->
-    <div id="ap-eyecatch" style="width:100%;height:340px;background:#FFF0E3;overflow:hidden;border-radius:12px;margin:20px 0;"></div>
+    <div id="ap-eyecatch" style="width:100%;aspect-ratio:1280/670;background:#fff;overflow:hidden;border-radius:12px;margin:20px 0;"></div>
     <!-- メタ情報 -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
       <span id="ap-cat" style="background:#FFF0E3;color:var(--orange);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:1px;"></span>
@@ -584,8 +584,8 @@ function makeCard(art, size){
   } else {
     thumbSrc = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(makeEyecatch(art));
   }
-  thumbHtml = '<div class="'+(size==='feat'?'feat-card-thumb':'art-card-thumb')+'" style="overflow:hidden;height:'+thumbH+';">'
-    + '<img src="'+thumbSrc+'" style="width:100%;height:100%;object-fit:cover;"></div>';
+  thumbHtml = '<div class="'+(size==='feat'?'feat-card-thumb':'art-card-thumb')+'" style="overflow:hidden;aspect-ratio:16/9;">'
+    + '<img src="'+thumbSrc+'" style="width:100%;height:100%;object-fit:contain;background:#fff;"></div>';
   if(size==='feat'){
     card.innerHTML = thumbHtml
       + '<div class="feat-card-body">'
@@ -701,11 +701,11 @@ var blogUrl = cfg.blogUrl || location.origin + location.pathname;
 function _showPage(art){
   var ec=document.getElementById('ap-eyecatch');
   if(art.svg && art.svg.startsWith('data:image/png')){
-    ec.innerHTML='<img src="'+art.svg+'" style="width:100%;height:100%;object-fit:cover;">';
+    ec.innerHTML='<img src="'+art.svg+'" style="width:100%;height:100%;object-fit:contain;background:#fff;">';
   } else if(art.svg){
-    ec.innerHTML='<img src="data:image/svg+xml;charset=utf-8,'+encodeURIComponent(art.svg)+'" style="width:100%;height:100%;object-fit:cover;">';
+    ec.innerHTML='<img src="data:image/svg+xml;charset=utf-8,'+encodeURIComponent(art.svg)+'" style="width:100%;height:100%;object-fit:contain;background:#fff;">';
   } else {
-    ec.innerHTML=makeEyecatch(art).replace(/width="1280" height="670"/,'style="width:100%;height:100%;object-fit:cover;"');
+    ec.innerHTML=makeEyecatch(art).replace(/width="1280" height="670"/,'style="width:100%;height:100%;object-fit:contain;background:#fff;"');
   }
   document.getElementById('ap-cat').textContent  = art.cat||'';
   document.getElementById('ap-title').textContent= art.title||'';
