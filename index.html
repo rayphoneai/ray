@@ -130,6 +130,10 @@ nav a:hover{color:var(--orange);}
 
 /* ===== SIDEBAR ===== */
 .sidebar{}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.stats-card{background:var(--gray-light);border-radius:8px;padding:14px 12px;text-align:center;}
+.stats-val{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--orange);line-height:1;margin-bottom:4px;}
+.stats-label{font-size:10px;color:var(--gray-mid);letter-spacing:.05em;}
 .sidebar-block{margin-bottom:36px;}
 .sidebar-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--black);margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--orange);}
 .profile-card{background:var(--gray-light);border-radius:8px;padding:20px;}
@@ -142,10 +146,10 @@ nav a:hover{color:var(--orange);}
 .stat-val{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--orange);line-height:1;}
 .stat-label{font-size:10px;color:var(--gray-mid);margin-top:2px;}
 .cat-list{display:flex;flex-direction:column;gap:2px;}
-.cat-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:6px;text-decoration:none;color:var(--gray-dark);font-size:13px;transition:background .2s;}
+.cat-item{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-radius:6px;text-decoration:none;color:var(--gray-dark);font-size:12px;transition:background .2s;}
 .cat-item:hover{background:var(--gray-light);}
 .cat-item:hover .cat-name{color:var(--orange);}
-.cat-dot{width:8px;height:8px;border-radius:50%;margin-right:8px;flex-shrink:0;}
+.cat-dot{width:7px;height:7px;border-radius:50%;margin-right:7px;flex-shrink:0;}
 .cat-count{font-size:11px;color:#aaa;}
 .rank-list{display:flex;flex-direction:column;gap:12px;}
 .rank-item{display:flex;gap:12px;align-items:flex-start;}
@@ -379,7 +383,18 @@ function toggleMenu(){
   <aside class="sidebar">
 
     <!-- PROFILE -->
-    
+    <div class="sidebar-block">
+      <div class="sidebar-title">PROFILE</div>
+      <div class="profile-card">
+        <div class="profile-avatar" id="blog-avatar">R</div>
+        <div class="profile-name" id="blog-author">Rayphone</div>
+        <div class="profile-role" id="blog-role">プロンプト設計士</div>
+        <div class="profile-desc" id="blog-bio">商品開発15年×Claude副業月収15万を達成。現場で本当に使えるAI活用法と業務時短術を発信中。</div>
+        <div class="profile-stats">
+          <div class="stat"><div class="stat-val" id="stat-articles">—</div><div class="stat-label">記事数</div></div>
+          <div class="stat"><div class="stat-val">5</div><div class="stat-label">カテゴリ</div></div>
+        </div>
+      </div>
     </div>
 
     <!-- CATEGORIES -->
@@ -673,6 +688,16 @@ function renderArts(arts){
   if(allLink) allLink.onclick=function(e){e.preventDefault();renderArts(arts);};
 
   try{ localStorage.setItem('rp_arts', JSON.stringify(arts)); }catch(e){}
+  // プロフィールカードの記事数を更新
+  var statVals = document.querySelectorAll('.stat-val');
+  var statArt = document.getElementById('stat-articles');
+  if(statArt) statArt.textContent = arts.length;
+  // announce bar update
+  var bar = document.querySelector('.orange-bar-text');
+  if(bar && cfg.announce !== undefined){
+    if(cfg.announce === ''){ var bw=document.querySelector('.orange-bar');if(bw)bw.style.display='none'; }
+    else if(cfg.announce){ bar.textContent=cfg.announce; }
+  }
 
   // ?id= パラメータで記事を直接開く
   var tid=new URLSearchParams(location.search).get('id');
@@ -694,6 +719,13 @@ function renderArts(arts){
 // ---------- 設定読み込み ----------
 var cfg = {};
 try{ cfg = JSON.parse(localStorage.getItem('rp_cfg')||'{}'); }catch(e){}
+// プロフィールカードをcfgから更新
+(function(){
+  if(cfg.author){ var el=document.getElementById('blog-author'); if(el) el.textContent=cfg.author; }
+  if(cfg.role){   var el=document.getElementById('blog-role');   if(el) el.textContent=cfg.role; }
+  if(cfg.bio){    var el=document.getElementById('blog-bio');    if(el) el.textContent=cfg.bio; }
+  if(cfg.avatar){ var el=document.getElementById('blog-avatar'); if(el) el.textContent=cfg.avatar; }
+})();
 // お知らせバーをlocalStorageから更新
 (function(){
   var bar = document.querySelector('.orange-bar-text');

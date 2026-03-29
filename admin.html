@@ -309,6 +309,8 @@ input:checked+.sw2-slider::before{transform:translateX(16px);}
         <div class="pb">
           <div class="fg" style="max-width:600px;">
             <div class="ff full"><label class="fl">著者名</label><input class="fi" id="cfg-author" value="Rayphone｜プロンプト設計士"></div>
+            <div class="ff full"><label class="fl">肩書き</label><input class="fi" id="cfg-role" placeholder="例: プロンプト設計士"><div class="fhint">プロフィールカードに表示されます</div></div>
+            <div class="ff full"><label class="fl">アバター文字（1文字）</label><input class="fi" id="cfg-avatar" placeholder="例: R" maxlength="2"><div class="fhint">プロフィールアイコンに表示する文字</div></div>
             <div class="ff full"><label class="fl">著者紹介</label><textarea class="fi" id="cfg-bio">商品開発15年×Claude副業月収15万のプロンプト設計士。現場で本当に使えるプロンプト集をnoteで販売中。</textarea></div>
             <div class="ff full"><label class="fl">お知らせバー（トップページ上部）</label><input class="fi" id="cfg-announce" placeholder="例: 新記事公開中！AIで業務効率化を始めよう →"><div class="fhint">空欄にすると非表示になります</div></div>
             
@@ -905,7 +907,7 @@ function changeAdminPw(){
   toast('パスワードを変更しました');
 }
 
-function saveCfg(){localStorage.setItem('rp_cfg',JSON.stringify({author:document.getElementById('cfg-author').value,bio:document.getElementById('cfg-bio').value,announce:(document.getElementById('cfg-announce')||{}).value||'',blogUrl:document.getElementById('cfg-blog-url').value,noteUrl:document.getElementById('cfg-note-url').value,noteShopUrl:document.getElementById('cfg-note-shop-url').value,xUrl:document.getElementById('cfg-x-url').value,xUser:document.getElementById('cfg-x-user').value,xPass:document.getElementById('cfg-x-pass').value,xAuto:document.getElementById('cfg-x-auto').checked,ghToken:document.getElementById('cfg-gh-token').value,ghUser:document.getElementById('cfg-gh-user').value,ghRepo:document.getElementById('cfg-gh-repo').value}));toast('設定を保存しました');}
+function saveCfg(){localStorage.setItem('rp_cfg',JSON.stringify({author:document.getElementById('cfg-author').value,role:(document.getElementById('cfg-role')||{}).value||'',avatar:(document.getElementById('cfg-avatar')||{}).value||'',bio:document.getElementById('cfg-bio').value,announce:(document.getElementById('cfg-announce')||{}).value||'',blogUrl:document.getElementById('cfg-blog-url').value,noteUrl:document.getElementById('cfg-note-url').value,noteShopUrl:document.getElementById('cfg-note-shop-url').value,xUrl:document.getElementById('cfg-x-url').value,xUser:document.getElementById('cfg-x-user').value,xPass:document.getElementById('cfg-x-pass').value,xAuto:document.getElementById('cfg-x-auto').checked,ghToken:document.getElementById('cfg-gh-token').value,ghUser:document.getElementById('cfg-gh-user').value,ghRepo:document.getElementById('cfg-gh-repo').value}));toast('設定を保存しました');}
 function checkApiWarn(){var el=document.getElementById('art-api-warn');if(!el)return;if(!K.apiKey){el.textContent='APIキーが未設定です。設定ページで入力してください。';el.classList.add('show');}else{el.classList.remove('show');}}
 function updateClock(){document.getElementById('clock').textContent=new Date().toLocaleTimeString('ja-JP');if(K.sched)checkSchedule();}
 
@@ -914,6 +916,8 @@ function updateClock(){document.getElementById('clock').textContent=new Date().t
   var cfg=getCfg();
   if(cfg.author)document.getElementById('cfg-author').value=cfg.author;
   var _ca=document.getElementById('cfg-announce');if(_ca&&cfg.announce!==undefined)_ca.value=cfg.announce||'';
+  var _cr=document.getElementById('cfg-role');if(_cr&&cfg.role)_cr.value=cfg.role;
+  var _cav=document.getElementById('cfg-avatar');if(_cav&&cfg.avatar)_cav.value=cfg.avatar;
   var _cau=document.getElementById('cfg-admin-url');if(_cau&&cfg.adminUrl)_cau.value=cfg.adminUrl;
   if(cfg.bio)document.getElementById('cfg-bio').value=cfg.bio;
   if(cfg.blogUrl)document.getElementById('cfg-blog-url').value=cfg.blogUrl;
