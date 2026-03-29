@@ -36,9 +36,7 @@ HEADLESS         = os.getenv("HEADLESS", "true").lower() == "true"
 # imagen-4.0-fast-generate-001   : Imagen 4 Fast（有料・最安$0.02/枚）
 # imagen-4.0-generate-001        : Imagen 4 Standard（有料・$0.04/枚）
 EYECATCH_MODEL   = os.getenv("EYECATCH_MODEL", "gemini-2.5-flash-image")
-# アイキャッチ生成モデル（空=SVG生成、それ以外=Gemini Imagen）
-# 選択肢: imagen-3.0-generate-008 / imagen-3.0-fast-generate-001 / gemini-2.0-flash-preview-image-generation
-EYECATCH_MODEL   = os.getenv("EYECATCH_MODEL", "imagen-3.0-generate-008")
+
 
 CATEGORIES = [
     "Claude活用Tips",
