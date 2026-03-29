@@ -414,9 +414,8 @@ def _overlay_japanese_text(img_bytes: bytes, title: str, cat: str) -> bytes:
                     font_path = None
 
         img = _Img.open(_io.BytesIO(img_bytes)).convert("RGBA")
-        w, h = img.size
-        # 16:9に合わせてリサイズ
-        target_w, target_h = 1280, 720
+        # 1280x670にリサイズ
+        target_w, target_h = 1280, 670
         img = img.resize((target_w, target_h), _Img.LANCZOS)
 
         draw = _Draw.Draw(img)
@@ -424,37 +423,36 @@ def _overlay_japanese_text(img_bytes: bytes, title: str, cat: str) -> bytes:
         # フォントサイズ設定
         if font_path and _os.path.exists(font_path):
             try:
-                font_title = _Font.truetype(font_path, 72)
-                font_cat   = _Font.truetype(font_path, 28)
-                font_logo  = _Font.truetype(font_path, 24)
+                font_title = _Font.truetype(font_path, 64)
+                font_cat   = _Font.truetype(font_path, 26)
+                font_logo  = _Font.truetype(font_path, 22)
             except Exception:
                 font_title = font_cat = font_logo = _Font.load_default()
         else:
             font_title = font_cat = font_logo = _Font.load_default()
 
-        # 半透明白背景をテキストエリアに追加（可読性向上）
+        # 半透明白背景をテキストエリアに追加（左側約60%）
         overlay = _Img.new("RGBA", (target_w, target_h), (0,0,0,0))
         ov_draw = _Draw.Draw(overlay)
-        ov_draw.rectangle([60, 160, 820, 520], fill=(255,255,255,200))
+        ov_draw.rectangle([0, 0, 780, target_h], fill=(255,255,255,210))
         img = _Img.alpha_composite(img, overlay)
         draw = _Draw.Draw(img)
 
         # カテゴリラベル（オレンジ背景）
-        draw.rectangle([80, 180, 80 + len(cat)*18 + 20, 220], fill=(255,107,0,255))
-        draw.text((90, 185), cat, fill=(255,255,255,255), font=font_cat)
+        cat_w = len(cat) * 17 + 24
+        draw.rectangle([60, 140, 60 + cat_w, 178], fill=(255,107,0,255))
+        draw.text((72, 145), cat, fill=(255,255,255,255), font=font_cat)
 
-        # タイトル（2行まで）
-        title_y = 240
-        if len(title) > 14:
-            line1 = title[:14]
-            line2 = title[14:]
-            draw.text((80, title_y),      line1, fill=(26,26,26,255), font=font_title)
-            draw.text((80, title_y + 85), line2, fill=(26,26,26,255), font=font_title)
-        else:
-            draw.text((80, title_y), title, fill=(26,26,26,255), font=font_title)
+        # タイトル（12文字で改行、最大3行）
+        title_y = 200
+        line_h = 80
+        words = [title[i:i+12] for i in range(0, len(title), 12)]
+        for j, line in enumerate(words[:3]):
+            suffix = "…" if j == 2 and len(title) > 36 else ""
+            draw.text((60, title_y + j * line_h), line + suffix, fill=(26,26,26,255), font=font_title)
 
-        # RayPhoneAI ロゴ（右下）
-        draw.text((target_w - 180, target_h - 45), "RayPhoneAI", fill=(255,107,0,255), font=font_logo)
+        # RayPhoneAI ロゴ（左下）
+        draw.text((60, target_h - 45), "RayPhoneAI", fill=(255,107,0,255), font=font_logo)
 
         # PNG出力
         img = img.convert("RGB")
@@ -779,9 +777,16 @@ with sync_playwright() as pw:
             page.evaluate("window.scrollTo(0, 0)")
             time.sleep(2)
 
-            # 公開に進む（1回だけクリック）
+            # 現在のボタン一覧をログに出してデバッグ
+            try:
+                all_btns = page.locator('button').all_text_contents()
+                log(f"note: 公開前ボタン一覧: {[b.strip() for b in all_btns if b.strip()][:10]}")
+            except Exception:
+                pass
+
+            # 公開に進む（見つからない場合はJSでも試みる）
             pub_ok = False
-            for sel in ['button:has-text("公開に進む")', 'button:has-text("投稿設定へ")']:
+            for sel in ['button:has-text("公開に進む")', 'button:has-text("投稿設定へ")', 'button:has-text("公開設定")']:
                 try:
                     b = page.locator(sel).first
                     if b.is_visible(timeout=8000):
@@ -793,7 +798,27 @@ with sync_playwright() as pw:
                         break
                 except Exception:
                     pass
+
             if not pub_ok:
+                # JSで直接クリックを試みる
+                try:
+                    result = page.evaluate("""() => {
+                        const btns = Array.from(document.querySelectorAll('button'));
+                        const pub = btns.find(b => b.textContent.includes('公開に進む') || b.textContent.includes('投稿設定へ'));
+                        if (pub) { pub.click(); return pub.textContent.trim(); }
+                        return null;
+                    }""")
+                    if result:
+                        log(f"note: 公開ボタン(JS): {result}")
+                        pub_ok = True
+                        time.sleep(8)
+                except Exception as e:
+                    log(f"note: JS公開ボタン失敗: {e}")
+
+            if not pub_ok:
+                btns = page.locator('button').all_text_contents()
+                log(f"note: 公開ボタンなし、現在URL={page.url}")
+                log(f"note: ボタン一覧: {[b.strip() for b in btns if b.strip()][:15]}")
                 page.screenshot(path="debug_note_pub.png")
                 browser.close()
                 return {"ok": False, "message": "note公開ボタン見つからず"}
@@ -915,14 +940,14 @@ Rayphoneの一人称・体験談必須。""", 4500))
         png_bytes = generate_eyecatch_image(meta['title'], cat)
         if png_bytes:
             eyecatch_png = png_bytes
-            # ブログ用はサイズ圧縮（articles.jsonを小さく保つ）
+            # ブログ用は適度に圧縮（articles.jsonを小さく保つ・でも画質維持）
             try:
                 from PIL import Image as _Img
                 import io as _io
                 img = _Img.open(_io.BytesIO(png_bytes))
-                img = img.resize((640, 335), _Img.LANCZOS)
+                img = img.resize((960, 540), _Img.LANCZOS)
                 buf = _io.BytesIO()
-                img.save(buf, format='JPEG', quality=75)
+                img.save(buf, format='JPEG', quality=85)
                 blog_img_b64 = base64.b64encode(buf.getvalue()).decode()
                 svg_code = "data:image/jpeg;base64," + blog_img_b64
                 log(f"✓ アイキャッチ画像生成完了({len(png_bytes)//1024}KB → blog用{len(buf.getvalue())//1024}KB)")
