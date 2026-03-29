@@ -323,11 +323,16 @@ def generate_eyecatch_image(title: str, cat: str) -> bytes | None:
         return None
 
     prompt = (
-        f"Create a professional blog eyecatch image (16:9 ratio) for a Japanese AI blog called 'RayPhoneAI'. "
-        f"Article title: '{title}'. Category: '{cat}'. "
-        f"Design style: modern, minimal, white background with orange (#FF6B00) and dark (#1A1A1A) accents. "
-        f"Include the text 'RayPhoneAI' subtly. "
-        f"No faces, no people. Clean, professional tech blog aesthetic."
+        f"Professional blog eyecatch image for a Japanese AI blog 'RayPhoneAI'. "
+        f"Article: '{title}' / Category: '{cat}'. "
+        f"REQUIREMENTS: "
+        f"- Use Japanese language text with proper Japanese fonts (Noto Sans JP or similar). "
+        f"- Write the article title in Japanese characters clearly and legibly. "
+        f"- Write 'RayPhoneAI' in small text as the blog name. "
+        f"- White background (#FFFFFF) with orange (#FF6B00) and dark (#1A1A1A) accent colors. "
+        f"- Modern minimal Japanese blog design, 16:9 ratio. "
+        f"- No faces, no people, geometric shapes and typography only. "
+        f"- High contrast, clean professional layout."
     )
 
     try:
