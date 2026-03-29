@@ -310,16 +310,8 @@ input:checked+.sw2-slider::before{transform:translateX(16px);}
           <div class="fg" style="max-width:600px;">
             <div class="ff full"><label class="fl">著者名</label><input class="fi" id="cfg-author" value="Rayphone｜プロンプト設計士"></div>
             <div class="ff full"><label class="fl">著者紹介</label><textarea class="fi" id="cfg-bio">商品開発15年×Claude副業月収15万のプロンプト設計士。現場で本当に使えるプロンプト集をnoteで販売中。</textarea></div>
-            <div class="ff full" style="margin-top:8px;padding:16px;background:#1a1a1a;border-radius:10px;border:1px solid #333;">
-              <div style="color:#FF6B00;font-weight:700;font-size:13px;margin-bottom:12px;">🔒 管理画面パスワード変更</div>
-              <div style="display:flex;flex-direction:column;gap:8px;max-width:380px;">
-                <input type="password" id="cfg-pw-current" class="fi" placeholder="現在のパスワード">
-                <input type="password" id="cfg-pw-new" class="fi" placeholder="新しいパスワード">
-                <input type="password" id="cfg-pw-confirm" class="fi" placeholder="新しいパスワード（確認）">
-                <button onclick="changeAdminPw()" style="padding:10px 20px;background:#FF6B00;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;margin-top:4px;">パスワードを変更する</button>
-                <div id="cfg-pw-msg" style="font-size:12px;display:none;padding:8px 12px;border-radius:6px;"></div>
-              </div>
-            </div>
+            <div class="ff full"><label class="fl">お知らせバー（トップページ上部）</label><input class="fi" id="cfg-announce" placeholder="例: 新記事公開中！AIで業務効率化を始めよう →"><div class="fhint">空欄にすると非表示になります</div></div>
+            
             <div class="ff full"><label class="fl">note アカウントURL</label><input class="fi" id="cfg-note-url" placeholder="https://note.com/rayphone"><div class="fhint">記事の誘導先・ブログ本文CTAとして使用されます</div></div>
             <div class="ff full"><label class="fl">noteプロンプト集URL（購入ボタン用）</label><input class="fi" id="cfg-note-shop-url" placeholder="https://note.com/rayphone/n/nf6e5688f3939"><div class="fhint">「noteで購入」ボタンのリンク先URL</div></div>
             <div class="ff full"><label class="fl">X（Twitter）URL</label><input class="fi" id="cfg-x-url" placeholder="https://x.com/rayphone"><div class="fhint">プロフィールページのURL</div></div>
@@ -913,7 +905,7 @@ function changeAdminPw(){
   toast('パスワードを変更しました');
 }
 
-function saveCfg(){localStorage.setItem('rp_cfg',JSON.stringify({author:document.getElementById('cfg-author').value,bio:document.getElementById('cfg-bio').value,blogUrl:document.getElementById('cfg-blog-url').value,noteUrl:document.getElementById('cfg-note-url').value,noteShopUrl:document.getElementById('cfg-note-shop-url').value,xUrl:document.getElementById('cfg-x-url').value,xUser:document.getElementById('cfg-x-user').value,xPass:document.getElementById('cfg-x-pass').value,xAuto:document.getElementById('cfg-x-auto').checked,ghToken:document.getElementById('cfg-gh-token').value,ghUser:document.getElementById('cfg-gh-user').value,ghRepo:document.getElementById('cfg-gh-repo').value}));toast('設定を保存しました');}
+function saveCfg(){localStorage.setItem('rp_cfg',JSON.stringify({author:document.getElementById('cfg-author').value,bio:document.getElementById('cfg-bio').value,announce:(document.getElementById('cfg-announce')||{}).value||'',blogUrl:document.getElementById('cfg-blog-url').value,noteUrl:document.getElementById('cfg-note-url').value,noteShopUrl:document.getElementById('cfg-note-shop-url').value,xUrl:document.getElementById('cfg-x-url').value,xUser:document.getElementById('cfg-x-user').value,xPass:document.getElementById('cfg-x-pass').value,xAuto:document.getElementById('cfg-x-auto').checked,ghToken:document.getElementById('cfg-gh-token').value,ghUser:document.getElementById('cfg-gh-user').value,ghRepo:document.getElementById('cfg-gh-repo').value}));toast('設定を保存しました');}
 function checkApiWarn(){var el=document.getElementById('art-api-warn');if(!el)return;if(!K.apiKey){el.textContent='APIキーが未設定です。設定ページで入力してください。';el.classList.add('show');}else{el.classList.remove('show');}}
 function updateClock(){document.getElementById('clock').textContent=new Date().toLocaleTimeString('ja-JP');if(K.sched)checkSchedule();}
 
@@ -921,6 +913,7 @@ function updateClock(){document.getElementById('clock').textContent=new Date().t
   if(K.apiKey)document.getElementById('api-key').value=K.apiKey;
   var cfg=getCfg();
   if(cfg.author)document.getElementById('cfg-author').value=cfg.author;
+  var _ca=document.getElementById('cfg-announce');if(_ca&&cfg.announce!==undefined)_ca.value=cfg.announce||'';
   var _cau=document.getElementById('cfg-admin-url');if(_cau&&cfg.adminUrl)_cau.value=cfg.adminUrl;
   if(cfg.bio)document.getElementById('cfg-bio').value=cfg.bio;
   if(cfg.blogUrl)document.getElementById('cfg-blog-url').value=cfg.blogUrl;

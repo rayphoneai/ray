@@ -694,6 +694,19 @@ function renderArts(arts){
 // ---------- 設定読み込み ----------
 var cfg = {};
 try{ cfg = JSON.parse(localStorage.getItem('rp_cfg')||'{}'); }catch(e){}
+// お知らせバーをlocalStorageから更新
+(function(){
+  var bar = document.querySelector('.orange-bar-text');
+  if(!bar) return;
+  if(cfg.announce !== undefined){
+    if(cfg.announce === ''){
+      var barWrap = document.querySelector('.orange-bar');
+      if(barWrap) barWrap.style.display='none';
+    } else if(cfg.announce){
+      bar.textContent = cfg.announce;
+    }
+  }
+})();
 var noteUrl = cfg.noteUrl || 'https://note.com/rayphone';
 var blogUrl = cfg.blogUrl || location.origin + location.pathname;
 
