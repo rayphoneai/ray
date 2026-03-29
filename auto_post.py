@@ -90,15 +90,31 @@ def save_cat_index(idx):
 def gemini(prompt, max_tokens=4000):
     url = (f"https://generativelanguage.googleapis.com/v1beta/models/"
            f"gemini-2.5-flash-lite:generateContent?key={GEMINI_API_KEY}")
-    r = requests.post(url, json={
+    body = {
         "contents": [{"role": "user", "parts": [{"text": prompt}]}],
         "generationConfig": {"maxOutputTokens": max_tokens, "temperature": 0.9}
-    }, timeout=120)
-    r.raise_for_status()
-    try:
-        return r.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
-    except Exception:
-        raise Exception(f"Gemini応答エラー: {r.text[:300]}")
+    }
+    # 503などの一時エラーに対してリトライ（最大3回）
+    for attempt in range(3):
+        try:
+            r = requests.post(url, json=body, timeout=120)
+            if r.status_code in (429, 500, 502, 503, 504) and attempt < 2:
+                wait = (attempt + 1) * 10
+                log(f"Gemini API {r.status_code} → {wait}秒後にリトライ({attempt+1}/3)...")
+                time.sleep(wait)
+                continue
+            r.raise_for_status()
+            try:
+                return r.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+            except Exception:
+                raise Exception(f"Gemini応答エラー: {r.text[:300]}")
+        except requests.exceptions.HTTPError:
+            if attempt < 2:
+                wait = (attempt + 1) * 10
+                log(f"Gemini HTTPエラー → {wait}秒後にリトライ({attempt+1}/3)...")
+                time.sleep(wait)
+            else:
+                raise
 
 def strip_preamble(text):
     lines = text.split("\n")
