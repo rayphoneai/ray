@@ -671,6 +671,16 @@ with sync_playwright() as pw:
                 log(f"note: アイキャッチエラー（スキップ）: {e}")
             time.sleep(3)
 
+            # AIアシスタントパネルが開いていれば閉じる
+            try:
+                close_btn = page.locator('button:has-text("閉じる")').first
+                if close_btn.is_visible(timeout=2000):
+                    close_btn.click()
+                    log("note: AIパネルを閉じました")
+                    time.sleep(1)
+            except Exception:
+                pass
+
             # 公開に進む（通常クリック→JS clickフォールバック）
             pub_ok = False
             for sel in ['button:has-text("公開に進む")', 'button:has-text("投稿設定へ")', 'button:has-text("公開設定")']:
@@ -682,7 +692,7 @@ with sync_playwright() as pw:
                         try:
                             b.click(timeout=5000)
                         except Exception:
-                            page.evaluate("(sel) => { const b = document.evaluate(\"//button[contains(text(),'公開に進む')]\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; if(b) b.click(); }", sel)
+                            page.evaluate("() => { const b = document.evaluate(\"//button[contains(text(),'公開に進む')]\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue; if(b) b.click(); }")
                         log(f"note: 公開ボタン: {sel}")
                         time.sleep(8)
                         pub_ok = True
@@ -800,8 +810,20 @@ Rayphoneの一人称・体験談必須。""", 4500))
         png_bytes = generate_eyecatch_image(meta['title'], cat)
         if png_bytes:
             eyecatch_png = png_bytes
-            svg_code = "data:image/png;base64," + base64.b64encode(png_bytes).decode()
-            log(f"✓ アイキャッチ画像生成完了({len(png_bytes)//1024}KB)")
+            # ブログ用はサイズ圧縮（articles.jsonを小さく保つ）
+            try:
+                from PIL import Image as _Img
+                import io as _io
+                img = _Img.open(_io.BytesIO(png_bytes))
+                img = img.resize((640, 335), _Img.LANCZOS)
+                buf = _io.BytesIO()
+                img.save(buf, format='JPEG', quality=75)
+                blog_img_b64 = base64.b64encode(buf.getvalue()).decode()
+                svg_code = "data:image/jpeg;base64," + blog_img_b64
+                log(f"✓ アイキャッチ画像生成完了({len(png_bytes)//1024}KB → blog用{len(buf.getvalue())//1024}KB)")
+            except Exception:
+                svg_code = "data:image/png;base64," + base64.b64encode(png_bytes).decode()
+                log(f"✓ アイキャッチ画像生成完了({len(png_bytes)//1024}KB)")
         else:
             log("アイキャッチ画像生成失敗 → SVGにフォールバック")
             svg_code = generate_eyecatch_svg(meta['title'], cat, art_id)
