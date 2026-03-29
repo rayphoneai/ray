@@ -29,6 +29,16 @@ GH_REPO          = os.getenv("GH_REPO", "ray")
 X_COOKIES_B64    = os.getenv("X_COOKIES_B64", "")
 X_AUTO           = os.getenv("X_AUTO", "false").lower() == "true"
 HEADLESS         = os.getenv("HEADLESS", "true").lower() == "true"
+# アイキャッチ生成モデル
+# svg                       : SVG生成（無料・デフォルト）
+# gemini-2.5-flash-image    : Nano Banana（安定版・無料枠500枚/日）
+# gemini-3.1-flash-image-preview : Nano Banana 2（最新・高品質）
+# imagen-4.0-fast-generate-001   : Imagen 4 Fast（有料・最安$0.02/枚）
+# imagen-4.0-generate-001        : Imagen 4 Standard（有料・$0.04/枚）
+EYECATCH_MODEL   = os.getenv("EYECATCH_MODEL", "svg")
+# アイキャッチ生成モデル（空=SVG生成、それ以外=Gemini Imagen）
+# 選択肢: imagen-3.0-generate-008 / imagen-3.0-fast-generate-001 / gemini-2.0-flash-preview-image-generation
+EYECATCH_MODEL   = os.getenv("EYECATCH_MODEL", "imagen-3.0-generate-008")
 
 CATEGORIES = [
     "Claude活用Tips",
@@ -291,6 +301,70 @@ def generate_eyecatch_svg(title, cat, art_id):
     ]
     return s[idx]
 
+# ── Gemini 画像生成アイキャッチ ──────────────────────────────
+def generate_eyecatch_image(title: str, cat: str) -> bytes | None:
+    """Gemini APIで画像を生成してPNGバイト列を返す。失敗時はNone。"""
+    model = EYECATCH_MODEL
+    if model == "svg":
+        return None
+
+    prompt = (
+        f"Create a professional blog eyecatch image (16:9 ratio) for a Japanese AI blog called 'RayPhoneAI'. "
+        f"Article title: '{title}'. Category: '{cat}'. "
+        f"Design style: modern, minimal, white background with orange (#FF6B00) and dark (#1A1A1A) accents. "
+        f"Include the text 'RayPhoneAI' subtly. "
+        f"No faces, no people. Clean, professional tech blog aesthetic."
+    )
+
+    try:
+        # Nano Banana系（gemini-2.5-flash-image, gemini-3.1-flash-image-preview）
+        if "gemini" in model:
+            url = (f"https://generativelanguage.googleapis.com/v1beta/models/"
+                   f"{model}:generateContent?key={GEMINI_API_KEY}")
+            body = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {"responseModalities": ["IMAGE"]}
+            }
+            r = requests.post(url, json=body, timeout=60)
+            r.raise_for_status()
+            data = r.json()
+            # 画像データを取得
+            for part in data.get("candidates", [{}])[0].get("content", {}).get("parts", []):
+                if "inlineData" in part:
+                    img_b64 = part["inlineData"]["data"]
+                    return base64.b64decode(img_b64)
+            log(f"note: 画像データが見つかりません: {str(data)[:200]}")
+            return None
+
+        # Imagen 4系（imagen-4.0-generate-001, imagen-4.0-fast-generate-001）
+        elif "imagen" in model:
+            url = (f"https://generativelanguage.googleapis.com/v1beta/models/"
+                   f"{model}:generateImages?key={GEMINI_API_KEY}")
+            body = {
+                "prompt": {"text": prompt},
+                "imageGenerationConfig": {
+                    "aspectRatio": "16:9",
+                    "numberOfImages": 1
+                }
+            }
+            r = requests.post(url, json=body, timeout=60)
+            r.raise_for_status()
+            data = r.json()
+            images = data.get("images", [])
+            if images:
+                return base64.b64decode(images[0]["bytesBase64Encoded"])
+            log(f"note: Imagen応答に画像なし: {str(data)[:200]}")
+            return None
+
+        else:
+            log(f"note: 未知のモデル: {model}")
+            return None
+
+    except Exception as e:
+        log(f"note: 画像生成エラー ({model}): {e}")
+        return None
+
+
 # ── X 投稿 ───────────────────────────────────────────────────
 def post_to_x(url_to_post: str):
     if not X_COOKIES_B64:
@@ -378,7 +452,7 @@ def post_to_x(url_to_post: str):
         return False
 
 # ── note 投稿 ─────────────────────────────────────────────────
-def post_to_note(title: str, body: str, svg_code: str) -> dict:
+def post_to_note(title: str, body: str, svg_code: str, eyecatch_png: bytes = b"") -> dict:
     log("note: 投稿開始...")
     try:
         from playwright.sync_api import sync_playwright
@@ -492,9 +566,20 @@ def post_to_note(title: str, body: str, svg_code: str) -> dict:
             time.sleep(2)
 
             # アイキャッチ（失敗しても投稿は続行）
-            if svg_code and "<svg" in svg_code:
-                try:
-                    tmp = tempfile.NamedTemporaryFile(suffix=".svg", delete=False, mode="w", encoding="utf-8")
+            try:
+                import tempfile as _tf, subprocess as _sp
+                png = None
+
+                if eyecatch_png:
+                    # Gemini生成PNGを直接使用
+                    _ptmp = _tf.NamedTemporaryFile(suffix=".png", delete=False)
+                    _ptmp.write(eyecatch_png)
+                    _ptmp.close()
+                    png = _ptmp.name
+                    log("note: Gemini生成PNGを使用")
+                elif svg_code and "<svg" in svg_code:
+                    # SVG→PNG変換（subprocess経由）
+                    tmp = _tf.NamedTemporaryFile(suffix=".svg", delete=False, mode="w", encoding="utf-8")
                     tmp.write(svg_code)
                     tmp.close()
                     png = tmp.name.replace(".svg", ".png")
@@ -517,11 +602,12 @@ with sync_playwright() as pw:
                         raise Exception(r.stderr.decode()[:200])
                     log("note: SVG→PNG変換完了")
 
-                    # アイキャッチボタン
+                if png:
+                    # アイキャッチボタンをクリック
                     page.evaluate("window.scrollTo(0,0)")
                     time.sleep(1)
                     ec_clicked = False
-                    for ec_sel in ['button[class*="sc-131cded0"]', 'button[aria-label*="アイキャッチ"]', 'button[title*="アイキャッチ"]']:
+                    for ec_sel in ['button[class*="sc-131cded0"]', 'button[aria-label*="アイキャッチ"]']:
                         try:
                             ec_btn = page.locator(ec_sel).first
                             if ec_btn.is_visible(timeout=3000):
@@ -533,13 +619,13 @@ with sync_playwright() as pw:
                         except Exception:
                             pass
                     if not ec_clicked:
-                        page.evaluate("const b=document.querySelector('button[class*=\"sc-131cded0\"]');if(b){b.scrollIntoView();b.click();}")
+                        page.evaluate("const b=document.querySelector('[class*=sc]');if(b){b.scrollIntoView();b.click();}")
                         time.sleep(2)
 
                     # ファイル選択
                     try:
                         with page.expect_file_chooser(timeout=10000) as fc:
-                            for up_sel in ['button:has-text("画像をアップロード")', 'li:has-text("画像をアップロード")', '[class*="upload"]']:
+                            for up_sel in ['button:has-text("画像をアップロード")', 'li:has-text("画像をアップロード")']:
                                 try:
                                     up = page.locator(up_sel).first
                                     if up.is_visible(timeout=2000):
@@ -549,7 +635,6 @@ with sync_playwright() as pw:
                                     pass
                         fc.value.set_files(png)
                         time.sleep(5)
-                        # 保存ボタン
                         for _ in range(15):
                             try:
                                 sv = page.locator('button:has-text("保存")').last
@@ -563,9 +648,8 @@ with sync_playwright() as pw:
                             time.sleep(1)
                     except Exception as e:
                         log(f"note: アイキャッチアップロードスキップ: {e}")
-                except Exception as e:
-                    log(f"note: アイキャッチエラー（スキップ）: {e}")
-
+            except Exception as e:
+                log(f"note: アイキャッチエラー（スキップ）: {e}")
             time.sleep(3)
 
             # 公開に進む
@@ -621,6 +705,62 @@ with sync_playwright() as pw:
         log(f"note: エラー: {traceback.format_exc()[:400]}")
         return {"ok": False, "message": str(e)}
 
+# ── Gemini アイキャッチ画像生成 ─────────────────────────────
+def generate_eyecatch_image(title: str, cat: str) -> str:
+    """Gemini Imagen APIで1280x670のアイキャッチ画像を生成。base64 PNG文字列を返す。失敗時はNone。"""
+    if not EYECATCH_MODEL or not GEMINI_API_KEY:
+        return None
+    
+    prompt = (
+        f"Professional blog header image, 1280x670 pixels, white background, "
+        f"minimalist design with orange (#FF6B00) and dark gray (#1A1A1A) accents. "
+        f"Category: {cat}. Topic: {title[:40]}. "
+        f"Clean typography layout, no text in image, geometric shapes only. "
+        f"Style: modern Japanese tech blog eyecatch, high contrast, bold shapes."
+    )
+    
+    try:
+        # Imagen 3 / Imagen Fast (predict endpoint)
+        if "imagen" in EYECATCH_MODEL.lower():
+            url = (f"https://generativelanguage.googleapis.com/v1beta/models/"
+                   f"{EYECATCH_MODEL}:predict?key={GEMINI_API_KEY}")
+            body = {
+                "instances": [{"prompt": prompt}],
+                "parameters": {
+                    "sampleCount": 1,
+                    "aspectRatio": "16:9",
+                    "outputMimeType": "image/png",
+                }
+            }
+            r = requests.post(url, json=body, timeout=60)
+            r.raise_for_status()
+            data = r.json()
+            b64 = data["predictions"][0]["bytesBase64Encoded"]
+            log(f"✓ Imagen アイキャッチ生成完了 (model={EYECATCH_MODEL})")
+            return b64
+
+        # Gemini 2.0 Flash image generation (generateContent endpoint)
+        else:
+            url = (f"https://generativelanguage.googleapis.com/v1beta/models/"
+                   f"{EYECATCH_MODEL}:generateContent?key={GEMINI_API_KEY}")
+            body = {
+                "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+                "generationConfig": {"responseModalities": ["IMAGE", "TEXT"]}
+            }
+            r = requests.post(url, json=body, timeout=60)
+            r.raise_for_status()
+            parts = r.json()["candidates"][0]["content"]["parts"]
+            for part in parts:
+                if part.get("inlineData", {}).get("mimeType", "").startswith("image/"):
+                    b64 = part["inlineData"]["data"]
+                    log(f"✓ Gemini Flash アイキャッチ生成完了 (model={EYECATCH_MODEL})")
+                    return b64
+        return None
+    except Exception as e:
+        log(f"⚠ Gemini画像生成失敗（SVGにフォールバック）: {e}")
+        return None
+
+
 # ── メイン処理 ────────────────────────────────────────────────
 def main():
     log("=== RayPhoneAI 自動投稿開始 ===")
@@ -673,10 +813,24 @@ Rayphoneの一人称・体験談必須。""", 4500))
     log(f"✓ 記事生成完了({len(article)}字)")
 
     # STEP 3: アイキャッチ
-    log("[3/5] アイキャッチを生成中...")
-    art_id  = int(datetime.now().timestamp() * 1000)
-    svg_code = generate_eyecatch_svg(meta['title'], cat, art_id)
-    log(f"✓ アイキャッチ生成完了({len(svg_code)}字)")
+    log(f"[3/5] アイキャッチを生成中... (モデル: {EYECATCH_MODEL})")
+    art_id      = int(datetime.now().timestamp() * 1000)
+    svg_code    = None
+    eyecatch_png: bytes = b""
+
+    if EYECATCH_MODEL == "svg":
+        svg_code = generate_eyecatch_svg(meta['title'], cat, art_id)
+        log(f"✓ アイキャッチSVG生成完了({len(svg_code)}字)")
+    else:
+        png_bytes = generate_eyecatch_image(meta['title'], cat)
+        if png_bytes:
+            eyecatch_png = png_bytes
+            svg_code = "data:image/png;base64," + base64.b64encode(png_bytes).decode()
+            log(f"✓ アイキャッチ画像生成完了({len(png_bytes)//1024}KB)")
+        else:
+            log("アイキャッチ画像生成失敗 → SVGにフォールバック")
+            svg_code = generate_eyecatch_svg(meta['title'], cat, art_id)
+            log(f"✓ アイキャッチSVG生成完了({len(svg_code)}字)")
 
     # STEP 4: GitHub push
     log("[4/5] GitHubにarticles.jsonをプッシュ中...")
@@ -737,7 +891,7 @@ Rayphoneの一人称・体験談必須。""", 4500))
     log(f"✓ noteコンテンツ生成完了({len(note_body)}字) / 記事URL: {m.group(0) if m else 'なし'}")
 
     log("noteに投稿中...")
-    note_result = post_to_note(f"【深掘り】{meta['title']}", note_body, svg_code)
+    note_result = post_to_note(f"【深掘り】{meta['title']}", note_body, svg_code, eyecatch_png=eyecatch_png)
     if note_result["ok"]:
         log(f"✓ note投稿完了: {note_result.get('url','')}")
     else:
