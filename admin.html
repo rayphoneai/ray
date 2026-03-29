@@ -138,7 +138,7 @@ input:checked+.sw2-slider::before{transform:translateX(16px);}
 })();
 </script>
 <aside class="sb">
-  <div class="sb-logo"><div class="lg"><span class="r">Ray</span><span class="p">Phone</span><span class="ai">AI</span></div><div class="sb-sub">ADMIN v3</div></div>
+  <a href="https://rayphoneai.github.io/ray/" target="_blank" style="text-decoration:none;display:block;" title="ユーザーページへ"><div class="sb-logo"><div class="lg"><span class="r">Ray</span><span class="p">Phone</span><span class="ai">AI</span></div><div class="sb-sub">ADMIN v3</div></div></a>
   <nav class="nav">
     <div class="nsec">MAIN</div>
     <div class="ni on" id="nav-dash" onclick="go('dash')"><svg width="14" height="14" fill="currentColor" viewBox="0 0 14 14"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="8" y="0" width="6" height="6" rx="1"/><rect x="0" y="8" width="6" height="6" rx="1"/><rect x="8" y="8" width="6" height="6" rx="1"/></svg><span>ダッシュボード</span></div>
@@ -149,7 +149,7 @@ input:checked+.sw2-slider::before{transform:translateX(16px);}
     <div class="ni" id="nav-article" onclick="go('article')"><svg width="14" height="14" fill="currentColor" viewBox="0 0 14 14"><path d="M2 2h10v1.5H2V2zm0 3h10v1H2V5zm0 3h7v1H2V8zm0 3h8v1H2v-1z"/></svg><span>記事生成</span></div>
     <div class="ni" id="nav-articles" onclick="go('articles')"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 14 14"><rect x="1" y="1" width="12" height="12" rx="1.5"/><path d="M4 5h6M4 8h4M4 11h5"/></svg><span>記事一覧</span></div>
     <div class="nsec">SNS</div>
-    <div class="ni" id="nav-note" onclick="go('note')"><svg width="14" height="14" fill="currentColor" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6"/><path d="M4.5 4.5h5v1.5h-5V4.5zm0 3h5v1h-5V7.5zm0 2.5h3v1h-3V10z" fill="#fff"/></svg><span>note投稿</span></div>
+    
     <div class="nsec">CONFIG</div>
     <div class="ni" id="nav-settings" onclick="go('settings')"><svg width="14" height="14" fill="currentColor" viewBox="0 0 14 14"><path d="M7 4.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5zm-4.5 2H1V8h1.5c.2.9.6 1.7 1 2.3l-1 1 1.1 1.1 1-1A5.5 5.5 0 006.5 12.5V14H7.5v-1.5c.9-.2 1.7-.6 2.3-1l1 1 1.1-1.1-1-1c.5-.6.9-1.4 1-2.3H13.5V6.5H12c-.1-.9-.5-1.7-1-2.3l1-1L10.9 2.1l-1 1C9.3 2.6 8.5 2.2 7.5 2V.5H6.5V2c-.9.2-1.7.6-2.3 1l-1-1L2.1 3.1l1 1C2.6 4.8 2.2 5.6 2.5 6.5z"/></svg><span>設定</span></div>
   </nav>
@@ -226,7 +226,7 @@ input:checked+.sw2-slider::before{transform:translateX(16px);}
                 </div>
               </div>
             </div>
-            <div class="ff full"><div class="sw2"><label class="sw2-track"><input type="checkbox" id="sch-auto-pub" checked><div class="sw2-slider"></div></label><span style="font-size:12px;color:#3D3D3D;">設定時刻に自動でnote投稿まで実行する</span></div></div>
+            <div class="ff full"><div class="sw2"><label class="sw2-track"><input type="checkbox" id="sch-auto-pub" checked><div class="sw2-slider"></div></label><span style="font-size:12px;color:#3D3D3D;">設定時刻に自動で記事生成・GitHub更新まで実行する</span></div></div>
             <div class="ff full"><label class="fl">noteハッシュタグ（5個まで・スペース区切り）</label><input class="fi" id="sch-hashtags" placeholder="例: Claude AI活用 副業 プロンプト 業務効率化"><div class="fhint">note記事の末尾に自動追加されます</div></div>
           </div>
           <div class="brow"><button class="btn bp" id="sch-save-btn">スケジュールを保存</button></div>
@@ -295,38 +295,7 @@ input:checked+.sw2-slider::before{transform:translateX(16px);}
       </div>
     </div>
 
-    <div id="page-note" class="page">
-      <div class="panel">
-        <div class="ph"><div class="pt"><div class="pt-dot"></div>note自動投稿（Playwright）</div><span class="stbadge std" id="note-conn-badge">未接続</span></div>
-        <div class="pb">
-          <div style="border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:12px;border:1px solid var(--bd);background:var(--gl);display:flex;align-items:center;gap:8px;">
-            <div id="pw-dot" style="width:8px;height:8px;border-radius:50%;background:#ccc;flex-shrink:0;"></div>
-            <span id="pw-status-text">確認中...</span>
-            <button class="btn bg2 bsm" id="pw-check-btn" style="margin-left:auto;">再確認</button>
-          </div>
-          <div id="pw-guide" style="background:var(--orl);border:1px solid rgba(255,107,0,.2);border-radius:8px;padding:14px;margin-bottom:14px;font-size:12px;line-height:1.9;">
-            <strong>セットアップ：</strong><br>
-            ①note_poster.py と .env を同じフォルダに保存<br>
-            ②start_servers.bat をダブルクリック<br>
-            ③上の「再確認」ボタンで接続確認
-          </div>
-          <div class="fg" style="max-width:580px;">
-            <div class="ff full"><label class="fl">投稿する記事</label><select class="fi" id="pw-art-sel"><option value="">--- 下書きから選択 ---</option></select></div>
-            <div class="ff"><label class="fl">投稿モード</label><select class="fi" id="pw-mode"><option value="draft">下書き保存</option><option value="publish">公開する</option></select></div>
-            <div class="ff"><label class="fl">アイキャッチ</label><div class="fi" style="background:var(--gl);color:var(--gm);font-size:12px;">ブログと同じSVGを自動使用</div></div>
-            <div class="ff full"><label class="fl">ハッシュタグ（5個まで・スペース区切り）</label><input class="fi" id="pw-hashtags" placeholder="例: Claude AI活用 副業 プロンプト 業務効率化"><div class="fhint">note記事の末尾に #タグ 形式で自動追加されます</div></div>
-          </div>
-          <div class="brow">
-            <button class="btn bp" id="pw-post-btn" disabled>noteに自動投稿する</button>
-            <button class="btn bg2" id="pw-test-btn">接続テスト</button>
-          </div>
-          <div class="alert" id="pw-result"></div>
-          <div class="logbox" id="pw-log"></div>
-        </div>
-      </div>
-    </div>
-
-    <div id="page-settings" class="page">
+      <div id="page-settings" class="page">
       <div class="panel">
         <div class="ph"><div class="pt"><div class="pt-dot"></div>Gemini API設定</div></div>
         <div class="pb">
@@ -436,7 +405,7 @@ function updateCurCatLabel(){
   if(el2) el2.textContent=cur;
 }
 var CC={'Claude活用Tips':'#FFF0E3;#854F0B','士業向けAI活用':'#E1F5EE;#085041','商品開発xAI':'#EEEDFE;#3C3489','副業xAI':'#E6F1FB;#0C447C','プロンプト集解説':'#F1EFE8;#444441'};
-var PT={dash:'ダッシュボード',scheduler:'スケジューラー',queue:'投稿キュー',article:'記事生成',articles:'記事一覧',note:'note投稿',settings:'設定'};
+var PT={dash:'ダッシュボード',scheduler:'スケジューラー',queue:'投稿キュー',article:'記事生成',articles:'記事一覧',settings:'設定'};
 
 function xhrCall(m,u,d,cb){var r=new XMLHttpRequest();r.open(m,u,true);r.setRequestHeader('Content-Type','application/json');r.timeout=180000;r.onload=function(){try{cb(null,JSON.parse(r.responseText));}catch(e){cb(e,null);}};r.onerror=function(){cb(new Error('接続エラー'),null);};r.ontimeout=function(){cb(new Error('タイムアウト'),null);};r.send(d?JSON.stringify(d):null);}
 
@@ -644,8 +613,6 @@ function renderArticles(){
 }
 function copyArt(id){var a=K.arts.find(function(a){return a.id===id;});if(a){navigator.clipboard.writeText(a.content||'');toast('コピーしました');}}
 function deleteArt(id){if(!confirm('削除しますか？'))return;K.arts=K.arts.filter(function(a){return a.id!==id;});K.queue=K.queue.filter(function(q){return q.id!==id;});saveArts();saveQueue();pushToGitHub(K.arts);renderArticles();renderQueue();updateStats();toast('記事を削除しGitHubに反映しました');}
-function populatePwSel(){var sel=document.getElementById('pw-art-sel');if(!sel)return;sel.innerHTML='<option value="">--- 下書きから選択 ---</option>'+K.arts.filter(function(a){return a.status!=='published';}).map(function(a){return '<option value="'+a.id+'">'+(a.title||'無題').slice(0,28)+'（'+a.cat+'）</option>';}).join('');}
-
 function generateArticle(){
   var title=document.getElementById('art-title').value.trim();
   if(!title){alert('タイトルを入力してください');return;}
@@ -706,13 +673,6 @@ function autoFill(){
   });
 }
 
-function buildHashtags(src){
-  var raw = src || document.getElementById('pw-hashtags') && document.getElementById('pw-hashtags').value || '';
-  var tags = raw.trim().split(/\s+/).filter(function(t){return t.length>0;}).slice(0,5);
-  if(!tags.length) return '';
-  return '\n\n' + tags.map(function(t){ return '#' + t.replace(/^#/,''); }).join(' ');
-}
-
 function getHashtagsFromSched(){
   return K.sched && K.sched.hashtags ? K.sched.hashtags : '';
 }
@@ -722,85 +682,10 @@ function saveAsDraft(){
   var cat=document.getElementById('art-cat').value;
   if(!K.lastArt){alert('先に記事を生成してください');return;}
   var art={id:Date.now(),title:title,cat:cat,content:K.lastArt,svg:K.curSVG,status:'draft',date:new Date().toLocaleDateString('ja-JP')};
-  K.arts.unshift(art);addToQueue(art);saveArts();pushToGitHub(K.arts);renderArticles();renderQueue();updateStats();populatePwSel();
+  K.arts.unshift(art);addToQueue(art);saveArts();pushToGitHub(K.arts);renderArticles();renderQueue();updateStats();
   var nb=document.getElementById('art-to-note-btn');
   if(nb){nb.disabled=false;nb.style.borderColor='var(--or)';nb.style.color='var(--or)';nb._artId=art.id;}
   toast('✓ 下書きに保存：'+title);
-}
-
-function saveAndPostNote(){
-  if(!K.lastArt){alert('先に記事を生成してください');return;}
-  if(!K.apiKey){alert('APIキーが未設定です');go('settings');return;}
-  if(!K.pwOk){alert('Playwrightサーバーが起動していません。\nstart_servers.bat をダブルクリックしてください。');return;}
-
-  // 2重実行防止
-  var nb=document.getElementById('art-to-note-btn');
-  if(nb&&nb.disabled){return;}
-  if(nb){nb.disabled=true;nb.textContent='処理中...';}
-
-  // 下書き保存（未保存なら新規作成）
-  var title=document.getElementById('art-title').value.trim()||'無題';
-  var cat=document.getElementById('art-cat').value;
-  var art=null;
-  if(nb&&nb._artId){art=K.arts.find(function(a){return a.id===nb._artId;});}
-  if(!art){
-    art={id:Date.now(),title:title,cat:cat,content:K.lastArt,svg:K.curSVG,status:'draft',date:new Date().toLocaleDateString('ja-JP')};
-    K.arts.unshift(art);addToQueue(art);saveArts();pushToGitHub(K.arts);renderArticles();renderQueue();updateStats();populatePwSel();
-    if(nb)nb._artId=art.id;
-  }
-
-  if(nb)nb.textContent='note用コンテンツを生成中...';
-  var res=document.getElementById('art-note-result');
-  if(res){res.className='alert';res.style.display='none';}
-  var logEl=document.getElementById('art-note-log');
-  if(logEl){logEl.textContent='';logEl.classList.add('show');}
-
-  var cfg=getCfg();
-  var noteUrl=cfg.noteUrl||'https://note.com/rayphone';
-  var blogUrl=cfg.blogUrl||'https://rayphone.github.io/rayphoneai/';
-
-  function nlog(msg){if(logEl){logEl.textContent+='['+new Date().toLocaleTimeString('ja-JP')+'] '+msg+'\n';logEl.scrollTop=logEl.scrollHeight;}}
-  // art.urlがない場合は blogUrl?id=art.id で設定
-  if(!art.url) art.url=(blogUrl.replace(/\/+$/,'')+'/?id='+art.id);
-  nlog('[1/3] note専用コンテンツを生成中（約2,000字）...');
-
-  var np='あなたはRayphoneです。ブログ記事のnote専用コンテンツ（約2,000字）を執筆してください。\n\n【ブログ記事】タイトル：'+art.title+'\nカテゴリ：'+art.cat+'\nブログURL：'+blogUrl+'\n本文抜粋：\n'+(art.content||'').slice(0,600)+'...\n\n【構成（合計約2,000字）】\nはじめに（300字・読者の悩みへの問いかけから）\nこの記事で解決できること（200字・「・」箇条書き3つ）\n\n▼ ブログ記事はこちら\n'+blogUrl+'\n\nなぜこの記事が有効なのか——深掘り解説（1,000字）\nRayphoneからの一言（300字・プロンプト設計士Rayphoneとして締める）\n\n【絶対禁止】# * などのマークダウン記号・見出しの【】は禁止。見出しには■を使う。箇条書きは「・」。\n【必須】▼ ブログ記事はこちら の下のURLは必ずそのまま出力すること。URLを消すことは絶対禁止。\n「はい」「承知」などの前置き・承諾文は一切出力禁止。本文のみ出力すること。';
-
-  claudeCall(np,3000,function(err,noteContent){
-    if(err||!noteContent){
-      if(nb){nb.disabled=false;nb.textContent='📝 保存してnoteに投稿';}
-      if(res){res.className='alert ae show';res.style.display='block';res.textContent='✗ note用コンテンツの生成に失敗しました';}
-      return;
-    }
-    noteContent=stripGeminiPreamble(noteContent);
-    nlog('✓ note用コンテンツ生成完了（'+noteContent.length+'字）（前置き除去済み）');
-    nlog('[2/3] noteタイトル：【深掘り】'+art.title);
-    nlog('[3/3] Playwrightがnoteに投稿中...');
-    if(nb)nb.textContent='投稿中...';
-
-    var hwInput=document.getElementById('pw-hashtags');
-    var hashtags=buildHashtags(hwInput?hwInput.value:'');
-    // art.svgが空の場合はK.curSVGを使う
-    var svgToSend = art.svg || K.curSVG || '';
-    if(svgToSend) art.svg = svgToSend; // 記事データにも保存
-    nlog('[3/3] Playwrightがnoteに投稿中... SVG: '+(svgToSend?'あり('+svgToSend.length+'字)':'なし'));
-    xhrCall('POST',K.PW+'/post',{title:'【深掘り】'+art.title,body:noteContent+hashtags,svg:svgToSend,publish:true,blog_url:blogUrl,art_id:String(art.id)},function(err2,data){
-      if(nb){nb.disabled=false;nb.textContent='📝 保存してnoteに投稿';}
-      if(res)res.style.display='block';
-      if(!err2&&data&&data.ok){
-        nlog('✓ '+data.message+(data.url?' → '+data.url:''));
-        art.status='published';art.noteUrl=data.url||'';
-        saveArts();renderArticles();renderQueue();updateStats();
-        if(res){res.className='alert as show';res.textContent='✓ '+data.message+(data.url?' → '+data.url:'');}
-        toast('✓ note公開完了！');
-        postToX(art.title,noteContent,(blogUrl.replace(/\/+$/,'')+'/?id='+art.id));
-      } else {
-        var msg=(data&&data.message)||(err2&&err2.message)||'エラー';
-        nlog('✗ '+msg);
-        if(res){res.className='alert ae show';res.textContent='✗ '+msg;}
-      }
-    });
-  });
 }
 
 function clearArticle(){
@@ -867,7 +752,7 @@ function runFullAuto(targetCat){
         var artId=Date.now();
         var artUrl=(blogUrl.replace(/\/+$/,'')+'/?id='+artId);  // 記事固有URL
         var art={id:artId,title:meta.title,cat:cat,content:K.lastArt,svg:K.curSVG,status:'published',date:new Date().toLocaleDateString('ja-JP'),url:artUrl};
-        K.arts.unshift(art);addToQueue(art);saveArts();pushToGitHub(K.arts);renderArticles();renderQueue();updateStats();populatePwSel();
+        K.arts.unshift(art);addToQueue(art);saveArts();pushToGitHub(K.arts);renderArticles();renderQueue();updateStats();
         document.getElementById('art-lt').textContent='[4/5] note専用コンテンツを生成してnoteに公開中...';
         alog('[4/5] note専用コンテンツを生成中... 記事URL: '+artUrl);
 
@@ -982,48 +867,12 @@ function checkSchedule(){
   });
 }
 
-function checkServer(){
-  var dot=document.getElementById('pw-dot');var txt=document.getElementById('pw-status-text');var btn=document.getElementById('pw-post-btn');var badge=document.getElementById('note-conn-badge');
-  xhrCall('GET',K.PW+'/health',null,function(err,data){
-    if(!err&&data&&data.ok){K.pwOk=true;dot.style.background='#27ae60';txt.textContent='サーバー接続中 OK · '+(data.email_set?'メール設定済み':'メールが未設定');if(btn)btn.disabled=false;if(badge){badge.textContent='接続済み';badge.className='stbadge stp';}document.getElementById('pw-guide').style.display=(data.email_set&&data.password_set)?'none':'';populatePwSel();}
-    else{K.pwOk=false;dot.style.background='#e74c3c';txt.textContent='サーバー未起動 — start_servers.bat をダブルクリック';if(btn)btn.disabled=true;if(badge){badge.textContent='未接続';badge.className='stbadge std';}}
-  });
-}
-
-function postToNote(){
-  var selId=parseInt(document.getElementById('pw-art-sel').value);if(!selId){alert('投稿する記事を選択してください');return;}
-  var art=K.arts.find(function(a){return a.id===selId;});if(!art){alert('記事データが見つかりません');return;}
-  if(!K.apiKey){alert('APIキーが未設定です');go('settings');return;}
-  var btn=document.getElementById('pw-post-btn');var res=document.getElementById('pw-result');
-  btn.disabled=true;btn.textContent='note用コンテンツを生成中...';
-  res.className='alert';res.style.display='none';
-  document.getElementById('pw-log').textContent='';document.getElementById('pw-log').classList.add('show');
-  var cfg=getCfg();var noteUrl=cfg.noteUrl||'https://note.com/rayphone';var blogUrl=cfg.blogUrl||'https://rayphone.github.io/rayphoneai/';var pub=document.getElementById('pw-mode').value==='publish';
-  if(!art.url) art.url=(blogUrl.replace(/\/+$/,'')+'/?id='+art.id);
-  plog('[1/3] note専用コンテンツを生成中（約2,000字）...');
-  var np='あなたはRayphoneです。ブログ記事のnote専用コンテンツ（約2,000字）を執筆してください。\n\n【ブログ記事】タイトル：'+art.title+'\nカテゴリ：'+art.cat+'\nブログURL：'+blogUrl+'\n本文抜粋：\n'+(art.content||'').slice(0,600)+'...\n\n【構成（合計約2,000字）】\nはじめに（300字・読者の悩みへの問いかけから）\nこの記事で解決できること（200字・3つを「・」箇条書き）\n\n▼ ブログ記事はこちら\n'+blogUrl+'\n\nなぜこの記事が有効なのか——深掘り解説（1,000字）\nRayphoneからの一言（300字・プロンプト設計士Rayphoneとして締める）\n\n【絶対禁止】# * などのマークダウン記号・見出しの【】は禁止。見出しには■を使う。箇条書きは「・」。\n【必須】▼ ブログ記事はこちら の下のURLは必ずそのまま出力すること。URLを消すことは絶対禁止。\n「はい」「承知」などの前置き・承諾文は一切出力禁止。本文のみ出力すること。';
-  claudeCall(np,3000,function(err,noteContent){
-    if(err||!noteContent){btn.disabled=false;btn.textContent='noteに自動投稿する';res.className='alert ae show';res.style.display='block';res.textContent='note用コンテンツの生成に失敗しました';return;}
-    noteContent=stripGeminiPreamble(noteContent);
-    plog('完了（'+noteContent.length+'字）（前置き除去済み）');plog('[2/3] プレビュー：【深掘り】'+art.title);
-    var svgToSend2 = art.svg || K.curSVG || '';
-    plog('[3/3] Playwrightがnoteに投稿中... SVG: '+(svgToSend2?'あり('+svgToSend2.length+'字)':'なし'));
-    xhrCall('POST',K.PW+'/post',{title:'【深掘り】'+art.title,body:noteContent+buildHashtags(),svg:svgToSend2,publish:pub,blog_url:blogUrl,art_id:String(art.id)},function(err2,data){
-      btn.disabled=false;btn.textContent='noteに自動投稿する';res.style.display='block';
-      if(!err2&&data&&data.ok){plog('完了 '+data.message+(data.url?' → '+data.url:''));art.status=pub?'published':'scheduled';art.noteUrl=data.url||'';saveArts();pushToGitHub(K.arts);renderArticles();renderQueue();updateStats();res.className='alert as show';res.textContent='完了 '+data.message+(data.url?' → '+data.url:'');toast('noteへの投稿完了！');postToX(art.title,noteContent,(blogUrl.replace(/\/+$/,'')+'/?id='+art.id));}
-      else{var msg=(data&&data.message)||(err2&&err2.message)||'エラー';plog('エラー '+msg);res.className='alert ae show';res.textContent='エラー '+msg;}
-    });
-  });
-}
-
-function testNote(){plog('[テスト] 接続テスト...');xhrCall('GET',K.PW+'/test',null,function(err,data){if(err){plog('失敗: '+err.message);return;}plog('メール: '+(data.email||'未設定'));plog(data.ready?'接続準備完了':'.envの設定を確認してください');});}
-
 function openPreview(id){var art=K.arts.find(function(a){return a.id===id;});if(!art)return;K.prevId=id;document.getElementById('pm-cat').textContent=art.cat;document.getElementById('pm-title').textContent=art.title;document.getElementById('pm-date').textContent=art.date;document.getElementById('pm-status').innerHTML=scBadge(art.status);document.getElementById('pm-content').textContent=art.content||'（本文なし）';var ec=document.getElementById('pm-ec');if(art.svg){ec.innerHTML=art.svg;ec.style.display='block';}else{ec.style.display='none';}document.getElementById('preview-modal').classList.add('show');}
 function closePreview(){document.getElementById('preview-modal').classList.remove('show');}
 function openEditor(id){var art=K.arts.find(function(a){return a.id===id;});if(!art)return;K.edId=id;document.getElementById('ed-title').value=art.title||'';document.getElementById('ed-cat').value=art.cat||'Claude活用Tips';document.getElementById('ed-body').value=art.content||'';updateEdCount();document.getElementById('editor-modal').classList.add('show');}
 function closeEditor(){document.getElementById('editor-modal').classList.remove('show');}
 function updateEdCount(){var v=document.getElementById('ed-body').value;document.getElementById('ed-cc').textContent=v.length.toLocaleString()+'字';}
-function saveEditor(){var art=K.arts.find(function(a){return a.id===K.edId;});if(!art)return;art.title=document.getElementById('ed-title').value.trim()||art.title;art.cat=document.getElementById('ed-cat').value;art.content=document.getElementById('ed-body').value;saveArts();pushToGitHub(K.arts);renderArticles();renderQueue();populatePwSel();closeEditor();toast('記事を保存しGitHubに反映しました');}
+function saveEditor(){var art=K.arts.find(function(a){return a.id===K.edId;});if(!art)return;art.title=document.getElementById('ed-title').value.trim()||art.title;art.cat=document.getElementById('ed-cat').value;art.content=document.getElementById('ed-body').value;saveArts();pushToGitHub(K.arts);renderArticles();renderQueue();closeEditor();toast('記事を保存しGitHubに反映しました');}
 function saveKey(){var k=document.getElementById('api-key').value.trim();if(!k){alert('APIキーを入力してください');return;}K.apiKey=k;localStorage.setItem('rp_key',k);var el=document.getElementById('set-saved');el.classList.add('show');setTimeout(function(){el.classList.remove('show');},3000);checkApiWarn();}
 function changeAdminPw(){
   var np = document.getElementById('cfg-pw-new').value;
@@ -1072,7 +921,7 @@ function updateClock(){document.getElementById('clock').textContent=new Date().t
   if(K.apiKey)document.getElementById('api-key').value=K.apiKey;
   var cfg=getCfg();
   if(cfg.author)document.getElementById('cfg-author').value=cfg.author;
-  if(cfg.adminUrl)document.getElementById('cfg-admin-url').value=cfg.adminUrl;
+  var _cau=document.getElementById('cfg-admin-url');if(_cau&&cfg.adminUrl)_cau.value=cfg.adminUrl;
   if(cfg.bio)document.getElementById('cfg-bio').value=cfg.bio;
   if(cfg.blogUrl)document.getElementById('cfg-blog-url').value=cfg.blogUrl;
   if(cfg.noteUrl)document.getElementById('cfg-note-url').value=cfg.noteUrl;
@@ -1105,10 +954,7 @@ function updateClock(){document.getElementById('clock').textContent=new Date().t
   document.getElementById('art-clear-btn').onclick=clearArticle;
   document.getElementById('art-copy-btn').onclick=function(){navigator.clipboard.writeText(document.getElementById('art-content').textContent);toast('コピーしました');};
   document.getElementById('art-save-btn').onclick=saveAsDraft;
-  document.getElementById('art-to-note-btn').onclick=saveAndPostNote;
-  document.getElementById('pw-check-btn').onclick=checkServer;
-  document.getElementById('pw-post-btn').onclick=postToNote;
-  document.getElementById('pw-test-btn').onclick=testNote;
+  var _atnb=document.getElementById('art-to-note-btn'); if(_atnb) _atnb.onclick=saveAndPostNote;
   document.getElementById('set-save-btn').onclick=saveKey;
   document.getElementById('cfg-save-btn').onclick=saveCfg;
   document.getElementById('pm-close').onclick=closePreview;
