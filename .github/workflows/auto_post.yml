@@ -30,7 +30,7 @@ jobs:
 
       - name: 依存ライブラリをインストール
         run: |
-          pip install requests playwright python-dotenv flask flask-cors
+          pip install requests playwright python-dotenv flask flask-cors pillow
           playwright install chromium
           playwright install-deps chromium
 
