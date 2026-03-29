@@ -60,4 +60,3 @@ jobs:
           name: cat-index
           path: cat_index.txt
           retention-days: 90
-
