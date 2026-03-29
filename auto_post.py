@@ -938,18 +938,32 @@ Rayphoneの一人称・体験談必須。""", 4500))
     else:
         png_bytes = generate_eyecatch_image(meta['title'], cat)
         if png_bytes:
-            # note用・ブログ用ともに1280×670にリサイズ
+            # 1280×670にアスペクト比を保ちながらクロップリサイズ
             try:
                 from PIL import Image as _Img
                 import io as _io
                 img_orig = _Img.open(_io.BytesIO(png_bytes))
-                img_resized = img_orig.resize((1280, 670), _Img.LANCZOS)
+                target_w, target_h = 1280, 670
+                orig_w, orig_h = img_orig.size
+                target_ratio = target_w / target_h
+                orig_ratio = orig_w / orig_h
+                if orig_ratio > target_ratio:
+                    # 横が余る → 横をクロップ
+                    new_w = int(orig_h * target_ratio)
+                    left = (orig_w - new_w) // 2
+                    img_crop = img_orig.crop((left, 0, left + new_w, orig_h))
+                else:
+                    # 縦が余る → 縦をクロップ
+                    new_h = int(orig_w / target_ratio)
+                    top = (orig_h - new_h) // 2
+                    img_crop = img_orig.crop((0, top, orig_w, top + new_h))
+                img_resized = img_crop.resize((target_w, target_h), _Img.LANCZOS)
                 buf = _io.BytesIO()
                 img_resized.save(buf, format='PNG')
                 resized_bytes = buf.getvalue()
-                eyecatch_png = resized_bytes  # note用
-                svg_code = "data:image/png;base64," + base64.b64encode(resized_bytes).decode()  # ブログ用（圧縮なし）
-                log(f"✓ アイキャッチ画像生成完了({len(resized_bytes)//1024}KB)")
+                eyecatch_png = resized_bytes  # note用（正確な1280×670）
+                svg_code = "data:image/png;base64," + base64.b64encode(resized_bytes).decode()
+                log(f"✓ アイキャッチ画像生成完了({len(resized_bytes)//1024}KB / 1280×670)")
             except Exception:
                 eyecatch_png = png_bytes
                 svg_code = "data:image/png;base64," + base64.b64encode(png_bytes).decode()
