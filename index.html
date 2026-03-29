@@ -357,19 +357,6 @@ function toggleMenu(){
     </div>
     <div class="featured-row" id="latest-row" style="margin-bottom:48px;"></div>
 
-    <!-- CTA BANNER -->
-    <div class="cta-banner">
-      <div>
-        <div class="cta-label">note販売中</div>
-        <div class="cta-title" id="cta-title">RayPhoneAI<br>プロンプト集</div>
-        <p class="cta-desc" id="cta-desc">現場で即使えるAI活用プロンプト集を<br>販売中。コピペ一発で業務が変わります。</p>
-      </div>
-      <div class="cta-right">
-        <div class="cta-price">note</div>
-        <div class="cta-price-sub">プロンプト設計士 Rayphone</div>
-      </div>
-    </div>
-
     <!-- MORE (残り全件) -->
     <div class="sec-head" id="more-sec" style="display:none;">
       <span class="sec-title">ALL ARTICLES</span>
@@ -494,7 +481,7 @@ function toggleMenu(){
     <!-- 本文 -->
     <div id="ap-body" style="font-size:15px;line-height:1.9;color:#333;white-space:pre-wrap;"></div>
     <!-- CTA -->
-    <div style="margin-top:48px;padding:32px;background:#FFF0E3;border-radius:12px;text-align:center;">
+    <div style="margin-top:48px;padding:32px;background:#FFF0E3;border-radius:12px;text-align:center;cursor:pointer;" onclick="var cfg={};try{cfg=JSON.parse(localStorage.getItem('rp_cfg')||'{}')}catch(e){}window.open(cfg.noteShopUrl||cfg.noteUrl||'#','_blank')">
       <div style="font-size:13px;color:#854F0B;font-weight:700;margin-bottom:8px;">もっと深く学びたい方へ</div>
       <div style="font-size:14px;color:#555;margin-bottom:16px;">プロンプト設計士Rayphoneのnoteでさらに詳しい活用術を公開中</div>
       <a id="ap-note-link" href="#" target="_blank" style="display:inline-block;background:var(--orange);color:#fff;padding:12px 32px;border-radius:8px;font-weight:700;font-size:14px;text-decoration:none;">noteで続きを読む →</a>
@@ -757,7 +744,7 @@ function _showPage(art){
   document.getElementById('ap-date').textContent = art.date||'';
   document.getElementById('ap-body').textContent = art.content||'';
   var nl=document.getElementById('ap-note-link');
-  if(nl){ var c={};try{c=JSON.parse(localStorage.getItem('rp_cfg')||'{}');}catch(e){} nl.href=c.noteUrl||'https://note.com/rayphone'; }
+  if(nl){ var c={};try{c=JSON.parse(localStorage.getItem('rp_cfg')||'{}');}catch(e){} nl.href=c.noteShopUrl||c.noteUrl||'https://note.com/rayphone'; }
   document.title=(art.title||'記事')+' | RayPhoneAI';
   var pb=document.getElementById('page-body'); if(pb) pb.style.display='none';
   var ap=document.getElementById('art-page');  if(ap) ap.style.display='block';
