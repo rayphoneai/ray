@@ -65,6 +65,7 @@ textarea.fi{resize:vertical;min-height:70px;}
 .qt tr.clickable:hover td{background:var(--gl);cursor:pointer;}
 .gp{height:3px;background:var(--bd);border-radius:2px;overflow:hidden;display:none;margin-bottom:10px;}
 .gp.show{display:block;}
+.modal-bg.show{display:flex!important;}
 .gpf{height:100%;background:var(--or);border-radius:2px;animation:gpa 2s ease-in-out infinite;}
 @keyframes gpa{0%{width:5%;}60%{width:80%;}100%{width:92%;};}
 .ld{display:none;align-items:center;gap:8px;padding:8px 0;}
@@ -281,8 +282,9 @@ input:checked+.sw2-slider::before{transform:translateX(16px);}
               <div id="art-ec-preview" style="width:100%;aspect-ratio:1280/670;background:#111;border-radius:8px;overflow:hidden;margin-bottom:8px;"></div>
             </div>
             <div class="brow">
-              <button class="btn bp" id="art-save-btn">下書きに保存</button>
-              <button class="btn bg2" id="art-to-note-btn" style="border:1.5px solid var(--bd);">📝 保存してnoteに投稿</button>
+              <button class="btn bp" id="art-save-btn">💾 下書きに保存</button>
+              <button class="btn bp" id="art-publish-btn" style="background:#1D9E75;">🚀 すぐに公開</button>
+              <button class="btn bg2" id="art-to-note-btn" style="border:1.5px solid var(--bd);">📝 noteに投稿</button>
             </div>
             <div class="alert" id="art-note-result" style="margin-top:10px;"></div>
             <div class="logbox" id="art-note-log"></div>
@@ -689,6 +691,30 @@ function saveAsDraft(){
   toast('✓ 下書きに保存：'+title);
 }
 
+function publishNow(){
+  var title=document.getElementById('art-title').value.trim()||'無題';
+  var cat=document.getElementById('art-cat').value;
+  if(!K.lastArt){alert('先に記事を生成してください');return;}
+  var art={id:Date.now(),title:title,cat:cat,content:K.lastArt,svg:K.curSVG,status:'published',date:new Date().toLocaleDateString('ja-JP')};
+  K.arts.unshift(art);saveArts();
+  pushToGitHub(K.arts,function(){
+    document.getElementById('art-note-result').textContent='✓ ブログに公開しました';
+    document.getElementById('art-note-result').className='alert alg';
+  });
+}
+function saveAndPostNote(){
+  var title=document.getElementById('art-title').value.trim()||'無題';
+  var cat=document.getElementById('art-cat').value;
+  if(!K.lastArt){alert('先に記事を生成してください');return;}
+  var art={id:Date.now(),title:title,cat:cat,content:K.lastArt,svg:K.curSVG,status:'published',date:new Date().toLocaleDateString('ja-JP')};
+  K.arts.unshift(art);saveArts();
+  pushToGitHub(K.arts,function(){
+    var res=document.getElementById('art-note-result');
+    res.textContent='✓ ブログ公開完了。noteへの投稿はPlaywrightサーバー経由で行ってください。';
+    res.className='alert alg';
+  });
+}
+
 function clearArticle(){
   ['art-title','art-kw','art-target','art-memo'].forEach(function(id){document.getElementById(id).value='';});
   document.getElementById('art-out').classList.remove('show');
@@ -983,6 +1009,7 @@ function updateClock(){document.getElementById('clock').textContent=new Date().t
   document.getElementById('art-clear-btn').onclick=clearArticle;
   document.getElementById('art-copy-btn').onclick=function(){navigator.clipboard.writeText(document.getElementById('art-content').textContent);toast('コピーしました');};
   document.getElementById('art-save-btn').onclick=saveAsDraft;
+  var _apb=document.getElementById('art-publish-btn'); if(_apb) _apb.onclick=publishNow;
   var _atnb=document.getElementById('art-to-note-btn'); if(_atnb) _atnb.onclick=saveAndPostNote;
   document.getElementById('set-save-btn').onclick=saveKey;
   document.getElementById('cfg-save-btn').onclick=saveCfg;
