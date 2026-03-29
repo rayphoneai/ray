@@ -940,16 +940,15 @@ Rayphoneの一人称・体験談必須。""", 4500))
         png_bytes = generate_eyecatch_image(meta['title'], cat)
         if png_bytes:
             eyecatch_png = png_bytes
-            # ブログ用は適度に圧縮（articles.jsonを小さく保つ・でも画質維持）
+            # ブログ用: 1280x670 JPEG quality:82（約150〜200KB程度）
             try:
                 from PIL import Image as _Img
                 import io as _io
                 img = _Img.open(_io.BytesIO(png_bytes))
-                img = img.resize((960, 540), _Img.LANCZOS)
+                img = img.resize((1280, 670), _Img.LANCZOS)
                 buf = _io.BytesIO()
-                img.save(buf, format='JPEG', quality=85)
-                blog_img_b64 = base64.b64encode(buf.getvalue()).decode()
-                svg_code = "data:image/jpeg;base64," + blog_img_b64
+                img.save(buf, format='JPEG', quality=82)
+                svg_code = "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
                 log(f"✓ アイキャッチ画像生成完了({len(png_bytes)//1024}KB → blog用{len(buf.getvalue())//1024}KB)")
             except Exception:
                 svg_code = "data:image/png;base64," + base64.b64encode(png_bytes).decode()
