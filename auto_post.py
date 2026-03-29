@@ -322,17 +322,16 @@ def generate_eyecatch_image(title: str, cat: str) -> bytes | None:
     if model == "svg":
         return None
 
-    # タイトルを22文字以内に短縮
-    short_title = title[:22] if len(title) <= 22 else title[:20] + "…"
-
-    # Geminiにはテキストなしの背景デザインのみ生成させる
+    # テキストなし・高品質デザイン画像のみ生成
     prompt = (
-        f"Create a professional blog header image (16:9 landscape ratio). "
-        f"Design: white background, orange (#FF6B00) and dark gray (#1A1A1A) accents, "
-        f"modern minimal layout with geometric decorations (lines, circles, triangles). "
-        f"Leave the left-center area empty for text overlay. "
-        f"No text, no letters, no characters in the image. "
-        f"Clean professional Japanese tech blog aesthetic."
+        f"High quality professional blog header image, 16:9 ratio. "
+        f"Color palette ONLY: white (#FFFFFF), black (#1A1A1A), orange (#FF6B00). "
+        f"Style: modern Japanese tech blog, minimal geometric design, "
+        f"bold shapes, clean layout with strong visual impact. "
+        f"Use large geometric elements: rectangles, lines, circles, triangles. "
+        f"No text, no letters, no characters whatsoever. "
+        f"Category theme hint: {cat}. "
+        f"High contrast, professional, visually striking."
     )
 
     try:
@@ -351,7 +350,7 @@ def generate_eyecatch_image(title: str, cat: str) -> bytes | None:
             for part in data.get("candidates", [{}])[0].get("content", {}).get("parts", []):
                 if "inlineData" in part:
                     img_bytes = base64.b64decode(part["inlineData"]["data"])
-                    return _overlay_japanese_text(img_bytes, short_title, cat)
+                    return img_bytes
             log(f"note: 画像データが見つかりません: {str(data)[:200]}")
             return None
 
@@ -372,7 +371,7 @@ def generate_eyecatch_image(title: str, cat: str) -> bytes | None:
             images = data.get("images", [])
             if images:
                 img_bytes = base64.b64decode(images[0]["bytesBase64Encoded"])
-                return _overlay_japanese_text(img_bytes, short_title, cat)
+                return img_bytes
             log(f"note: Imagen応答に画像なし: {str(data)[:200]}")
             return None
 
@@ -939,18 +938,22 @@ Rayphoneの一人称・体験談必須。""", 4500))
     else:
         png_bytes = generate_eyecatch_image(meta['title'], cat)
         if png_bytes:
-            eyecatch_png = png_bytes
-            # ブログ用: 1280x670 JPEG quality:82（約150〜200KB程度）
+            # note用: 1280×670にリサイズしてアスペクト比を統一
             try:
                 from PIL import Image as _Img
                 import io as _io
-                img = _Img.open(_io.BytesIO(png_bytes))
-                img = img.resize((1280, 670), _Img.LANCZOS)
-                buf = _io.BytesIO()
-                img.save(buf, format='JPEG', quality=82)
-                svg_code = "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
-                log(f"✓ アイキャッチ画像生成完了({len(png_bytes)//1024}KB → blog用{len(buf.getvalue())//1024}KB)")
+                img_orig = _Img.open(_io.BytesIO(png_bytes))
+                img_note = img_orig.resize((1280, 670), _Img.LANCZOS)
+                buf_note = _io.BytesIO()
+                img_note.save(buf_note, format='PNG')
+                eyecatch_png = buf_note.getvalue()
+                # ブログ用: JPEG圧縮
+                buf_blog = _io.BytesIO()
+                img_note.save(buf_blog, format='JPEG', quality=85)
+                svg_code = "data:image/jpeg;base64," + base64.b64encode(buf_blog.getvalue()).decode()
+                log(f"✓ アイキャッチ画像生成完了(note:{len(eyecatch_png)//1024}KB / blog:{len(buf_blog.getvalue())//1024}KB)")
             except Exception:
+                eyecatch_png = png_bytes
                 svg_code = "data:image/png;base64," + base64.b64encode(png_bytes).decode()
                 log(f"✓ アイキャッチ画像生成完了({len(png_bytes)//1024}KB)")
         else:
