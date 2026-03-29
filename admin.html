@@ -144,8 +144,8 @@ input:checked+.sw2-slider::before{transform:translateX(16px);}
     <div class="nsec">MAIN</div>
     <div class="ni on" id="nav-dash" onclick="go('dash')"><svg width="14" height="14" fill="currentColor" viewBox="0 0 14 14"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="8" y="0" width="6" height="6" rx="1"/><rect x="0" y="8" width="6" height="6" rx="1"/><rect x="8" y="8" width="6" height="6" rx="1"/></svg><span>ダッシュボード</span></div>
     <div class="nsec">AUTO</div>
-    <div class="ni" id="nav-scheduler" onclick="go('scheduler')"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6"/><path d="M7 3.5V7l2.5 1.5" stroke-linecap="round"/></svg><span>スケジューラー</span></div>
-    <div class="ni" id="nav-queue" onclick="go('queue')"><svg width="14" height="14" fill="currentColor" viewBox="0 0 14 14"><path d="M1 2h12v1.5H1V2zm0 4h9v1.5H1V6zm0 4h11v1.5H1V10z"/></svg><span>投稿キュー</span></div>
+    
+    
     <div class="nsec">CONTENT</div>
     <div class="ni" id="nav-article" onclick="go('article')"><svg width="14" height="14" fill="currentColor" viewBox="0 0 14 14"><path d="M2 2h10v1.5H2V2zm0 3h10v1H2V5zm0 3h7v1H2V8zm0 3h8v1H2v-1z"/></svg><span>記事生成</span></div>
     <div class="ni" id="nav-articles" onclick="go('articles')"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 14 14"><rect x="1" y="1" width="12" height="12" rx="1.5"/><path d="M4 5h6M4 8h4M4 11h5"/></svg><span>記事一覧</span></div>
@@ -199,55 +199,9 @@ input:checked+.sw2-slider::before{transform:translateX(16px);}
       </div>
     </div>
 
-    <div id="page-scheduler" class="page">
-      <div class="panel">
-        <div class="ph"><div class="pt"><div class="pt-dot"></div>自動投稿スケジューラー</div></div>
-        <div class="pb">
-          <div class="fg">
-            <div class="ff full">
-              <label class="fl">投稿時刻（最大3つ設定可能）</label>
-              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
-                <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:11px;color:var(--gm);min-width:24px;">①</span><input class="fi" type="time" id="sch-time" value="08:00" style="width:110px;"></div>
-                <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:11px;color:var(--gm);min-width:24px;">②</span><input class="fi" type="time" id="sch-time2" style="width:110px;"><span style="font-size:10px;color:#aaa;">（空白=無効）</span></div>
-                <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:11px;color:var(--gm);min-width:24px;">③</span><input class="fi" type="time" id="sch-time3" style="width:110px;"><span style="font-size:10px;color:#aaa;">（空白=無効）</span></div>
-              </div>
-            </div>
-            <div class="ff"><label class="fl">繰り返し</label><select class="fi" id="sch-repeat"><option value="daily">毎日</option><option value="weekday">平日のみ</option></select></div>
-            <div class="ff full"><label class="fl">カテゴリローテーション</label>
-              <div id="cat-rotation" style="margin-top:6px;">
-                <div style="display:flex;flex-wrap:wrap;gap:8px;">
-                  <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;"><input type="checkbox" value="Claude活用Tips" checked> Claude活用Tips</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;"><input type="checkbox" value="士業向けAI活用" checked> 士業向けAI活用</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;"><input type="checkbox" value="商品開発xAI" checked> 商品開発xAI</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;"><input type="checkbox" value="副業xAI" checked> 副業xAI</label>
-                  <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;"><input type="checkbox" value="プロンプト集解説" checked> プロンプト集解説</label>
-                </div>
-                <div style="margin-top:10px;padding:10px 14px;background:#FFF0E3;border-radius:8px;font-size:12px;color:#854F0B;">
-                  ✓ 記事生成のたびに上記カテゴリを順番に使用します（現在: <span id="cur-cat-label" style="font-weight:700;"></span>）
-                </div>
-              </div>
-            </div>
-            <div class="ff full"><div class="sw2"><label class="sw2-track"><input type="checkbox" id="sch-auto-pub" checked><div class="sw2-slider"></div></label><span style="font-size:12px;color:#3D3D3D;">設定時刻に自動で記事生成・GitHub更新まで実行する</span></div></div>
-            <div class="ff full"><label class="fl">noteハッシュタグ（5個まで・スペース区切り）</label><input class="fi" id="sch-hashtags" placeholder="例: Claude AI活用 副業 プロンプト 業務効率化"><div class="fhint">note記事の末尾に自動追加されます</div></div>
-          </div>
-          <div class="brow"><button class="btn bp" id="sch-save-btn">スケジュールを保存</button></div>
-          <div class="alert as" id="sch-saved">&#10003; スケジュールを保存しました</div>
-        </div>
-      </div>
-      
-    </div>
+    
 
-    <div id="page-queue" class="page">
-      <div class="panel">
-        <div class="ph"><div class="pt"><div class="pt-dot"></div>投稿キュー</div>
-          <div style="display:flex;gap:6px;"><button class="btn bg2 bsm" id="q-clear-btn">クリア</button><button class="btn bp bsm" id="q-add-btn">今すぐ追加</button></div>
-        </div>
-        <div class="pb" style="padding:0;">
-          <table class="qt"><thead><tr><th>日付</th><th>タイトル</th><th>カテゴリ</th><th>状態</th><th>操作</th></tr></thead><tbody id="queue-body"></tbody></table>
-          <div id="queue-empty" style="text-align:center;padding:24px;color:#aaa;font-size:13px;">キューは空です</div>
-        </div>
-      </div>
-    </div>
+    
 
     <div id="page-article" class="page">
       <div class="panel">
@@ -395,7 +349,7 @@ input:checked+.sw2-slider::before{transform:translateX(16px);}
 <div id="toast"></div>
 
 <script>
-var K={apiKey:localStorage.getItem('rp_key')||'',arts:JSON.parse(localStorage.getItem('rp_arts')||'[]'),queue:JSON.parse(localStorage.getItem('rp_queue')||'[]'),sched:JSON.parse(localStorage.getItem('rp_sched')||'null'),catIdx:parseInt(localStorage.getItem('rp_catidx')||'0'),curSVG:'',lastArt:'',schedTimer:null,lastTrig:'',PW:'http://127.0.0.1:8765',pwOk:false,prevId:null,edId:null};
+var K={apiKey:localStorage.getItem('rp_key')||'',arts:[],catIdx:parseInt(localStorage.getItem('rp_catidx')||'0'),curSVG:'',lastArt:'',prevId:null,edId:null};
 var CATEGORIES=['Claude活用Tips','士業向けAI活用','商品開発xAI','副業xAI','プロンプト集解説'];
 function updateCurCatLabel(){
   var cats=getSelCats();
@@ -407,7 +361,7 @@ function updateCurCatLabel(){
   if(el2) el2.textContent=cur;
 }
 var CC={'Claude活用Tips':'#FFF0E3;#854F0B','士業向けAI活用':'#E1F5EE;#085041','商品開発xAI':'#EEEDFE;#3C3489','副業xAI':'#E6F1FB;#0C447C','プロンプト集解説':'#F1EFE8;#444441'};
-var PT={dash:'ダッシュボード',scheduler:'スケジューラー',queue:'投稿キュー',article:'記事生成',articles:'記事一覧',settings:'設定'};
+var PT={dash:'ダッシュボード',article:'記事生成',articles:'記事一覧',settings:'設定'};
 
 function xhrCall(m,u,d,cb){var r=new XMLHttpRequest();r.open(m,u,true);r.setRequestHeader('Content-Type','application/json');r.timeout=180000;r.onload=function(){try{cb(null,JSON.parse(r.responseText));}catch(e){cb(e,null);}};r.onerror=function(){cb(new Error('接続エラー'),null);};r.ontimeout=function(){cb(new Error('タイムアウト'),null);};r.send(d?JSON.stringify(d):null);}
 
@@ -487,8 +441,7 @@ function pullFromGitHub(callback){
         var content=decodeURIComponent(escape(atob(data.content.replace(/\n/g,''))));
         var arts=JSON.parse(content);
         K.arts=arts;
-        saveArts();
-        renderArticles();renderQueue();updateStats();
+        renderArticles();updateStats();
         toast('✓ GitHubから記事データを読み込みました（'+arts.length+'件）');
         if(callback)callback(true);
       }catch(e){
@@ -510,55 +463,6 @@ function syncWithGitHub(){
   });
 }
 
-
-function postToX(artTitle, artContent, artUrl){
-  var cfg=getCfg();
-  if(!cfg.xAuto){return;}
-  if(!K.pwOk){alog('[X] サーバー未起動のためX投稿スキップ');return;}
-
-  // 概要100字（前置き・見出し記号を除去してクリーンにする）
-  var cleaned=(artContent||'')
-    .replace(/^[\s\S]*?■\s*はじめに/,'')  // はじめに以前を除去
-    .replace(/■[^\n]*/g,'')              // 見出しを除去
-    .replace(/【[^】]*】/g,'')            // 【】を除去
-    .replace(/[#＃]\S+/g,'')             // ハッシュタグ除去
-    .replace(/https?:\/\/\S+/g,'')       // 既存URL除去
-    .replace(/\n{2,}/g,' ')              // 改行をスペースに
-    .replace(/[　\s]+/g,' ')             // 全角スペース統一
-    .trim();
-  if(!cleaned) cleaned=(artTitle||'').replace(/【深掘り】/,'').slice(0,60);
-  var summary=cleaned.slice(0,95);
-
-  // URLはツイート末尾に単独で置く（Xが自動でカード表示）
-  // https://が必須、なければblogUrlから補完
-  if(artUrl && !artUrl.startsWith('http')){
-    artUrl = (blogUrl||'').replace(/\/+$/,'') + '/' + artUrl.replace(/^\//,'');
-  }
-  // 。で必ず終わるよう句点を探す（Xは280文字制限）
-  var urlPart = '\n\n' + artUrl;
-  var maxBody = 275 - urlPart.length;
-  var body = summary;
-  var dotPos = summary.lastIndexOf('。', maxBody);
-  if(dotPos > 0){
-    body = summary.slice(0, dotPos + 1);
-  } else {
-    var bangPos = summary.lastIndexOf('！', maxBody);
-    var qPos = summary.lastIndexOf('？', maxBody);
-    var ePos = Math.max(bangPos, qPos);
-    body = ePos > 0 ? summary.slice(0, ePos + 1) : summary.slice(0, maxBody).trimEnd();
-  }
-  var tweet = body + urlPart;
-
-  alog('[X] 自動投稿中...');
-  xhrCall('POST',K.PW+'/post_x',{tweet:tweet},function(err,data){
-    if(!err&&data&&data.ok){
-      alog('✓ X投稿完了');
-      toast('✓ Xへの投稿が完了しました！');
-    } else {
-      alog('✗ X投稿失敗: '+(data&&data.message||err&&err.message||'不明'));
-    }
-  });
-}
 
 function claudeCall(p,mt,cb,_r){
   if(!K.apiKey){alert('設定ページでAPIキーを入力してください');go('settings');cb(new Error('nokey'),null);return;}
@@ -589,24 +493,12 @@ function getCfg(){return JSON.parse(localStorage.getItem('rp_cfg')||'{}');}
 function getSelCats(){return Array.from(document.querySelectorAll('#cat-rotation input:checked')).map(function(i){return i.value;});}
 function catPill(cat){var cv=(CC[cat]||'#F5F5F5;#555').split(';');return '<span class="cat-pill" style="background:'+cv[0]+';color:'+cv[1]+';">'+cat+'</span>';}
 function scBadge(s){var c=s==='published'?'stp':s==='scheduled'?'sts':'std';var l=s==='published'?'公開済み':s==='scheduled'?'予定':'下書き';return '<span class="stbadge '+c+'">'+l+'</span>';}
-function saveArts(){localStorage.setItem('rp_arts',JSON.stringify(K.arts));}
-function saveQueue(){localStorage.setItem('rp_queue',JSON.stringify(K.queue));}
+function saveArts(){/* GitHubが唯一のソース - localStorage不使用 */}
 function updateStats(){
   document.getElementById('s-draft').textContent=K.arts.filter(function(a){return a.status!=='published';}).length;
   document.getElementById('s-pub').textContent=K.arts.filter(function(a){return a.status==='published';}).length;
-  document.getElementById('s-queue').textContent=K.queue.length;
   updateCurCatLabel();
-  if(K.sched){var t0=K.sched.times&&K.sched.times.length>0?K.sched.times.join('/'):K.sched.time;document.getElementById('s-next').textContent=t0;var cats=K.sched.cats||[];if(cats.length)document.getElementById('s-next-cat').textContent=cats[K.catIdx%cats.length];}
 }
-function addToQueue(art){K.queue.unshift({id:art.id,title:art.title,cat:art.cat,date:art.date,status:art.status});if(K.queue.length>30)K.queue.pop();saveQueue();}
-function renderQueue(){
-  var body=document.getElementById('queue-body');var empty=document.getElementById('queue-empty');var dash=document.getElementById('dash-queue-body');
-  if(!K.queue.length){body.innerHTML='';if(empty)empty.style.display='block';if(dash)dash.innerHTML='<tr><td colspan="3" style="text-align:center;color:#aaa;padding:14px;">なし</td></tr>';return;}
-  if(empty)empty.style.display='none';
-  body.innerHTML=K.queue.map(function(q){return '<tr class="clickable" onclick="openPreview('+q.id+')"><td style="font-size:11px;color:#aaa;">'+q.date+'</td><td style="color:var(--or);font-weight:500;">'+(q.title||'').slice(0,20)+((q.title||'').length>20?'...':'')+'</td><td>'+catPill(q.cat)+'</td><td>'+scBadge(q.status)+'</td><td onclick="event.stopPropagation()"><button class="btn bg2 bsm" onclick="removeQ('+q.id+')">削除</button></td></tr>';}).join('');
-  if(dash)dash.innerHTML=K.queue.slice(0,5).map(function(q){return '<tr><td style="font-size:11px;color:#aaa;">'+q.date+'</td><td>'+catPill(q.cat)+'</td><td>'+scBadge(q.status)+'</td></tr>';}).join('');
-}
-function removeQ(id){K.queue=K.queue.filter(function(q){return q.id!==id;});saveQueue();renderQueue();updateStats();}
 function renderArticles(){
   var body=document.getElementById('articles-body');var empty=document.getElementById('articles-empty');
   if(!K.arts.length){body.innerHTML='';if(empty)empty.style.display='block';return;}
@@ -614,7 +506,6 @@ function renderArticles(){
   body.innerHTML=K.arts.map(function(a){return '<tr class="clickable" onclick="openPreview('+a.id+')"><td style="color:var(--or);font-weight:500;font-size:12px;">'+(a.title||'').slice(0,24)+((a.title||'').length>24?'...':'')+'</td><td>'+catPill(a.cat)+'</td><td style="font-size:11px;color:#aaa;">'+a.date+'</td><td>'+scBadge(a.status)+'</td><td onclick="event.stopPropagation()"><button class="btn bg2 bsm" onclick="openEditor('+a.id+')">編集</button> <button class="btn bg2 bsm" onclick="copyArt('+a.id+')">コピー</button> <button class="btn bd2 bsm" onclick="deleteArt('+a.id+')">削除</button></td></tr>';}).join('');
 }
 function copyArt(id){var a=K.arts.find(function(a){return a.id===id;});if(a){navigator.clipboard.writeText(a.content||'');toast('コピーしました');}}
-function deleteArt(id){if(!confirm('削除しますか？'))return;K.arts=K.arts.filter(function(a){return a.id!==id;});K.queue=K.queue.filter(function(q){return q.id!==id;});saveArts();saveQueue();pushToGitHub(K.arts);renderArticles();renderQueue();updateStats();toast('記事を削除しGitHubに反映しました');}
 function generateArticle(){
   var title=document.getElementById('art-title').value.trim();
   if(!title){alert('タイトルを入力してください');return;}
@@ -677,7 +568,7 @@ function autoFill(){
 }
 
 function getHashtagsFromSched(){
-  return K.sched && K.sched.hashtags ? K.sched.hashtags : '';
+  return '';
 }
 
 function saveAsDraft(){
@@ -685,7 +576,7 @@ function saveAsDraft(){
   var cat=document.getElementById('art-cat').value;
   if(!K.lastArt){alert('先に記事を生成してください');return;}
   var art={id:Date.now(),title:title,cat:cat,content:K.lastArt,svg:K.curSVG,status:'draft',date:new Date().toLocaleDateString('ja-JP')};
-  K.arts.unshift(art);addToQueue(art);saveArts();pushToGitHub(K.arts);renderArticles();renderQueue();updateStats();
+  K.arts.unshift(art);saveArts();pushToGitHub(K.arts);renderArticles();updateStats();
   var nb=document.getElementById('art-to-note-btn');
   if(nb){nb.disabled=false;nb.style.borderColor='var(--or)';nb.style.color='var(--or)';nb._artId=art.id;}
   toast('✓ 下書きに保存：'+title);
@@ -776,7 +667,7 @@ function genEC(title,cat,done){
 
 function runFullAuto(targetCat){
   if(!K.apiKey){go('settings');return;}
-  if(!K.pwOk){alert('Playwrightサーバーが起動していません。\nstart_servers.bat をダブルクリックしてください。');return;}
+return;}
   var cats=getSelCats();if(!cats.length){alert('カテゴリを選択してください');return;}
   var cat=targetCat||cats[K.catIdx%cats.length];
   K.catIdx=(K.catIdx+1)%cats.length;localStorage.setItem('rp_catidx',K.catIdx.toString());updateCurCatLabel();
@@ -804,18 +695,13 @@ function runFullAuto(targetCat){
         var artId=Date.now();
         var artUrl=(blogUrl.replace(/\/+$/,'')+'/?id='+artId);  // 記事固有URL
         var art={id:artId,title:meta.title,cat:cat,content:K.lastArt,svg:K.curSVG,status:'published',date:new Date().toLocaleDateString('ja-JP'),url:artUrl};
-        K.arts.unshift(art);addToQueue(art);saveArts();pushToGitHub(K.arts);renderArticles();renderQueue();updateStats();
+        K.arts.unshift(art);saveArts();pushToGitHub(K.arts);renderArticles();updateStats();
         document.getElementById('art-lt').textContent='[4/5] note専用コンテンツを生成してnoteに公開中...';
         alog('[4/5] note専用コンテンツを生成中... 記事URL: '+artUrl);
 
         // ハッシュタグ：スケジューラー設定を優先、なければ自動生成
         var schedHashtags='';
-        if(K.sched&&K.sched.hashtags&&K.sched.hashtags.trim()){
-          schedHashtags='\n\n'+(K.sched.hashtags||'').trim().split(/\s+/).filter(function(t){return t.length>0;}).slice(0,5).map(function(t){return '#'+t.replace(/^#/,'');}).join(' ');
-        } else {
-          var catTag='#'+art.cat.replace(/[×\s]/g,'');
-          schedHashtags='\n\n'+catTag+' #AI活用 #Claude #副業 #プロンプト';
-        }
+
 
         var np='あなたはRayphoneです。ブログ記事のnote専用コンテンツ（約2,000字）を執筆してください。\n\n【ブログ記事】タイトル：'+art.title+'\nカテゴリ：'+art.cat+'\n本文抜粋：\n'+(K.lastArt||'').slice(0,600)+'...\n\n構成（合計約2,000字）：\nはじめに（300字・読者の悩みへの問いかけから）\nこの記事で解決できること（200字・「・」箇条書き3つ）\n\nBLOG_LINK_HERE\n\nなぜこの記事が有効なのか——深掘り解説（1,000字）\nRayphoneからの一言（300字・締め）\n\n【絶対禁止】# * などのマークダウン記号・見出しの【】は禁止。見出しには■を使う。箇条書きは「・」。\n【必須】BLOG_LINK_HEREをそのまま出力すること（URLを消すことは絶対禁止）。\n「はい」「承知」などの前置き・承諾文は一切出力禁止。本文のみ出力すること。';
 
@@ -825,22 +711,9 @@ function runFullAuto(targetCat){
             nc=nc.replace(/BLOG_LINK_HERE/g,'▼ ブログ記事はこちら\n'+blogUrl);
             // ハッシュタグを付与
             nc=nc+schedHashtags;
-            alog('[5/5] Playwrightがnoteに公開中...');
-            document.getElementById('art-lt').textContent='[5/5] Playwrightがnoteに公開中...';
-            xhrCall('POST',K.PW+'/post',{title:'【深掘り】'+art.title,body:nc,svg:art.svg||'',publish:true,blog_url:blogUrl,art_id:String(artId)},function(err4,data){
-              if(!err4&&data&&data.ok){
-                art.noteUrl=data.url||'';
-                saveArts();renderArticles();updateStats();
-                document.getElementById('art-lt').textContent='✓ 全自動完了！blog記事保存・note公開済み';
-                alog('✓ 完了！note URL: '+(data.url||''));
-                toast('✓ フル自動完了：'+art.title);
-                postToX(art.title,nc,(blogUrl.replace(/\/+$/,'')+'/?id='+artId));
-              } else {
-                var msg=(data&&data.message)||(err4&&err4.message)||'エラー';
-                document.getElementById('art-lt').textContent='⚠ note投稿エラー: '+msg;
-                alog('✗ note投稿エラー: '+msg);
-              }
-            });
+            document.getElementById('art-lt').textContent='✓ 全自動完了！ブログ公開済み';
+            alog('✓ 完了！ブログURL: '+artUrl);
+            toast('✓ フル自動完了：'+art.title);
           } else {
             document.getElementById('art-lt').textContent='⚠ noteコンテンツ生成エラー';
             alog('✗ noteコンテンツ生成エラー');
@@ -849,76 +722,9 @@ function runFullAuto(targetCat){
       });
     });
   });
-}
 
-function saveSchedule(){
-  var time=document.getElementById('sch-time').value;
-  var time2=document.getElementById('sch-time2').value;
-  var time3=document.getElementById('sch-time3').value;
-  var times=[time,time2,time3].filter(function(t){return t&&t.length>0;});
-  var cats=getSelCats();
-  if(!cats.length){alert('カテゴリを1つ以上選択してください');return;}
-  if(!K.apiKey){alert('先にAPIキーを設定してください');go('settings');return;}
-  K.sched={time:times[0]||'08:00',times:times,repeat:document.getElementById('sch-repeat').value,cats:cats,autoPublish:document.getElementById('sch-auto-pub').checked,hashtags:document.getElementById('sch-hashtags').value.trim()};
-  localStorage.setItem('rp_sched',JSON.stringify(K.sched));K.catIdx=0;localStorage.setItem('rp_catidx','0');
-  var el=document.getElementById('sch-saved');el.classList.add('show');setTimeout(function(){el.classList.remove('show');},3000);
-  startScheduler();updateStats();updateCurCatLabel();
-}
-
-function startScheduler(){
-  if(K.schedTimer)clearInterval(K.schedTimer);
-  K.schedTimer=setInterval(checkSchedule,10000);
-  checkSchedule();
-}
-
-function checkSchedule(){
-  if(!K.sched||!K.apiKey)return;
-  var now=new Date();
-  var times=(K.sched.times||[K.sched.time]).filter(Boolean);
-  var cats=K.sched.cats||[];
-  var repeat=K.sched.repeat||'daily';
-
-  // 平日のみ設定で土日はスキップ
-  if(repeat==='weekday'&&(now.getDay()===0||now.getDay()===6))return;
-
-  times.forEach(function(t,tIdx){
-    if(!t)return;
-    var hm=t.split(':').map(Number);
-    var key=now.getFullYear()+'-'+(now.getMonth()+1)+'-'+now.getDate()+'-'+t;
-    if(now.getHours()!==hm[0]||now.getMinutes()!==hm[1])return;
-    if(K.lastTrig===key)return;
-
-    K.lastTrig=key;
-    localStorage.setItem('rp_lasttrig',key);
-
-    // buildTimelineと完全に同じロジックでカテゴリを決定
-    // 今日は0日目・今日の時刻インデックスをtIdxで加味
-    var cat=null;
-    if(cats.length>0){
-      // 今日が何番目の実行日か（スケジュール開始からの日数）
-      var base=K.catIdx;
-      // 時刻が複数ある場合は時刻インデックス分もずらす
-      cat=cats[(base+tIdx)%cats.length];
-    }
-
-    console.log('[Scheduler] 起動 time='+t+' cat='+cat+' key='+key);
-    alog('[スケジューラー] ⏰ 自動実行: '+t+' / カテゴリ: '+(cat||'ランダム'));
-    toast('⏰ スケジューラー自動実行中: '+t+' / '+(cat||'ランダム'));
-
-    // runFullAuto完了後にcatIdxを+1して翌日のカテゴリに進める
-    // runFullAutoはコールバックがないのでsetTimeoutで遅延更新
-    runFullAuto(cat||null);
-
-    // 5分後にcatIdxをインクリメント（生成完了を想定）
-    setTimeout(function(){
-      K.catIdx=(K.catIdx+1)%Math.max(cats.length,1);
-      localStorage.setItem('rp_catidx',String(K.catIdx));
-      // catIdx更新完了
-      console.log('[Scheduler] catIdx→'+K.catIdx);
-    },300000);
-  });
-}
-
+function deleteArt(id){if(!confirm('削除しますか？'))return;K.arts=K.arts.filter(function(a){return a.id!==id;});saveArts();pushToGitHub(K.arts);renderArticles();}
+function updateClock(){var el=document.getElementById('clock');if(el)el.textContent=new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
 function openPreview(id){var art=K.arts.find(function(a){return a.id===id;});if(!art)return;K.prevId=id;document.getElementById('pm-cat').textContent=art.cat;document.getElementById('pm-title').textContent=art.title;document.getElementById('pm-date').textContent=art.date;document.getElementById('pm-status').innerHTML=scBadge(art.status);document.getElementById('pm-content').textContent=art.content||'（本文なし）';var ec=document.getElementById('pm-ec');if(art.svg){ec.innerHTML=art.svg;ec.style.display='block';}else{ec.style.display='none';}document.getElementById('preview-modal').classList.add('show');}
 function closePreview(){document.getElementById('preview-modal').classList.remove('show');}
 function openEditor(id){var art=K.arts.find(function(a){return a.id===id;});if(!art)return;K.edId=id;document.getElementById('ed-title').value=art.title||'';document.getElementById('ed-cat').value=art.cat||'Claude活用Tips';document.getElementById('ed-body').value=art.content||'';updateEdCount();document.getElementById('editor-modal').classList.add('show');}
@@ -967,7 +773,6 @@ function changeAdminPw(){
 
 function saveCfg(){localStorage.setItem('rp_cfg',JSON.stringify({author:document.getElementById('cfg-author').value,role:(document.getElementById('cfg-role')||{}).value||'',avatar:(document.getElementById('cfg-avatar')||{}).value||'',bio:document.getElementById('cfg-bio').value,announce:(document.getElementById('cfg-announce')||{}).value||'',blogUrl:document.getElementById('cfg-blog-url').value,noteUrl:document.getElementById('cfg-note-url').value,noteShopUrl:document.getElementById('cfg-note-shop-url').value,xUrl:document.getElementById('cfg-x-url').value,xUser:document.getElementById('cfg-x-user').value,xPass:document.getElementById('cfg-x-pass').value,xAuto:document.getElementById('cfg-x-auto').checked,ghToken:document.getElementById('cfg-gh-token').value,ghUser:document.getElementById('cfg-gh-user').value,ghRepo:document.getElementById('cfg-gh-repo').value}));toast('設定を保存しました');}
 function checkApiWarn(){var el=document.getElementById('art-api-warn');if(!el)return;if(!K.apiKey){el.textContent='APIキーが未設定です。設定ページで入力してください。';el.classList.add('show');}else{el.classList.remove('show');}}
-function updateClock(){document.getElementById('clock').textContent=new Date().toLocaleTimeString('ja-JP');if(K.sched)checkSchedule();}
 
 (function init(){
   if(K.apiKey)document.getElementById('api-key').value=K.apiKey;
@@ -1002,7 +807,6 @@ function updateClock(){document.getElementById('clock').textContent=new Date().t
     }, 1500);
   }
   document.getElementById('sch-save-btn').onclick=saveSchedule;
-  document.getElementById('q-clear-btn').onclick=function(){if(confirm('クリアしますか？')){K.queue=[];saveQueue();renderQueue();updateStats();}};
   document.getElementById('q-add-btn').onclick=function(){runFullAuto(null);};
   document.getElementById('art-autofill-btn').onclick=autoFill;
   document.getElementById('art-gen-btn').onclick=generateArticle;
@@ -1017,15 +821,15 @@ function updateClock(){document.getElementById('clock').textContent=new Date().t
   document.getElementById('preview-modal').onclick=function(e){if(e.target===this)closePreview();};
   document.getElementById('pm-copy-btn').onclick=function(){var a=K.arts.find(function(a){return a.id===K.prevId;});if(a){navigator.clipboard.writeText(a.content||'');toast('コピー');}};
   document.getElementById('pm-svg-btn').onclick=function(){var a=K.arts.find(function(a){return a.id===K.prevId;});if(!a||!a.svg){alert('アイキャッチがありません');return;}var b=new Blob([a.svg],{type:'image/svg+xml'});var u=URL.createObjectURL(b);var el=document.createElement('a');el.href=u;el.download=(a.title||'ec').slice(0,20).replace(/\s/g,'_')+'.svg';el.click();URL.revokeObjectURL(u);};
-  document.getElementById('pm-note-btn').onclick=function(){closePreview();go('note');setTimeout(function(){var s=document.getElementById('pw-art-sel');if(s&&K.prevId)s.value=K.prevId;},200);};
+  var _pmnb=document.getElementById('pm-note-btn');if(_pmnb)_pmnb.onclick=function(){closePreview();};
   document.getElementById('ed-close').onclick=closeEditor;
   document.getElementById('editor-modal').onclick=function(e){if(e.target===this)closeEditor();};
   document.getElementById('ed-save-btn').onclick=saveEditor;
   document.getElementById('ed-body').oninput=updateEdCount;
-  renderQueue();renderArticles();updateStats();checkApiWarn();
+  renderArticles();updateStats();checkApiWarn();
   setInterval(updateClock,1000);updateClock();
-  if(K.sched){document.getElementById('sch-time').value=K.sched.time||'08:00';if(K.sched.times&&K.sched.times[1])document.getElementById('sch-time2').value=K.sched.times[1];if(K.sched.times&&K.sched.times[2])document.getElementById('sch-time3').value=K.sched.times[2];document.getElementById('sch-repeat').value=K.sched.repeat||'daily';if(K.sched.autoPublish!==undefined)document.getElementById('sch-auto-pub').checked=K.sched.autoPublish;if(K.sched.hashtags)document.getElementById('sch-hashtags').value=K.sched.hashtags;document.querySelectorAll('#cat-rotation input').forEach(function(cb){cb.checked=K.sched.cats?K.sched.cats.indexOf(cb.value)>=0:true;});startScheduler();}
-  setTimeout(checkServer,800);
+
+
 }());
 </script>
 </body>

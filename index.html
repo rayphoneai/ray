@@ -611,6 +611,7 @@ function makeCard(art, size){
 
 // ---------- 記事を全セクションに描画 ----------
 function renderArts(arts){
+  window._loadedArts = arts;
   if(!arts||!arts.length){
     var fg=document.getElementById('featured-grid');
     if(fg) fg.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:60px;color:#aaa;">記事がありません</div>';
@@ -674,7 +675,6 @@ function renderArts(arts){
   var allLink=document.getElementById('all-arts-link');
   if(allLink) allLink.onclick=function(e){e.preventDefault();renderArts(arts);};
 
-  try{ localStorage.setItem('rp_arts', JSON.stringify(arts)); }catch(e){}
   // プロフィールカードの記事数を更新
   var statVals = document.querySelectorAll('.stat-val');
   var statArt = document.getElementById('stat-articles');
@@ -769,7 +769,7 @@ window.closeArtPage = closeArtPage;
 
 window.addEventListener('popstate',function(e){
   if(e.state&&e.state.artId){
-    var arts=[]; try{arts=JSON.parse(localStorage.getItem('rp_arts')||'[]');}catch(ex){}
+    var arts=window._loadedArts||[];
     var art=arts.find(function(a){return String(a.id)===String(e.state.artId);});
     if(art) _showPage(art); else closeArtPage();
   } else { closeArtPage(); }
@@ -781,19 +781,26 @@ var pathParts = location.pathname.split('/').filter(Boolean);
 var ghUser = host.replace('.github.io','');
 var ghRepo = pathParts[0]||'';
 
-function loadLocal(){
-  try{ renderArts(JSON.parse(localStorage.getItem('rp_arts')||'[]')); }catch(e){}
-}
-
-if(ghUser && ghRepo && host.includes('github.io')){
+function loadFromGitHub(){
+  if(!ghUser || !ghRepo){
+    renderArts([]);
+    return;
+  }
   var xhr = new XMLHttpRequest();
   xhr.open('GET','https://raw.githubusercontent.com/'+ghUser+'/'+ghRepo+'/main/articles.json?t='+Date.now(),true);
-  xhr.onload=function(){ try{ renderArts(JSON.parse(xhr.responseText)); }catch(e){ loadLocal(); } };
-  xhr.onerror=loadLocal;
+  xhr.onload=function(){
+    try{
+      var arts = JSON.parse(xhr.responseText);
+      renderArts(arts);
+    }catch(e){
+      renderArts([]);
+    }
+  };
+  xhr.onerror=function(){ renderArts([]); };
   xhr.send();
-} else {
-  loadLocal();
 }
+
+loadFromGitHub();
 
 })();
 </script>
