@@ -427,6 +427,24 @@ function pushToGitHub(arts){
 }
 
 function pullFromGitHub(callback){
+  // まず相対パスで直接取得（設定不要・確実）
+  var rel=new XMLHttpRequest();
+  rel.open('GET','./articles.json?t='+Date.now(),true);
+  rel.onload=function(){
+    if(rel.status===200){
+      try{
+        var arts=JSON.parse(rel.responseText);
+        K.arts=arts;renderArticles();updateStats();
+        toast('✓ 記事データ読み込み完了（'+arts.length+'件）');
+        if(callback)callback(true);return;
+      }catch(e){}
+    }
+    pullFromGitHubRaw(callback);
+  };
+  rel.onerror=function(){pullFromGitHubRaw(callback);};
+  rel.send();
+}
+function pullFromGitHubRaw(callback){
   var cfg=getCfg();
   var token=cfg.ghToken;var user=cfg.ghUser;var repo=cfg.ghRepo;
   if(!token||!user||!repo){if(callback)callback(false);return;}
@@ -797,17 +815,14 @@ function checkApiWarn(){var el=document.getElementById('art-api-warn');if(!el)re
   document.getElementById('dash-auto-btn').onclick=function(){runFullAuto(null);};
   document.getElementById('dash-sync-btn').onclick=function(){syncWithGitHub();};
 
-  // 起動時にGitHubから記事を自動同期
-  var cfg=getCfg();
-  if(cfg.ghToken&&cfg.ghUser&&cfg.ghRepo){
-    setTimeout(function(){
-      pullFromGitHub(function(ok){
-        if(ok) console.log('起動時GitHub同期完了');
-      });
-    }, 1500);
-  }
-  document.getElementById('sch-save-btn').onclick=saveSchedule;
-  document.getElementById('q-add-btn').onclick=function(){runFullAuto(null);};
+  // 起動時にarticles.jsonを自動読み込み（設定不要）
+  setTimeout(function(){
+    pullFromGitHub(function(ok){
+      if(!ok) console.log('GitHub読み込み失敗 - 設定を確認してください');
+    });
+  }, 500);
+  
+  
   document.getElementById('art-autofill-btn').onclick=autoFill;
   document.getElementById('art-gen-btn').onclick=generateArticle;
   document.getElementById('art-clear-btn').onclick=clearArticle;
