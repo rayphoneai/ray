@@ -78,6 +78,7 @@ def main():
         log("APIキーとGitHub設定をlocalStorageにセット中...")
         cfg_js = f"""() => {{
             localStorage.setItem('rp_key', '{GEMINI_API_KEY}');
+            localStorage.setItem('rp_admin_auth', '{ADMIN_PASSWORD}');
             var cfg = {{}};
             try {{ cfg = JSON.parse(localStorage.getItem('rp_cfg') || '{{}}'); }} catch(e) {{}}
             cfg.ghToken = '{GH_TOKEN}';
@@ -93,14 +94,12 @@ def main():
         page.reload(wait_until="networkidle", timeout=30000)
         time.sleep(2)
 
-        # ログイン（リロード後再確認）
-        pw_gate = page.query_selector("#pw-gate")
-        if pw_gate and pw_gate.is_visible():
-            page.fill("#gate-pw", ADMIN_PASSWORD)
-            page.keyboard.press("Enter")
-            time.sleep(1)
-
-        # ダッシュボード表示確認
+        # pw-gate を確実に非表示にする
+        page.evaluate("""() => {
+            var gate = document.getElementById('pw-gate');
+            if (gate) gate.style.display = 'none';
+        }""")
+        time.sleep(1)
         log("✓ 管理画面ロード完了")
 
         # ── STEP 3: 自動入力ボタンをクリック ─────────────────
