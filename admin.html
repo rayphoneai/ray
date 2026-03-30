@@ -358,6 +358,7 @@ function updateCurCatLabel(){
 }
 var CC={'Claude活用Tips':'#FFF0E3;#854F0B','士業向けAI活用':'#E1F5EE;#085041','商品開発xAI':'#EEEDFE;#3C3489','副業xAI':'#E6F1FB;#0C447C','プロンプト集解説':'#F1EFE8;#444441'};
 var PT={dash:'ダッシュボード',article:'記事生成',articles:'記事一覧',settings:'設定'};
+function renderQueue(){/* 削除済み - no-op */}
 
 function xhrCall(m,u,d,cb){var r=new XMLHttpRequest();r.open(m,u,true);r.setRequestHeader('Content-Type','application/json');r.timeout=180000;r.onload=function(){try{cb(null,JSON.parse(r.responseText));}catch(e){cb(e,null);}};r.onerror=function(){cb(new Error('接続エラー'),null);};r.ontimeout=function(){cb(new Error('タイムアウト'),null);};r.send(d?JSON.stringify(d):null);}
 
@@ -746,7 +747,7 @@ function closePreview(){document.getElementById('preview-modal').classList.remov
 function openEditor(id){var art=K.arts.find(function(a){return a.id===id;});if(!art)return;K.edId=id;document.getElementById('ed-title').value=art.title||'';document.getElementById('ed-cat').value=art.cat||'Claude活用Tips';document.getElementById('ed-body').value=art.content||'';updateEdCount();document.getElementById('editor-modal').classList.add('show');}
 function closeEditor(){document.getElementById('editor-modal').classList.remove('show');}
 function updateEdCount(){var v=document.getElementById('ed-body').value;document.getElementById('ed-cc').textContent=v.length.toLocaleString()+'字';}
-function saveEditor(){var art=K.arts.find(function(a){return a.id===K.edId;});if(!art)return;art.title=document.getElementById('ed-title').value.trim()||art.title;art.cat=document.getElementById('ed-cat').value;art.content=document.getElementById('ed-body').value;saveArts();pushToGitHub(K.arts);renderArticles();renderQueue();closeEditor();toast('記事を保存しGitHubに反映しました');}
+function saveEditor(){var art=K.arts.find(function(a){return a.id===K.edId;});if(!art)return;art.title=document.getElementById('ed-title').value.trim()||art.title;art.cat=document.getElementById('ed-cat').value;art.content=document.getElementById('ed-body').value;saveArts();pushToGitHub(K.arts);renderArticles();closeEditor();toast('記事を保存しGitHubに反映しました');}
 function saveKey(){var k=document.getElementById('api-key').value.trim();if(!k){alert('APIキーを入力してください');return;}K.apiKey=k;localStorage.setItem('rp_key',k);var el=document.getElementById('set-saved');el.classList.add('show');setTimeout(function(){el.classList.remove('show');},3000);checkApiWarn();}
 function changeAdminPw(){
   var np = document.getElementById('cfg-pw-new').value;
@@ -791,6 +792,7 @@ function saveCfg(){localStorage.setItem('rp_cfg',JSON.stringify({author:document
 function checkApiWarn(){var el=document.getElementById('art-api-warn');if(!el)return;if(!K.apiKey){el.textContent='APIキーが未設定です。設定ページで入力してください。';el.classList.add('show');}else{el.classList.remove('show');}}
 
 (function init(){
+  try{
   if(K.apiKey)document.getElementById('api-key').value=K.apiKey;
   var cfg=getCfg();
   if(cfg.author)document.getElementById('cfg-author').value=cfg.author;
@@ -841,8 +843,7 @@ function checkApiWarn(){var el=document.getElementById('art-api-warn');if(!el)re
   document.getElementById('ed-body').oninput=updateEdCount;
   renderArticles();updateStats();checkApiWarn();
   setInterval(updateClock,1000);updateClock();
-
-
+  } catch(e) { alert("管理画面エラー: " + e.message + "\nL:" + e.lineNumber); console.error("INIT ERROR:", e); }
 }());
 </script>
 </body>
