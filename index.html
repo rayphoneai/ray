@@ -479,7 +479,7 @@ function toggleMenu(){
     <!-- タイトル -->
     <h1 id="ap-title" style="font-size:26px;font-weight:900;line-height:1.4;color:#1A1A1A;margin:0 0 24px;"></h1>
     <!-- 本文 -->
-    <div id="ap-body" style="font-size:15px;line-height:1.9;color:#333;white-space:pre-wrap;"></div>
+    <div id="ap-body" style="font-size:15px;line-height:2.0;color:#333;"></div>
     <!-- CTA -->
     <div style="margin-top:48px;padding:32px;background:#FFF0E3;border-radius:12px;text-align:center;cursor:pointer;" onclick="var cfg={};try{cfg=JSON.parse(localStorage.getItem('rp_cfg')||'{}')}catch(e){}window.open(cfg.noteShopUrl||cfg.noteUrl||'#','_blank')">
       <div style="font-size:13px;color:#854F0B;font-weight:700;margin-bottom:8px;">もっと深く学びたい方へ</div>
@@ -495,6 +495,7 @@ function toggleMenu(){
 
 
 <script>
+// ---------- 10種アイキ
 // ---------- 10種アイキャッチSVG生成 ----------
 function makeEyecatch(art){
   var title = (art.title||'').replace(/【深掘り】/,'').replace(/【.*?】/g,'').trim();
@@ -747,7 +748,19 @@ function showPage(art) {
   el = document.getElementById('ap-cat');   if(el) el.textContent = art.cat || '';
   el = document.getElementById('ap-title'); if(el) el.textContent = art.title || '';
   el = document.getElementById('ap-date');  if(el) el.textContent = art.date || '';
-  el = document.getElementById('ap-body');  if(el) el.textContent = art.content || '';
+  el = document.getElementById('ap-body');
+  if(el) {
+    var body = (art.content || '')
+      // XSS対策
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      // ■見出しをスタイル付きに変換
+      .replace(/(^|\n)(■[^\n]+)/g, '$1<span style="display:block;font-size:18px;font-weight:700;margin:28px 0 10px;color:#1A1A1A;border-left:4px solid #FF6B00;padding-left:10px;">$2</span>')
+      // 空行を段落区切りに
+      .replace(/\n\n/g, '\n<br>\n')
+      // 残りの改行をbrに
+      .replace(/\n/g, '<br>');
+    el.innerHTML = body;
+  }
   var nl = document.getElementById('ap-note-link');
   if (nl) nl.href = _cfg.noteShopUrl || _cfg.noteUrl || 'https://note.com/rayphone';
   var noteDiv = document.querySelector('[onclick*="noteShopUrl"]');
@@ -844,9 +857,6 @@ window.addEventListener('popstate', function(e) {
   }
   fetchArts();
 })();
-
 </script>
 </body>
 </html>
-
-
