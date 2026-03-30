@@ -720,7 +720,13 @@ def post_to_note(title: str, body: str, svg_code: str, eyecatch_png: bytes = b""
                 import tempfile as _tf, subprocess as _sp
                 png = None
 
-                if svg_code and "<svg" in svg_code:
+                if eyecatch_png:
+                    _ptmp = _tf.NamedTemporaryFile(suffix=".png", delete=False)
+                    _ptmp.write(eyecatch_png)
+                    _ptmp.close()
+                    png = _ptmp.name
+                    log("note: Gemini生成PNGを使用")
+                elif svg_code and "<svg" in svg_code:
                     # SVG→PNG変換（subprocess経由）
                     tmp = _tf.NamedTemporaryFile(suffix=".svg", delete=False, mode="w", encoding="utf-8")
                     tmp.write(svg_code)
@@ -975,14 +981,44 @@ Rayphoneの一人称・体験談必須。""", 4500))
     svg_code    = None
     eyecatch_png: bytes = b""
 
-    # Claude API でSVGアイキャッチ生成（管理画面と同方式・文字化けなし）
-    svg_code = generate_eyecatch_claude(meta['title'], cat)
-    if not svg_code:
+    if EYECATCH_MODEL == "svg":
         svg_code = generate_eyecatch_svg(meta['title'], cat, art_id)
-        log(f"✓ アイキャッチSVG生成完了(フォールバック)")
-    else:
         log(f"✓ アイキャッチSVG生成完了({len(svg_code)}字)")
-    eyecatch_png = b""  # noteアップロード用（SVG方式では不使用）
+    else:
+        png_bytes = generate_eyecatch_image(meta['title'], cat)
+        if png_bytes:
+            eyecatch_png = png_bytes
+            try:
+                from PIL import Image as _Img
+                import io as _io
+                img_orig = _Img.open(_io.BytesIO(png_bytes))
+                target_w, target_h = 1280, 670
+                orig_w, orig_h = img_orig.size
+                target_ratio = target_w / target_h
+                orig_ratio = orig_w / orig_h
+                if orig_ratio > target_ratio:
+                    new_w = int(orig_h * target_ratio)
+                    left = (orig_w - new_w) // 2
+                    img_crop = img_orig.crop((left, 0, left + new_w, orig_h))
+                else:
+                    new_h = int(orig_w / target_ratio)
+                    top = (orig_h - new_h) // 2
+                    img_crop = img_orig.crop((0, top, orig_w, top + new_h))
+                img_resized = img_crop.resize((target_w, target_h), _Img.LANCZOS)
+                buf = _io.BytesIO()
+                img_resized.save(buf, format='PNG')
+                resized_bytes = buf.getvalue()
+                eyecatch_png = resized_bytes
+                svg_code = "data:image/png;base64," + base64.b64encode(resized_bytes).decode()
+                log(f"✓ アイキャッチ画像生成完了({len(resized_bytes)//1024}KB / 1280×670)")
+            except Exception:
+                eyecatch_png = png_bytes
+                svg_code = "data:image/png;base64," + base64.b64encode(png_bytes).decode()
+                log(f"✓ アイキャッチ画像生成完了({len(png_bytes)//1024}KB)")
+        else:
+            log("アイキャッチ画像生成失敗 → SVGにフォールバック")
+            svg_code = generate_eyecatch_svg(meta['title'], cat, art_id)
+            log(f"✓ アイキャッチSVG生成完了({len(svg_code)}字)")
     # STEP 4: GitHub push
     log("[4/5] GitHubにarticles.jsonをプッシュ中...")
     art_url = f"{BLOG_URL}/?id={art_id}"
