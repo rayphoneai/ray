@@ -515,7 +515,26 @@ function makeEyecatch(art){
 
     // 1: 白ベース × 右側ハーフブラック × オレンジライン
     function(){
-      return '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><rect x="700" y="0" width="580" height="670" fill="#1A1A1A"/><rect x="0" y="0" width="1280" height="4" fill="#FF6B00"/><rect x="700" y="0" width="4" height="670" fill="#FF6B00"/><circle cx="990" cy="335" r="180" fill="rgba(255,107,0,.08)"/><circle cx="990" cy="335" r="100" fill="rgba(255,107,0,.12)"/><text x="1230" y="130" font-size="10" fill="rgba(255,107,0,.6)" text-anchor="end" letter-spacing="4" font-family="Arial,sans-serif">'+cat.toUpperCase()+'</text><text x="750" y="310" font-size="56" font-weight="900" fill="#fff" font-family="Arial,sans-serif">'+short.slice(0,9)+'</text>'+(short.length>9?'<text x="750" y="375" font-size="56" font-weight="900" fill="#fff" font-family="Arial,sans-serif">'+short.slice(9)+'</text>':'')+'<text x="50" y="140" font-size="10" fill="#FF6B00" letter-spacing="5" font-weight="700" font-family="Arial,sans-serif">'+cat.toUpperCase()+'</text><text x="50" y="270" font-size="56" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+(title.slice(0,9))+'</text><text x="50" y="340" font-size="56" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+(title.length>9?title.slice(9,18):'')+'</text><rect x="50" y="420" width="80" height="3" fill="#FF6B00"/><text x="50" y="470" font-size="12" fill="#888" letter-spacing="1" font-family="Arial,sans-serif">by Rayphone</text></svg>';
+      return '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
+        +'<defs>'
+        +'<clipPath id="c1r"><rect x="700" y="0" width="580" height="670"/></clipPath>'
+        +'<clipPath id="c1l"><rect x="0" y="0" width="700" height="670"/></clipPath>'
+        +'</defs>'
+        +'<rect width="1280" height="670" fill="#fff"/>'
+        +'<rect x="700" y="0" width="580" height="670" fill="#1A1A1A"/>'
+        +'<rect x="0" y="0" width="1280" height="4" fill="#FF6B00"/>'
+        +'<rect x="700" y="0" width="4" height="670" fill="#FF6B00"/>'
+        +'<circle cx="990" cy="335" r="180" fill="rgba(255,107,0,.08)"/>'
+        +'<circle cx="990" cy="335" r="100" fill="rgba(255,107,0,.12)"/>'
+        +'<text x="1230" y="130" font-size="10" fill="rgba(255,107,0,.6)" text-anchor="end" letter-spacing="4" font-family="Arial,sans-serif">'+cat.toUpperCase()+'</text>'
+        +'<text x="50" y="140" font-size="10" fill="#FF6B00" letter-spacing="5" font-weight="700" font-family="Arial,sans-serif">'+cat.toUpperCase()+'</text>'
+        +'<text x="50" y="270" font-size="56" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short+'</text>'
+        +'<text x="50" y="270" font-size="56" font-weight="900" fill="#fff" font-family="Arial,sans-serif" clip-path="url(#c1r)">'+short+'</text>'
+        +(short2?'<text x="50" y="340" font-size="56" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short2+'</text>'
+               +'<text x="50" y="340" font-size="56" font-weight="900" fill="#fff" font-family="Arial,sans-serif" clip-path="url(#c1r)">'+short2+'</text>':'')
+        +'<rect x="50" y="420" width="80" height="3" fill="#FF6B00"/>'
+        +'<text x="50" y="470" font-size="12" fill="#888" letter-spacing="1" font-family="Arial,sans-serif">by Rayphone</text>'
+        +'</svg>';
     },
 
     // 2: マガジン白 × 大ナンバー × 黒タイポ
@@ -526,7 +545,24 @@ function makeEyecatch(art){
 
     // 3: 白ベース × 斜め黒帯 × オレンジポイント
     function(){
-      return '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><polygon points="800,0 1280,0 1280,670 480,670" fill="#1A1A1A"/><rect x="0" y="0" width="1280" height="4" fill="#FF6B00"/><circle cx="1050" cy="280" r="160" fill="rgba(255,107,0,.08)"/><circle cx="1050" cy="280" r="60" fill="rgba(255,107,0,.15)"/><text x="60" y="140" font-size="10" fill="#FF6B00" letter-spacing="5" font-weight="700" font-family="Arial,sans-serif">'+cat.toUpperCase()+'</text><rect x="60" y="155" width="40" height="2" fill="#FF6B00"/><text x="60" y="280" font-size="62" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short+'</text>'+(short2?'<text x="60" y="352" font-size="62" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short2+'</text>':'')+'<text x="60" y="460" font-size="12" fill="#aaa" letter-spacing="2" font-family="Arial,sans-serif">RAYPHONEAI.COM</text><text x="1050" y="540" font-size="11" fill="rgba(255,107,0,.6)" text-anchor="middle" letter-spacing="3" font-family="Arial,sans-serif">RAYPHONE</text></svg>';
+      return '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
+        +'<defs>'
+        +'<clipPath id="c3d"><polygon points="800,0 1280,0 1280,670 480,670"/></clipPath>'
+        +'</defs>'
+        +'<rect width="1280" height="670" fill="#fff"/>'
+        +'<polygon points="800,0 1280,0 1280,670 480,670" fill="#1A1A1A"/>'
+        +'<rect x="0" y="0" width="1280" height="4" fill="#FF6B00"/>'
+        +'<circle cx="1050" cy="280" r="160" fill="rgba(255,107,0,.08)"/>'
+        +'<circle cx="1050" cy="280" r="60" fill="rgba(255,107,0,.15)"/>'
+        +'<text x="60" y="140" font-size="10" fill="#FF6B00" letter-spacing="5" font-weight="700" font-family="Arial,sans-serif">'+cat.toUpperCase()+'</text>'
+        +'<rect x="60" y="155" width="40" height="2" fill="#FF6B00"/>'
+        +'<text x="60" y="280" font-size="62" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short+'</text>'
+        +'<text x="60" y="280" font-size="62" font-weight="900" fill="#fff" font-family="Arial,sans-serif" clip-path="url(#c3d)">'+short+'</text>'
+        +(short2?'<text x="60" y="352" font-size="62" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short2+'</text>'
+               +'<text x="60" y="352" font-size="62" font-weight="900" fill="#fff" font-family="Arial,sans-serif" clip-path="url(#c3d)">'+short2+'</text>':'')
+        +'<text x="60" y="460" font-size="12" fill="#aaa" letter-spacing="2" font-family="Arial,sans-serif">RAYPHONEAI.COM</text>'
+        +'<text x="1050" y="540" font-size="11" fill="rgba(255,107,0,.6)" text-anchor="middle" letter-spacing="3" font-family="Arial,sans-serif">RAYPHONE</text>'
+        +'</svg>';
     },
 
     // 4: ミニマル白 × 細いグリッド × オレンジ1点
@@ -560,7 +596,24 @@ function makeEyecatch(art){
 
     // 9: 白ベース × 右側三角ブラック × オレンジ細線
     function(){
-      return '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><polygon points="700,0 1280,0 1280,670" fill="#1A1A1A"/><line x1="700" y1="0" x2="1280" y2="670" stroke="#FF6B00" stroke-width="3"/><rect x="0" y="0" width="1280" height="4" fill="#FF6B00"/><circle cx="1050" cy="250" r="130" fill="none" stroke="rgba(255,107,0,.15)" stroke-width="1"/><circle cx="1050" cy="250" r="60" fill="rgba(255,107,0,.07)"/><text x="60" y="140" font-size="10" fill="#FF6B00" letter-spacing="5" font-weight="700" font-family="Arial,sans-serif">'+cat.toUpperCase()+'</text><rect x="60" y="156" width="40" height="2" fill="#FF6B00"/><text x="60" y="290" font-size="64" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short+'</text>'+(short2?'<text x="60" y="364" font-size="64" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short2+'</text>':'')+'<text x="60" y="480" font-size="12" fill="#bbb" letter-spacing="2" font-family="Arial,sans-serif">RAYPHONEAI.COM</text></svg>';
+      return '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg">'
+        +'<defs>'
+        +'<clipPath id="c9t"><polygon points="700,0 1280,0 1280,670"/></clipPath>'
+        +'</defs>'
+        +'<rect width="1280" height="670" fill="#fff"/>'
+        +'<polygon points="700,0 1280,0 1280,670" fill="#1A1A1A"/>'
+        +'<line x1="700" y1="0" x2="1280" y2="670" stroke="#FF6B00" stroke-width="3"/>'
+        +'<rect x="0" y="0" width="1280" height="4" fill="#FF6B00"/>'
+        +'<circle cx="1050" cy="250" r="130" fill="none" stroke="rgba(255,107,0,.15)" stroke-width="1"/>'
+        +'<circle cx="1050" cy="250" r="60" fill="rgba(255,107,0,.07)"/>'
+        +'<text x="60" y="140" font-size="10" fill="#FF6B00" letter-spacing="5" font-weight="700" font-family="Arial,sans-serif">'+cat.toUpperCase()+'</text>'
+        +'<rect x="60" y="156" width="40" height="2" fill="#FF6B00"/>'
+        +'<text x="60" y="290" font-size="64" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short+'</text>'
+        +'<text x="60" y="290" font-size="64" font-weight="900" fill="#fff" font-family="Arial,sans-serif" clip-path="url(#c9t)">'+short+'</text>'
+        +(short2?'<text x="60" y="364" font-size="64" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short2+'</text>'
+               +'<text x="60" y="364" font-size="64" font-weight="900" fill="#fff" font-family="Arial,sans-serif" clip-path="url(#c9t)">'+short2+'</text>':'')
+        +'<text x="60" y="480" font-size="12" fill="#bbb" letter-spacing="2" font-family="Arial,sans-serif">RAYPHONEAI.COM</text>'
+        +'</svg>';
     },
   ];
   return svgs[idx]();
