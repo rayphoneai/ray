@@ -684,7 +684,6 @@ function genEC(title,cat,done){
 
 function runFullAuto(targetCat){
   if(!K.apiKey){go('settings');return;}
-return;}
   var cats=getSelCats();if(!cats.length){alert('カテゴリを選択してください');return;}
   var cat=targetCat||cats[K.catIdx%cats.length];
   K.catIdx=(K.catIdx+1)%cats.length;localStorage.setItem('rp_catidx',K.catIdx.toString());updateCurCatLabel();
@@ -740,6 +739,7 @@ return;}
     });
   });
 
+}
 function deleteArt(id){if(!confirm('削除しますか？'))return;K.arts=K.arts.filter(function(a){return a.id!==id;});saveArts();pushToGitHub(K.arts);renderArticles();}
 function updateClock(){var el=document.getElementById('clock');if(el)el.textContent=new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
 function openPreview(id){var art=K.arts.find(function(a){return a.id===id;});if(!art)return;K.prevId=id;document.getElementById('pm-cat').textContent=art.cat;document.getElementById('pm-title').textContent=art.title;document.getElementById('pm-date').textContent=art.date;document.getElementById('pm-status').innerHTML=scBadge(art.status);document.getElementById('pm-content').textContent=art.content||'（本文なし）';var ec=document.getElementById('pm-ec');if(art.svg){ec.innerHTML=art.svg;ec.style.display='block';}else{ec.style.display='none';}document.getElementById('preview-modal').classList.add('show');}
@@ -792,7 +792,6 @@ function saveCfg(){localStorage.setItem('rp_cfg',JSON.stringify({author:document
 function checkApiWarn(){var el=document.getElementById('art-api-warn');if(!el)return;if(!K.apiKey){el.textContent='APIキーが未設定です。設定ページで入力してください。';el.classList.add('show');}else{el.classList.remove('show');}}
 
 (function init(){
-  try{
   if(K.apiKey)document.getElementById('api-key').value=K.apiKey;
   var cfg=getCfg();
   if(cfg.author)document.getElementById('cfg-author').value=cfg.author;
@@ -843,7 +842,6 @@ function checkApiWarn(){var el=document.getElementById('art-api-warn');if(!el)re
   document.getElementById('ed-body').oninput=updateEdCount;
   renderArticles();updateStats();checkApiWarn();
   setInterval(updateClock,1000);updateClock();
-  } catch(e) { alert("管理画面エラー: " + e.message + "\nL:" + e.lineNumber); console.error("INIT ERROR:", e); }
 }());
 </script>
 </body>
