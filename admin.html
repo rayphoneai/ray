@@ -510,7 +510,7 @@ function generateArticle(){
   document.getElementById('art-log').textContent='';document.getElementById('art-log').classList.add('show');
   document.getElementById('art-lt').textContent='記事を執筆中...';
   document.getElementById('art-out').classList.remove('show');
-  var p='あなたはRayphone（プロンプト設計士・商品開発15年・Claude副業月収15万達成）のブログ「RayPhoneAI」専属ライターです。\n\n【タイトル】'+title+'\n【カテゴリ】'+cat+'\n【ターゲット】'+(tgt||'AI初心者のビジネスパーソン')+'\n【文字数】約'+len+'字\n【SEO】'+(kw||'Claude 活用 業務効率化')+'\n【方向性】'+(memo||'実践的な内容で')+'\n\n【絶対禁止】# ## * ** などのマークダウン記号は一切使用禁止。見出しは■のみ使用（【】禁止）。箇条書きは「・」。URLはそのまま出力。\n\n■構成\nタイトル行\n■はじめに（200字）\n■見出し1〜4（各400〜600字・Claudeのプロンプト例を必ず1つ以上含める）\n\n▼ noteで詳しく解説しています\n'+noteUrl+'\n\n■まとめ（上記URLを本文内にそのまま記載）\n\nRayphoneの一人称・体験談必須。# * 【】絶対禁止。合計'+len+'字前後。';
+  var p='あなたはRayphone（プロンプト設計士・商品開発15年・Claude副業月収15万達成）のブログ「RayPhoneAI」専属ライターです。\n\nタイトル：'+title+'\nカテゴリ：'+cat+'\nターゲット：'+(tgt||'AI初心者のビジネスパーソン')+'\n文字数：約'+len+'字\nSEO：'+(kw||'Claude 活用 業務効率化')+'\n方向性：'+(memo||'実践的な内容で')+'\n\n【絶対禁止】# ## * ** 【】などのマークダウン・記号見出し一切禁止。見出しは■のみ。箇条書きは「・」。URLはそのまま出力。\n\n■構成（スマホ最適化・改行多め）\nタイトル行（1行）\n\nはじめに（150字・1行ごとに改行）\n\n■（見出し）\n（本文400〜500字・2〜3文ごとに空行を入れる・Claudeプロンプト例を必ず1つ以上）\n（上記を3〜4セクション繰り返す）\n\n▼ noteで詳しく解説しています\n'+noteUrl+'\n\n■まとめ（200字・上記URLを本文中にそのまま記載）\n\n【必須】Rayphoneの一人称・体験談。各段落の後に必ず空行（\\n\\n）を入れる。【】禁止・見出し番号（1〜5等）禁止。合計'+len+'字前後。';
   claudeCall(p,4000,function(err,text){
     document.getElementById('art-gen-btn').disabled=false;
     document.getElementById('art-gp').classList.remove('show');
@@ -702,22 +702,64 @@ function genEC(title,cat,done){
   var styles=['split','center','namecard','diagonal','bold','minimal','frame'];
   var s=styles[Math.floor(Math.random()*styles.length)];
   var sd={
-    split:'ノワール×幾何学：黒背景・オレンジの細いライングリッド・左側にタイトル小文字・右に大きな円の幾何学装飾',
-    center:'サイバーパンク：極暗背景・オレンジのネオン細枠・中央にタイトル・背景にドットグリッド',
-    namecard:'マガジン：白背景・極太黒タイポグラフィ・オレンジのアクセントライン・レタースペーシング広め',
-    diagonal:'テック：黒背景・斜め分割でオレンジゾーン・細いグリッドライン・ミニマルテキスト',
-    bold:'シネマティック：暗背景・上下黒帯・中央にタイトル・オレンジのアクセントライン',
-    minimal:'ブループリント：暗背景・同心円や図形の設計図風装飾・オレンジ細線・小さいテキスト',
-    frame:'アーキテクチャ：黒背景・右側に幾何学構造物・左にミニマルテキスト・オレンジポイント'
+    split:'左側にタイトルテキスト・右に大きな円',
+    center:'中央にタイトル・背景にドットグリッド',
+    namecard:'白背景・極太黒タイポグラフィ・オレンジライン',
+    diagonal:'黒背景・斜め分割オレンジゾーン',
+    bold:'暗背景・上下黒帯・中央タイトル',
+    minimal:'暗背景・同心円装飾・オレンジ細線',
+    frame:'黒背景・右側に幾何学構造物'
   }[s];
-  var ecPrompt='RayPhoneAIブログのアイキャッチSVG（1280×670）を生成。\n\nタイトル：'+title+'\nカテゴリ：'+cat+'\nスタイル：クール・モダン・スタイリッシュ\nレイアウト参考：'+sd+'\n\nviewBox="0 0 1280 670" width="1280" height="670"\nカラー：白#fff（メイン背景）・黒#1A1A1A（アクセント）・オレンジ#FF6B00（ポイント）・rgba透明度\nfont-family="Arial,sans-serif"\n\n【必須デザイン方針】\n・背景は白（#fff または #f8f8f8）を基調とする\n・黒（#1A1A1A）を帯・タイポグラフィ・図形アクセントに使う\n・オレンジ（#FF6B00）は細線・バッジ・ポイントとして面積小さく使う\n・タイトルは18文字以内・font-size 52〜66px・font-weight="900"・fill="#1A1A1A"\n・グラフィック要素（幾何学・細線・ドット・円など）で余白を豊かに使う\n・テキストは小さめ（カテゴリ：font-size 10〜12px・letter-spacing 4〜6）\n・"RayPhoneAI"の文字を小さく品よく入れる\n\n<svg...></svg>のみ出力。前置き一切不要。';
-  claudeCall(ecPrompt,2000,function(err,text){
+  var short=title.slice(0,16);
+  // シンプルで小さいSVGを要求（要素は最小限・テキストのみ・3000字以内）
+  var ecPrompt='アイキャッチSVGを生成。viewBox="0 0 1280 670" width="1280" height="670"\n'
+    +'タイトル：'+short+'\nカテゴリ：'+cat+'\nスタイル：'+sd+'\n'
+    +'カラー：背景#fff・テキスト#1A1A1A・アクセント#FF6B00\n'
+    +'font-family="Arial,sans-serif"\n'
+    +'【厳守】要素数は10個以内。テキストはtspan不使用。コメント行禁止。\n'
+    +'タイトルtext: font-size="56" font-weight="900" fill="#1A1A1A"\n'
+    +'カテゴリtext: font-size="18" fill="#FF6B00"\n'
+    +'"RayPhoneAI"text: font-size="14" fill="#999"\n'
+    +'<svg>〜</svg>のみ出力。前置き禁止。';
+  claudeCall(ecPrompt,1200,function(err,text){
     try{
-      if(!err&&text){var m=text.match(/<svg[\s\S]*<\/svg>/i);K.curSVG=m?m[0]:text;}
+      var svg='';
+      if(!err&&text){
+        var m=text.match(/<svg[\s\S]*<\/svg>/i);
+        svg=m?m[0]:'';
+        // 圧縮：コメント・余分な空白を除去
+        svg=svg.replace(/<!--[\s\S]*?-->/g,'').replace(/\s+/g,' ').replace(/> </g,'><').trim();
+        // 上限チェック：4000字超えたらフォールバック
+        if(svg.length>4000){
+          alog('SVG大きすぎ('+svg.length+'字) → フォールバック');
+          svg='';
+        }
+      }
+      if(svg){
+        K.curSVG=svg;
+      } else {
+        // フォールバック：シンプルな静的SVG
+        K.curSVG=_fallbackSVG(short,cat);
+      }
       showECPreview();
-    }catch(e){}
-    try{if(done)done();}catch(e){console.error('genEC done error:',e);}
+    }catch(e){
+      K.curSVG=_fallbackSVG(short,cat);
+      showECPreview();
+    }
+    try{if(done)done();}catch(e){}
   });
+}
+
+function _fallbackSVG(title,cat){
+  var t=title.slice(0,16);
+  return '<svg viewBox="0 0 1280 670" width="1280" height="670" xmlns="http://www.w3.org/2000/svg">'
+    +'<rect width="1280" height="670" fill="#fff"/>'
+    +'<rect x="0" y="0" width="8" height="670" fill="#FF6B00"/>'
+    +'<rect x="0" y="580" width="1280" height="2" fill="#1A1A1A"/>'
+    +'<text x="80" y="300" font-family="Arial,sans-serif" font-size="62" font-weight="900" fill="#1A1A1A">'+t+'</text>'
+    +'<text x="80" y="360" font-family="Arial,sans-serif" font-size="20" fill="#FF6B00">'+cat+'</text>'
+    +'<text x="80" y="620" font-family="Arial,sans-serif" font-size="14" fill="#999">RayPhoneAI</text>'
+    +'</svg>';
 }
 
 function runFullAuto(targetCat){
