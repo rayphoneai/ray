@@ -96,7 +96,8 @@ input:checked+.sw2-slider::before{transform:translateX(16px);}
 .modal-body{padding:18px 20px;}
 .alert{border-radius:6px;padding:9px 13px;font-size:12px;margin-bottom:10px;display:none;}
 .alert.show{display:block;}
-.aw{background:var(--orl);color:var(--or);border:1px solid rgba(255,107,0,.25);}
+.alg{background:#E8F8EE;color:#27ae60;border:1px solid #c3e6cb;display:block!important;}
+.aw{background:var(--orl);color:var(--or);border:1px solid rgba(255,107,0,.25);display:block!important;}
 .as{background:#E8F8EE;color:#27ae60;border:1px solid #c3e6cb;}
 .ae{background:#FCEBEB;color:#c0392b;border:1px solid #f5c6cb;}
 .tl-item{display:flex;gap:12px;padding:10px 12px;border-radius:8px;border:1px solid var(--bd);background:#fff;margin-bottom:8px;}
@@ -808,8 +809,7 @@ function checkApiWarn(){var el=document.getElementById('art-api-warn');if(!el)re
   if(cfg.ghToken)document.getElementById('cfg-gh-token').value=cfg.ghToken;
   if(cfg.ghUser)document.getElementById('cfg-gh-user').value=cfg.ghUser;
   if(cfg.ghRepo)document.getElementById('cfg-gh-repo').value=cfg.ghRepo;
-  // スケジューラーは削除済み
-  document.getElementById('dash-auto-btn').onclick=function(){runFullAuto(null);};
+  var _dashautobt=document.getElementById('dash-auto-btn');if(_dashautobt){_dashautobt.onclick=function(){runFullAuto(null);}};
   var _dlb=document.getElementById('dash-list-btn');if(_dlb)_dlb.onclick=function(){go('dash');};
 
   // 起動時にarticles.jsonを自動読み込み（設定不要）
@@ -820,24 +820,24 @@ function checkApiWarn(){var el=document.getElementById('art-api-warn');if(!el)re
   }, 500);
   
   
-  document.getElementById('art-autofill-btn').onclick=autoFill;
-  document.getElementById('art-gen-btn').onclick=generateArticle;
-  document.getElementById('art-clear-btn').onclick=clearArticle;
-  document.getElementById('art-copy-btn').onclick=function(){navigator.clipboard.writeText(document.getElementById('art-content').textContent);toast('コピーしました');};
-  document.getElementById('art-save-btn').onclick=saveAsDraft;
+  var _artautofil=document.getElementById('art-autofill-btn');if(_artautofil){_artautofil.onclick=autoFill;}
+  var _artgenbtn=document.getElementById('art-gen-btn');if(_artgenbtn){_artgenbtn.onclick=generateArticle;}
+  var _artclearbt=document.getElementById('art-clear-btn');if(_artclearbt){_artclearbt.onclick=clearArticle;}
+  var _artcopybtn=document.getElementById('art-copy-btn');if(_artcopybtn){_artcopybtn.onclick=function(){navigator.clipboard.writeText(document.getElementById('art-content').textContent);toast('コピーしました');};}
+  var _artsavebtn=document.getElementById('art-save-btn');if(_artsavebtn){_artsavebtn.onclick=saveAsDraft;}
   var _apb=document.getElementById('art-publish-btn'); if(_apb) _apb.onclick=publishNow;
   var _atnb=document.getElementById('art-to-note-btn'); if(_atnb) _atnb.onclick=saveAndPostNote;
-  document.getElementById('set-save-btn').onclick=saveKey;
-  document.getElementById('cfg-save-btn').onclick=saveCfg;
-  document.getElementById('pm-close').onclick=closePreview;
-  document.getElementById('preview-modal').onclick=function(e){if(e.target===this)closePreview();};
-  document.getElementById('pm-copy-btn').onclick=function(){var a=K.arts.find(function(a){return a.id===K.prevId;});if(a){navigator.clipboard.writeText(a.content||'');toast('コピー');}};
-  document.getElementById('pm-svg-btn').onclick=function(){var a=K.arts.find(function(a){return a.id===K.prevId;});if(!a||!a.svg){alert('アイキャッチがありません');return;}var b=new Blob([a.svg],{type:'image/svg+xml'});var u=URL.createObjectURL(b);var el=document.createElement('a');el.href=u;el.download=(a.title||'ec').slice(0,20).replace(/\s/g,'_')+'.svg';el.click();URL.revokeObjectURL(u);};
+  var _setsavebtn=document.getElementById('set-save-btn');if(_setsavebtn){_setsavebtn.onclick=saveKey;}
+  var _cfgsavebtn=document.getElementById('cfg-save-btn');if(_cfgsavebtn){_cfgsavebtn.onclick=saveCfg;}
+  var _pmclose=document.getElementById('pm-close');if(_pmclose){_pmclose.onclick=closePreview;}
+  var _previewmod=document.getElementById('preview-modal');if(_previewmod){_previewmod.onclick=function(e){if(e.target===this)closePreview();}};
+  var _pmcopybtn=document.getElementById('pm-copy-btn');if(_pmcopybtn){_pmcopybtn.onclick=function(){var a=K.arts.find(function(x){return x.id===K.prevId;});if(a){navigator.clipboard.writeText(a.content||'');toast('コピー');}};}
+  var _pmsvgbtn=document.getElementById('pm-svg-btn');if(_pmsvgbtn){_pmsvgbtn.onclick=function(){var a=K.arts.find(function(x){return x.id===K.prevId;});if(!a||!a.svg){alert('アイキャッチがありません');return;}var b=new Blob([a.svg],{type:'image/svg+xml'});var u=URL.createObjectURL(b);var el=document.createElement('a');el.href=u;el.download=(a.title||'ec').slice(0,20).replace(/\s/g,'_')+'.svg';el.click();URL.revokeObjectURL(u);}; }
   var _pmnb=document.getElementById('pm-note-btn');if(_pmnb)_pmnb.onclick=function(){closePreview();};
-  document.getElementById('ed-close').onclick=closeEditor;
-  document.getElementById('editor-modal').onclick=function(e){if(e.target===this)closeEditor();};
-  document.getElementById('ed-save-btn').onclick=saveEditor;
-  document.getElementById('ed-body').oninput=updateEdCount;
+  var _edclose=document.getElementById('ed-close');if(_edclose){_edclose.onclick=closeEditor;}
+  var _editormoda=document.getElementById('editor-modal');if(_editormoda){_editormoda.onclick=function(e){if(e.target===this)closeEditor();}};
+  var _edsavebtn=document.getElementById('ed-save-btn');if(_edsavebtn){_edsavebtn.onclick=saveEditor;}
+  var _edbody=document.getElementById('ed-body');if(_edbody){_edbody.oninput=updateEdCount;}
   renderArticles();updateStats();checkApiWarn();
   setInterval(updateClock,1000);updateClock();
 }());
