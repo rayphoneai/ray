@@ -510,7 +510,7 @@ function generateArticle(){
   document.getElementById('art-log').textContent='';document.getElementById('art-log').classList.add('show');
   document.getElementById('art-lt').textContent='記事を執筆中...';
   document.getElementById('art-out').classList.remove('show');
-  var p='あなたはRayphone（プロンプト設計士・商品開発15年・Claude副業月収15万達成）のブログ「RayPhoneAI」専属ライターです。\n\n【タイトル】'+title+'\n【カテゴリ】'+cat+'\n【ターゲット】'+(tgt||'AI初心者のビジネスパーソン')+'\n【文字数】約'+len+'字\n【SEO】'+(kw||'Claude 活用 業務効率化')+'\n【方向性】'+(memo||'実践的な内容で')+'\n\n【絶対禁止】# ## * ** などのマークダウン記号は一切使用禁止。見出しは■のみ使用（【】禁止）。箇条書きは「・」。URLはそのまま出力。\n\n【構成】\nタイトル行\n【はじめに】（200字）\n【見出し1〜4】（各400〜600字・Claudeのプロンプト例を必ず1つ以上含める）\n【まとめ】（CTAでnote: '+noteUrl+'に誘導）\n\nRayphoneの一人称・体験談必須。# * 絶対禁止。合計'+len+'字前後。';
+  var p='あなたはRayphone（プロンプト設計士・商品開発15年・Claude副業月収15万達成）のブログ「RayPhoneAI」専属ライターです。\n\n【タイトル】'+title+'\n【カテゴリ】'+cat+'\n【ターゲット】'+(tgt||'AI初心者のビジネスパーソン')+'\n【文字数】約'+len+'字\n【SEO】'+(kw||'Claude 活用 業務効率化')+'\n【方向性】'+(memo||'実践的な内容で')+'\n\n【絶対禁止】# ## * ** などのマークダウン記号は一切使用禁止。見出しは■のみ使用（【】禁止）。箇条書きは「・」。URLはそのまま出力。\n\n■構成\nタイトル行\n■はじめに（200字）\n■見出し1〜4（各400〜600字・Claudeのプロンプト例を必ず1つ以上含める）\n\n▼ noteで詳しく解説しています\n'+noteUrl+'\n\n■まとめ（上記URLを本文内にそのまま記載）\n\nRayphoneの一人称・体験談必須。# * 【】絶対禁止。合計'+len+'字前後。';
   claudeCall(p,4000,function(err,text){
     document.getElementById('art-gen-btn').disabled=false;
     document.getElementById('art-gp').classList.remove('show');
