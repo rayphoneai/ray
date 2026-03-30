@@ -771,7 +771,15 @@ function runFullAuto(targetCat){
   });
 
 }
-function deleteArt(id){if(!confirm('削除しますか？'))return;K.arts=K.arts.filter(function(a){return a.id!==id;});saveArts();pushToGitHub(K.arts);renderArticles();}
+function deleteArt(id){
+  if(!confirm('この記事を削除しますか？'))return;
+  K.arts=K.arts.filter(function(a){return String(a.id)!==String(id);});
+  saveArts();
+  pushToGitHub(K.arts);
+  renderArticles();
+  updateStats();
+  toast('✓ 記事を削除しGitHubに反映しました');
+}
 function updateClock(){var el=document.getElementById('clock');if(el)el.textContent=new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
 function openPreview(id){var art=K.arts.find(function(a){return a.id===id;});if(!art)return;K.prevId=id;document.getElementById('pm-cat').textContent=art.cat;document.getElementById('pm-title').textContent=art.title;document.getElementById('pm-date').textContent=art.date;document.getElementById('pm-status').innerHTML=scBadge(art.status);document.getElementById('pm-content').textContent=art.content||'（本文なし）';var ec=document.getElementById('pm-ec');if(art.svg){ec.innerHTML=art.svg;ec.style.display='block';}else{ec.style.display='none';}document.getElementById('preview-modal').classList.add('show');}
 function closePreview(){document.getElementById('preview-modal').classList.remove('show');}
