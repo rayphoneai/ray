@@ -1,0 +1,39 @@
+name: note自動投稿
+
+on:
+  workflow_dispatch:   # 管理画面「noteに投稿」ボタンから手動トリガー
+
+jobs:
+  note-post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Python セットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 依存ライブラリをインストール
+        run: |
+          pip install requests playwright pillow
+          playwright install chromium
+          playwright install-deps chromium
+
+      - name: note投稿を実行
+        env:
+          GEMINI_API_KEY:   ${{ secrets.GEMINI_API_KEY }}
+          NOTE_EMAIL:       ${{ secrets.NOTE_EMAIL }}
+          NOTE_PASSWORD:    ${{ secrets.NOTE_PASSWORD }}
+          BLOG_URL:         ${{ secrets.BLOG_URL }}
+          NOTE_URL:         ${{ secrets.NOTE_URL }}
+          GH_TOKEN:         ${{ secrets.GH_TOKEN }}
+          GH_USER:          ${{ secrets.GH_USER }}
+          GH_REPO:          ${{ secrets.GH_REPO }}
+          NOTE_COOKIES_B64: ${{ secrets.NOTE_COOKIES_B64 }}
+          HEADLESS:         "true"
+          PYTHONUNBUFFERED: "1"
+        run: python -u note_post.py
