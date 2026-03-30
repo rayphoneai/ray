@@ -168,28 +168,25 @@ input:checked+.sw2-slider::before{transform:translateX(16px);}
       <div class="row4">
         <div class="sc"><div class="sc-l">下書き</div><div class="sc-v" id="s-draft">0</div><div class="sc-s">記事数</div></div>
         <div class="sc"><div class="sc-l">公開済み</div><div class="sc-v" id="s-pub">0</div><div class="sc-s">投稿数</div></div>
-        <div class="sc"><div class="sc-l">キュー</div><div class="sc-v ora" id="s-queue">0</div><div class="sc-s">待機中</div></div>
-        <div class="sc"><div class="sc-l">次回投稿</div><div class="sc-v" id="s-next" style="font-size:16px;">--:--</div><div class="sc-s" id="s-next-cat">未設定</div></div>
+        <div class="sc"><div class="sc-l">総記事数</div><div class="sc-v ora" id="s-total">0</div><div class="sc-s">合計</div></div>
+        <div class="sc"><div class="sc-l">最終更新</div><div class="sc-v" id="s-last" style="font-size:14px;">--</div><div class="sc-s">日時</div></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
         <div class="panel">
           <div class="ph"><div class="pt"><div class="pt-dot"></div>クイックアクション</div></div>
           <div class="pb" style="display:flex;flex-direction:column;gap:10px;">
-            <div id="dash-sched-btn" style="border:1.5px dashed var(--bd);border-radius:8px;padding:14px;cursor:pointer;" onmouseover="this.style.borderColor='var(--or)'" onmouseout="this.style.borderColor='var(--bd)'">
-              <div style="font-size:18px;margin-bottom:6px;">&#9200;</div>
-              <div style="font-size:13px;font-weight:700;margin-bottom:2px;">スケジューラー設定</div>
-              <div style="font-size:11px;color:var(--gm);">時刻・カテゴリを設定して自動化</div>
-            </div>
+
             <div id="dash-auto-btn" style="border:1.5px dashed var(--bd);border-radius:8px;padding:14px;cursor:pointer;" onmouseover="this.style.borderColor='var(--or)'" onmouseout="this.style.borderColor='var(--bd)'">
               <div style="font-size:18px;margin-bottom:6px;">&#9889;</div>
               <div style="font-size:13px;font-weight:700;margin-bottom:2px;">今すぐ1本フル生成</div>
               <div style="font-size:11px;color:var(--gm);">記事+アイキャッチを今すぐ自動生成</div>
             </div>
-            <div id="dash-sync-btn" style="border:1.5px dashed var(--bd);border-radius:8px;padding:14px;cursor:pointer;" onmouseover="this.style.borderColor='var(--or)'" onmouseout="this.style.borderColor='var(--bd)'">
-              <div style="font-size:18px;margin-bottom:6px;">&#8645;</div>
-              <div style="font-size:13px;font-weight:700;margin-bottom:2px;">GitHubと同期</div>
-              <div style="font-size:11px;color:var(--gm);">GitHub Actionsの記事をローカルに反映</div>
+            <div id="dash-list-btn" style="border:1.5px dashed var(--bd);border-radius:8px;padding:14px;cursor:pointer;" onclick="go('articles')" onmouseover="this.style.borderColor='var(--or)'" onmouseout="this.style.borderColor='var(--bd)'">
+              <div style="font-size:18px;margin-bottom:6px;">&#128196;</div>
+              <div style="font-size:13px;font-weight:700;margin-bottom:2px;">記事一覧・編集</div>
+              <div style="font-size:11px;color:var(--gm);">生成した記事を管理・編集する</div>
             </div>
+          </div>
           </div>
         </div>
         <div class="panel">
@@ -357,8 +354,7 @@ function updateCurCatLabel(){
   var cur=cats[K.catIdx%cats.length]||cats[0];
   var el=document.getElementById('cur-cat-label');
   if(el) el.textContent=cur;
-  var el2=document.getElementById('s-next-cat');
-  if(el2) el2.textContent=cur;
+  var el2=document.getElementById('s-next-cat');if(el2)el2.textContent=cur;
 }
 var CC={'Claude活用Tips':'#FFF0E3;#854F0B','士業向けAI活用':'#E1F5EE;#085041','商品開発xAI':'#EEEDFE;#3C3489','副業xAI':'#E6F1FB;#0C447C','プロンプト集解説':'#F1EFE8;#444441'};
 var PT={dash:'ダッシュボード',article:'記事生成',articles:'記事一覧',settings:'設定'};
@@ -515,6 +511,8 @@ function saveArts(){/* GitHubが唯一のソース - localStorage不使用 */}
 function updateStats(){
   document.getElementById('s-draft').textContent=K.arts.filter(function(a){return a.status!=='published';}).length;
   document.getElementById('s-pub').textContent=K.arts.filter(function(a){return a.status==='published';}).length;
+  var st=document.getElementById('s-total');if(st)st.textContent=K.arts.length;
+  var sl=document.getElementById('s-last');if(sl&&K.arts[0])sl.textContent=K.arts[0].date||'--';
   updateCurCatLabel();
 }
 function renderArticles(){
@@ -813,7 +811,7 @@ function checkApiWarn(){var el=document.getElementById('art-api-warn');if(!el)re
   if(cfg.ghRepo)document.getElementById('cfg-gh-repo').value=cfg.ghRepo;
   document.getElementById('dash-sched-btn').onclick=function(){go('scheduler');};
   document.getElementById('dash-auto-btn').onclick=function(){runFullAuto(null);};
-  document.getElementById('dash-sync-btn').onclick=function(){syncWithGitHub();};
+  var _dlb=document.getElementById('dash-list-btn');if(_dlb)_dlb.onclick=function(){go('articles');};
 
   // 起動時にarticles.jsonを自動読み込み（設定不要）
   setTimeout(function(){
