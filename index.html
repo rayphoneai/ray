@@ -576,6 +576,7 @@ function makeEyecatch(art){
 var _cfg = {};
 try { _cfg = JSON.parse(localStorage.getItem('rp_cfg') || '{}'); } catch(e) {}
 var _arts = [];
+var _allArts = []; // 全記事（フィルター前）
 
 // ---------- カード生成 ----------
 function makeCard(art, size) {
@@ -616,8 +617,9 @@ function makeCard(art, size) {
 }
 
 // ---------- 記事一覧描画 ----------
-function renderArts(arts) {
+function renderArts(arts, isFilter) {
   _arts = arts || [];
+  if (!isFilter) _allArts = _arts.slice(); // 全記事を保持
 
   var fg = document.getElementById('featured-grid');
   if (fg) {
@@ -672,8 +674,8 @@ function renderArts(arts) {
     el.onclick = function(e) {
       e.preventDefault();
       var catName = el.querySelector('.cat-name').textContent;
-      var filtered = _arts.filter(function(a) { return (a.cat || '') === catName; });
-      renderArts(filtered);
+      var filtered = _allArts.filter(function(a) { return (a.cat || '') === catName; });
+      renderArts(filtered, true);
       document.querySelectorAll('.cat-item').forEach(function(ci) { ci.style.fontWeight = ''; ci.style.color = ''; });
       el.style.fontWeight = '700'; el.style.color = 'var(--orange)';
     };
@@ -681,7 +683,11 @@ function renderArts(arts) {
 
   // すべて見る
   var allLink = document.getElementById('all-arts-link');
-  if (allLink) allLink.onclick = function(e) { e.preventDefault(); renderArts(_arts); };
+  if (allLink) allLink.onclick = function(e) {
+    e.preventDefault();
+    document.querySelectorAll('.cat-item').forEach(function(ci) { ci.style.fontWeight = ''; ci.style.color = ''; });
+    renderArts(_allArts);
+  };
 
   // 記事数
   var statArt = document.getElementById('stat-articles');

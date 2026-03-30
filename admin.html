@@ -305,10 +305,12 @@ input:checked+.sw2-slider::before{transform:translateX(16px);}
       <div class="fg" style="margin-bottom:12px;">
         <div class="ff"><label class="fl">タイトル</label><input class="fi" id="ed-title"></div>
         <div class="ff"><label class="fl">カテゴリ</label><select class="fi" id="ed-cat"><option>Claude活用Tips</option><option>士業向けAI活用</option><option>商品開発xAI</option><option>副業xAI</option><option>プロンプト集解説</option></select></div>
+        <div class="ff"><label class="fl">ステータス</label><select class="fi" id="ed-status"><option value="published">公開済み</option><option value="draft">下書き</option></select></div>
+        <div class="ff"><label class="fl">日付</label><input class="fi" id="ed-date" placeholder="2024.01.01"></div>
       </div>
-      <div class="ff"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><label class="fl">本文</label><span id="ed-cc" style="font-size:11px;color:var(--gm);"></span></div><textarea class="fi" id="ed-body" style="min-height:400px;font-size:13px;line-height:1.9;"></textarea></div>
-    </div>
-  </div>
+      <div style="margin-bottom:12px;">
+        <div style="display:flex;align-items:center;">
+</div>
 </div>
 
 <div id="toast"></div>
@@ -544,7 +546,12 @@ function generateArticle(){
 }
 
 function autoFill(){
-  var cats=getSelCats();var cat=cats[K.catIdx%cats.length]||'Claude活用Tips';
+  var cats=getSelCats();
+  // ランダムにカテゴリを選択（前回と被らないように）
+  var randIdx = Math.floor(Math.random()*cats.length);
+  var cat = cats[randIdx] || CATEGORIES[Math.floor(Math.random()*CATEGORIES.length)];
+  // セレクターの表示も合わせる
+  var catSel = document.getElementById('art-cat'); if(catSel) catSel.value = cat;
   document.getElementById('art-autofill-btn').disabled=true;document.getElementById('art-autofill-btn').textContent='生成中...';
   document.getElementById('art-log').textContent='';document.getElementById('art-log').classList.add('show');
   claudeCall('RayPhoneAI「'+cat+'」カテゴリ記事企画。JSONのみ出力:\n{"title":"タイトル（25〜40字）","keywords":"KW1 KW2 KW3","target":"ターゲット","hook":"方向性（2〜3文）","catch":"キャッチコピー（15字以内）"}',400,function(err,text){
@@ -743,10 +750,63 @@ function deleteArt(id){if(!confirm('削除しますか？'))return;K.arts=K.arts
 function updateClock(){var el=document.getElementById('clock');if(el)el.textContent=new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
 function openPreview(id){var art=K.arts.find(function(a){return a.id===id;});if(!art)return;K.prevId=id;document.getElementById('pm-cat').textContent=art.cat;document.getElementById('pm-title').textContent=art.title;document.getElementById('pm-date').textContent=art.date;document.getElementById('pm-status').innerHTML=scBadge(art.status);document.getElementById('pm-content').textContent=art.content||'（本文なし）';var ec=document.getElementById('pm-ec');if(art.svg){ec.innerHTML=art.svg;ec.style.display='block';}else{ec.style.display='none';}document.getElementById('preview-modal').classList.add('show');}
 function closePreview(){document.getElementById('preview-modal').classList.remove('show');}
-function openEditor(id){var art=K.arts.find(function(a){return a.id===id;});if(!art)return;K.edId=id;document.getElementById('ed-title').value=art.title||'';document.getElementById('ed-cat').value=art.cat||'Claude活用Tips';document.getElementById('ed-body').value=art.content||'';updateEdCount();document.getElementById('editor-modal').classList.add('show');}
+function regenEdEC(){
+  var art=K.arts.find(function(a){return String(a.id)===String(K.edId);});
+  if(!art)return;
+  var title=document.getElementById('ed-title').value||art.title||'';
+  var cat=document.getElementById('ed-cat').value||art.cat||'AI活用';
+  var btn=document.getElementById('ed-ec-regen-btn');
+  if(btn){btn.disabled=true;btn.textContent='生成中...';}
+  genEC(title,cat,function(){
+    art.svg=K.curSVG;
+    var prev=document.getElementById('ed-ec-preview');
+    if(prev&&K.curSVG){
+      if(K.curSVG.startsWith('data:image')){
+        prev.innerHTML='<img src="'+K.curSVG+'" style="width:100%;height:100%;object-fit:contain;background:#fff;">';
+      }else{
+        prev.innerHTML='<img src="data:image/svg+xml;charset=utf-8,'+encodeURIComponent(K.curSVG)+'" style="width:100%;height:100%;object-fit:contain;">';
+      }
+    }
+    if(btn){btn.disabled=false;btn.textContent='🔄 再生成';}
+    toast('アイキャッチを再生成しました');
+  });
+}
+
+function openEditor(id){
+  var art=K.arts.find(function(a){return String(a.id)===String(id);});
+  if(!art)return;
+  K.edId=id;
+  document.getElementById('ed-title').value=art.title||'';
+  document.getElementById('ed-cat').value=art.cat||'Claude活用Tips';
+  document.getElementById('ed-body').value=art.content||'';
+  var st=document.getElementById('ed-status');if(st)st.value=art.status||'published';
+  var dt=document.getElementById('ed-date');if(dt)dt.value=art.date||'';
+  var prev=document.getElementById('ed-ec-preview');
+  if(prev){
+    if(art.svg&&art.svg.startsWith('data:image')){
+      prev.innerHTML='<img src="'+art.svg+'" style="width:100%;height:100%;object-fit:contain;background:#fff;">';
+    }else if(art.svg&&art.svg.trim().startsWith('<svg')){
+      prev.innerHTML='<img src="data:image/svg+xml;charset=utf-8,'+encodeURIComponent(art.svg)+'" style="width:100%;height:100%;object-fit:contain;">';
+    }else{
+      prev.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#555;font-size:12px;">アイキャッチなし</div>';
+    }
+  }
+  updateEdCount();
+  document.getElementById('editor-modal').classList.add('show');
+}
 function closeEditor(){document.getElementById('editor-modal').classList.remove('show');}
 function updateEdCount(){var v=document.getElementById('ed-body').value;document.getElementById('ed-cc').textContent=v.length.toLocaleString()+'字';}
-function saveEditor(){var art=K.arts.find(function(a){return a.id===K.edId;});if(!art)return;art.title=document.getElementById('ed-title').value.trim()||art.title;art.cat=document.getElementById('ed-cat').value;art.content=document.getElementById('ed-body').value;saveArts();pushToGitHub(K.arts);renderArticles();closeEditor();toast('記事を保存しGitHubに反映しました');}
+function saveEditor(){
+  var art=K.arts.find(function(a){return String(a.id)===String(K.edId);});
+  if(!art)return;
+  art.title=document.getElementById('ed-title').value.trim()||art.title;
+  art.cat=document.getElementById('ed-cat').value;
+  art.content=document.getElementById('ed-body').value;
+  var st=document.getElementById('ed-status');if(st)art.status=st.value;
+  var dt=document.getElementById('ed-date');if(dt&&dt.value)art.date=dt.value;
+  saveArts();pushToGitHub(K.arts);renderArticles();closeEditor();
+  toast('✓ 記事を保存しGitHubに反映しました');
+}
 function saveKey(){var k=document.getElementById('api-key').value.trim();if(!k){alert('APIキーを入力してください');return;}K.apiKey=k;localStorage.setItem('rp_key',k);var el=document.getElementById('set-saved');el.classList.add('show');setTimeout(function(){el.classList.remove('show');},3000);checkApiWarn();}
 function changeAdminPw(){
   var np = document.getElementById('cfg-pw-new').value;
