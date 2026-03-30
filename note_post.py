@@ -684,6 +684,26 @@ def main_note():
     if art_url not in note_body:
         note_body += f"\n\n▼ ブログ記事はこちら\n{art_url}\n"
 
+    # 記事に合ったハッシュタグを5個生成（本文も渡して精度を上げる）
+    hashtag_text = strip_preamble(gemini(
+        f"以下のnote記事に合うハッシュタグを5個生成してください。\n"
+        f"タイトル：{title}\nカテゴリ：{cat}\n"
+        f"本文抜粋：{note_body[:300]}\n\n"
+        f"【出力形式】#タグ1 #タグ2 #タグ3 #タグ4 #タグ5\n"
+        f"【ルール】#をつける。日本語OK。記事内容に直結した具体的なタグ。"
+        f"スペース区切りで1行のみ出力。前置き・説明文禁止。", 80
+    ))
+    tags = re.findall(r'#\S+', hashtag_text)[:5]
+    if len(tags) >= 3:
+        note_body += "\n\n" + " ".join(tags)
+        log(f"ハッシュタグ: {' '.join(tags)}")
+    else:
+        # フォールバック
+        cat_tag = "#" + cat.replace(" ", "").replace("xAI", "AI活用")
+        fallback = f"{cat_tag} #AI活用 #Claude #副業 #プロンプト設計"
+        note_body += f"\n\n{fallback}"
+        log(f"ハッシュタグ（フォールバック）: {fallback}")
+
     log(f"noteコンテンツ生成完了({len(note_body)}字)")
 
     # アイキャッチPNG生成
