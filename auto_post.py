@@ -925,6 +925,20 @@ with sync_playwright() as pw:
 
 
 # ── メイン処理 ────────────────────────────────────────────────
+# ── note投稿ワークフロートリガー ─────────────────────────────
+def trigger_note_workflow():
+    """GitHub ActionsのnotePost workflowをdispatchでトリガーする"""
+    if not GH_TOKEN or not GH_USER or not GH_REPO:
+        log("GitHub設定不足のためnoteワークフロースキップ")
+        return
+    url = f"https://api.github.com/repos/{GH_USER}/{GH_REPO}/actions/workflows/note_post.yml/dispatches"
+    r = requests.post(url, headers=_gh_headers(), json={"ref": "main"}, timeout=30)
+    if r.status_code == 204:
+        log("✓ note投稿ワークフロー起動完了（数分後にnoteに投稿されます）")
+    else:
+        log(f"⚠ ワークフロー起動失敗: {r.status_code} {r.text[:100]}")
+
+
 def main():
     log("=== RayPhoneAI 自動投稿開始 ===")
 
@@ -944,14 +958,8 @@ def main():
     rand_num   = random.randint(1000, 9999)
     now_str    = datetime.now().strftime("%Y年%m月%d日 %H:%M")
 
-    plan_text = gemini(f"""あなたはRayphoneブログ「RayPhoneAI」の記事企画担当です。
-カテゴリ「{cat}」で実践的な記事企画を1件作成してください。
-
-生成日時: {now_str} / キーワードヒント: {rand_word}×{rand_angle} / シード: {rand_num}
-毎回ユニークで具体的なタイトルにしてください。
-
-JSONのみ出力（前置き不要）:
-{{"title":"タイトル30字以内","target":"ターゲット読者","keywords":"SEOキーワード","hook":"読者の悩み"}}""", 500)
+    plan_text = gemini(f"""RayPhoneAI「{cat}」カテゴリ記事企画。JSONのみ出力:
+{{"title":"タイトル（25〜40字）","keywords":"KW1 KW2 KW3","target":"ターゲット","hook":"方向性（2〜3文）","catch":"キャッチコピー（15字以内）"}}""", 400)
 
     try:
         meta = json.loads(re.sub(r"```json|```", "", plan_text).strip())
@@ -961,18 +969,28 @@ JSONのみ出力（前置き不要）:
 
     # STEP 2: ブログ記事
     log("[2/5] ブログ記事を生成中（約3000字）...")
-    article = strip_preamble(gemini(f"""あなたはRayphoneのブログライターです。
+    article = strip_preamble(gemini(f"""あなたはRayphone（プロンプト設計士・商品開発15年・Claude副業月収15万達成）のブログ「RayPhoneAI」専属ライターです。
 
 【タイトル】{meta['title']}
 【カテゴリ】{cat}
 【ターゲット】{meta.get('target','AI初心者のビジネスパーソン')}
-【SEO】{meta.get('keywords', cat+' AI活用')}
 【文字数】約3000字
+【SEO】{meta.get('keywords', cat+' AI活用')}
+【方向性】{meta.get('hook','実践的な内容で')}
 
-【絶対禁止】# ## * ** などのマークダウン記号禁止。見出しは【】形式。箇条書きは「・」。
-【構成】タイトル行→【はじめに】200字→【見出し1〜4】各500字（Claudeプロンプト例必須）→【まとめ】note: {NOTE_URL}へCTA
+【絶対禁止】# ## * ** などのマークダウン記号は一切使用禁止。見出しは■のみ使用（【】禁止）。箇条書きは「・」。URLはそのまま出力。
 
-Rayphoneの一人称・体験談必須。""", 4500))
+■構成
+タイトル行
+■はじめに（200字）
+■見出し1〜4（各400〜600字・Claudeのプロンプト例を必ず1つ以上含める）
+
+▼ noteで詳しく解説しています
+{NOTE_URL}
+
+■まとめ（上記URLを本文内にそのまま記載）
+
+Rayphoneの一人称・体験談必須。# * 【】絶対禁止。合計3000字前後。""", 4000))
     log(f"✓ 記事生成完了({len(article)}字)")
 
     # STEP 3: アイキャッチ
@@ -1060,45 +1078,9 @@ Rayphoneの一人称・体験談必須。""", 4500))
     push_articles(arts)
     log(f"✓ ブログURL: {art_url} (合計{len(arts)}件)")
 
-    # STEP 5a: note生成・投稿
-    log("[5/5] note専用コンテンツを生成中...")
-    note_body = strip_preamble(gemini(f"""あなたはRayphoneです。ブログ記事のnote版（約2000字）を書いてください。
-
-【タイトル】{meta['title']}
-【カテゴリ】{cat}
-【ブログURL】{art_url}
-【本文抜粋】{article[:500]}...
-
-【構成】
-■はじめに（300字）
-■この記事で解決できること（箇条書き3つ）
-
-▼ ブログ記事はこちら
-{art_url}
-
-■深掘り解説（1000字）
-■Rayphoneからの一言（300字）
-
-【禁止】# * マークダウン禁止。見出しは■。箇条書きは「・」。前置き・承諾文禁止。""", 3500))
-
-    # URL強制置換（1回のre.subで確実に正しい記事URLに統一）
-    note_body = re.sub(
-        r'https://rayphoneai\.github\.io/ray(?:/?\?id=\d+|/?)',
-        art_url,
-        note_body
-    )
-    if art_url not in note_body:
-        note_body += f"\n\n▼ ブログ記事はこちら\n{art_url}\n"
-        log("note: URLを末尾に追加")
-    m = re.search(r'https://rayphoneai\.github\.io/\S+', note_body)
-    log(f"✓ noteコンテンツ生成完了({len(note_body)}字) / 記事URL: {m.group(0) if m else 'なし'}")
-
-    log("noteに投稿中...")
-    note_result = post_to_note(f"【深掘り】{meta['title']}", note_body, svg_code, eyecatch_png=eyecatch_png)
-    if note_result["ok"]:
-        log(f"✓ note投稿完了: {note_result.get('url','')}")
-    else:
-        log(f"✗ note投稿失敗: {note_result.get('message','')}")
+    # STEP 5: note_post.yml ワークフローをトリガー
+    log("[5/5] note投稿ワークフローを起動中...")
+    trigger_note_workflow()
 
     # カテゴリを進める
     next_idx = (cat_idx + 1) % len(CATEGORIES)
