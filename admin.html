@@ -809,7 +809,7 @@ function checkApiWarn(){var el=document.getElementById('art-api-warn');if(!el)re
   if(cfg.ghToken)document.getElementById('cfg-gh-token').value=cfg.ghToken;
   if(cfg.ghUser)document.getElementById('cfg-gh-user').value=cfg.ghUser;
   if(cfg.ghRepo)document.getElementById('cfg-gh-repo').value=cfg.ghRepo;
-  document.getElementById('dash-sched-btn').onclick=function(){go('scheduler');};
+  // スケジューラーは削除済み
   document.getElementById('dash-auto-btn').onclick=function(){runFullAuto(null);};
   var _dlb=document.getElementById('dash-list-btn');if(_dlb)_dlb.onclick=function(){go('articles');};
 

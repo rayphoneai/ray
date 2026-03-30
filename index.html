@@ -795,20 +795,41 @@ window.addEventListener('popstate', function(e) {
 
 // ---------- 記事読み込み ----------
 (function() {
-  // ./articles.json を直接取得（GitHub Pages上で同一オリジン）
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', './articles.json?t=' + Date.now(), true);
-  xhr.onload = function() {
-    if (xhr.status === 200) {
-      try {
-        renderArts(JSON.parse(xhr.responseText));
-        return;
-      } catch(e) { console.error('articles.json parse error:', e); }
-    }
-    renderArts([]);
-  };
-  xhr.onerror = function() { renderArts([]); };
-  xhr.send();
+  var _fetchCount = 0;
+  function fetchArts() {
+    _fetchCount++;
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', './articles.json?t=' + Date.now(), true);
+    xhr.timeout = 10000;
+    xhr.onload = function() {
+      if (xhr.status === 200) {
+        try {
+          var arts = JSON.parse(xhr.responseText);
+          if (arts && arts.length > 0) {
+            renderArts(arts);
+            return;
+          }
+        } catch(e) { console.error('articles.json parse error:', e); }
+      }
+      // 失敗またはステータスエラー
+      if (_fetchCount < 3) {
+        setTimeout(fetchArts, 2000 * _fetchCount); // リトライ
+      } else {
+        var fg = document.getElementById('featured-grid');
+        if (fg) fg.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:#aaa;">記事の読み込みに失敗しました。<br><button onclick="location.reload()" style="margin-top:16px;padding:8px 20px;background:var(--orange);color:#fff;border:none;border-radius:4px;cursor:pointer;">再読み込み</button></div>';
+        var pb = document.getElementById('page-body');
+        if (pb) pb.style.display = '';
+      }
+    };
+    xhr.ontimeout = function() {
+      if (_fetchCount < 3) setTimeout(fetchArts, 2000 * _fetchCount);
+    };
+    xhr.onerror = function() {
+      if (_fetchCount < 3) setTimeout(fetchArts, 2000 * _fetchCount);
+    };
+    xhr.send();
+  }
+  fetchArts();
 })();
 
 </script>
