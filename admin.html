@@ -612,11 +612,36 @@ function saveAndPostNote(){
   if(res3){res3.textContent='GitHubに保存中...';res3.className='alert';}
   pushToGitHub(K.arts,function(ok){
     renderArticles();updateStats();
-    if(res3){
-      if(ok){res3.textContent='✅ ブログ公開完了！noteへの投稿はGitHub Actions（note_post.py）で実行してください。';res3.className='alert alg';}
-      else{res3.textContent='⚠ GitHubへの保存に失敗しました';res3.className='alert aw';}
+    if(!ok){
+      if(res3){res3.textContent='⚠ GitHubへの保存に失敗しました';res3.className='alert aw';}
+      toast('⚠ 失敗'); return;
     }
-    toast(ok?'✓ ブログ公開完了':'⚠ 失敗');
+    // GitHub Actionsのnote_post.ymlをトリガー
+    if(res3){res3.textContent='⏳ ブログ公開完了。note投稿ワークフローを起動中...';res3.className='alert';}
+    var cfg=getCfg();
+    var token=cfg.ghToken;var user=cfg.ghUser;var repo=cfg.ghRepo;
+    if(!token||!user||!repo){
+      if(res3){res3.textContent='✅ ブログ公開完了。GitHub設定がないためnote投稿はスキップ。';res3.className='alert alg';}
+      toast('✓ ブログ公開完了'); return;
+    }
+    var wf=new XMLHttpRequest();
+    wf.open('POST','https://api.github.com/repos/'+user+'/'+repo+'/actions/workflows/note_post.yml/dispatches',true);
+    wf.setRequestHeader('Authorization','token '+token);
+    wf.setRequestHeader('Accept','application/vnd.github.v3+json');
+    wf.setRequestHeader('Content-Type','application/json');
+    wf.onload=function(){
+      if(wf.status===204){
+        if(res3){res3.textContent='✅ ブログ公開 & note投稿ワークフロー起動完了！（数分後にnoteに投稿されます）';res3.className='alert alg';}
+        toast('✓ note投稿ワークフロー起動');
+      } else {
+        if(res3){res3.textContent='✅ ブログ公開完了。note投稿ワークフローの起動に失敗（'+wf.status+'）';res3.className='alert aw';}
+        toast('✓ ブログ公開完了');
+      }
+    };
+    wf.onerror=function(){
+      if(res3){res3.textContent='✅ ブログ公開完了。note投稿ワークフローの起動に失敗（通信エラー）';res3.className='alert aw';}
+    };
+    wf.send(JSON.stringify({ref:'main'}));
   });
 }
 function clearArticle(){
