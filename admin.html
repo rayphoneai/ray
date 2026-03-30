@@ -146,9 +146,6 @@ input:checked+.sw2-slider::before{transform:translateX(16px);}
     <div class="nsec">AUTO</div>
     
     
-    <div class="nsec">CONTENT</div>
-    <div class="ni" id="nav-article" onclick="go('article')"><svg width="14" height="14" fill="currentColor" viewBox="0 0 14 14"><path d="M2 2h10v1.5H2V2zm0 3h10v1H2V5zm0 3h7v1H2V8zm0 3h8v1H2v-1z"/></svg><span>記事生成</span></div>
-    <div class="ni" id="nav-articles" onclick="go('articles')"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 14 14"><rect x="1" y="1" width="12" height="12" rx="1.5"/><path d="M4 5h6M4 8h4M4 11h5"/></svg><span>記事一覧</span></div>
     <div class="nsec">SNS</div>
     
     <div class="nsec">CONFIG</div>
@@ -164,43 +161,15 @@ input:checked+.sw2-slider::before{transform:translateX(16px);}
   </div>
   <div class="content">
 
-    <div id="page-dash" class="page on">
-      <div class="row4">
+        <div id="page-dash" class="page on">
+      <!-- 統計 -->
+      <div class="row4" style="margin-bottom:24px;">
         <div class="sc"><div class="sc-l">下書き</div><div class="sc-v" id="s-draft">0</div><div class="sc-s">記事数</div></div>
         <div class="sc"><div class="sc-l">公開済み</div><div class="sc-v" id="s-pub">0</div><div class="sc-s">投稿数</div></div>
         <div class="sc"><div class="sc-l">総記事数</div><div class="sc-v ora" id="s-total">0</div><div class="sc-s">合計</div></div>
         <div class="sc"><div class="sc-l">最終更新</div><div class="sc-v" id="s-last" style="font-size:14px;">--</div><div class="sc-s">日時</div></div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-        <div class="panel">
-          <div class="ph"><div class="pt"><div class="pt-dot"></div>クイックアクション</div></div>
-          <div class="pb" style="display:flex;flex-direction:column;gap:10px;">
-
-            <div id="dash-auto-btn" style="border:1.5px dashed var(--bd);border-radius:8px;padding:14px;cursor:pointer;" onmouseover="this.style.borderColor='var(--or)'" onmouseout="this.style.borderColor='var(--bd)'">
-              <div style="font-size:18px;margin-bottom:6px;">&#9889;</div>
-              <div style="font-size:13px;font-weight:700;margin-bottom:2px;">今すぐ1本フル生成</div>
-              <div style="font-size:11px;color:var(--gm);">記事+アイキャッチを今すぐ自動生成</div>
-            </div>
-            <div id="dash-list-btn" style="border:1.5px dashed var(--bd);border-radius:8px;padding:14px;cursor:pointer;" onclick="go('articles')" onmouseover="this.style.borderColor='var(--or)'" onmouseout="this.style.borderColor='var(--bd)'">
-              <div style="font-size:18px;margin-bottom:6px;">&#128196;</div>
-              <div style="font-size:13px;font-weight:700;margin-bottom:2px;">記事一覧・編集</div>
-              <div style="font-size:11px;color:var(--gm);">生成した記事を管理・編集する</div>
-            </div>
-          </div>
-          </div>
-        </div>
-        <div class="panel">
-          <div class="ph"><div class="pt"><div class="pt-dot"></div>投稿キュー（直近）</div><button class="btn bg2 bsm" onclick="go('queue')">全て見る</button></div>
-          <div class="pb" style="padding:0;"><table class="qt"><thead><tr><th>日付</th><th>カテゴリ</th><th>状態</th></tr></thead><tbody id="dash-queue-body"><tr><td colspan="3" style="text-align:center;color:#aaa;padding:14px;">なし</td></tr></tbody></table></div>
-        </div>
-      </div>
-    </div>
-
-    
-
-    
-
-    <div id="page-article" class="page">
+      <!-- 記事生成 -->
       <div class="panel">
         <div class="ph"><div class="pt"><div class="pt-dot"></div>記事生成</div></div>
         <div class="pb">
@@ -242,11 +211,9 @@ input:checked+.sw2-slider::before{transform:translateX(16px);}
           </div>
         </div>
       </div>
-    </div>
-
-    <div id="page-articles" class="page">
+      <!-- 記事一覧 -->
       <div class="panel">
-        <div class="ph"><div class="pt"><div class="pt-dot"></div>記事一覧</div><button class="btn bp bsm" onclick="go('article')">+ 新規生成</button></div>
+        <div class="ph"><div class="pt"><div class="pt-dot"></div>記事一覧</div><button class="btn bp bsm" onclick="go('dash')">+ 新規生成</button></div>
         <div class="pb" style="padding:0;">
           <table class="qt"><thead><tr><th>タイトル</th><th>カテゴリ</th><th>日付</th><th>状態</th><th>操作</th></tr></thead><tbody id="articles-body"></tbody></table>
           <div id="articles-empty" style="text-align:center;padding:24px;color:#aaa;font-size:13px;">記事がありません</div>
@@ -254,7 +221,7 @@ input:checked+.sw2-slider::before{transform:translateX(16px);}
       </div>
     </div>
 
-      <div id="page-settings" class="page">
+<div id="page-settings" class="page">
       <div class="panel">
         <div class="ph"><div class="pt"><div class="pt-dot"></div>Gemini API設定</div></div>
         <div class="pb">
@@ -357,7 +324,7 @@ function updateCurCatLabel(){
   var el2=document.getElementById('s-next-cat');if(el2)el2.textContent=cur;
 }
 var CC={'Claude活用Tips':'#FFF0E3;#854F0B','士業向けAI活用':'#E1F5EE;#085041','商品開発xAI':'#EEEDFE;#3C3489','副業xAI':'#E6F1FB;#0C447C','プロンプト集解説':'#F1EFE8;#444441'};
-var PT={dash:'ダッシュボード',article:'記事生成',articles:'記事一覧',settings:'設定'};
+var PT={dash:'ダッシュボード',settings:'設定'};
 function renderQueue(){/* 削除済み - no-op */}
 
 function xhrCall(m,u,d,cb){var r=new XMLHttpRequest();r.open(m,u,true);r.setRequestHeader('Content-Type','application/json');r.timeout=180000;r.onload=function(){try{cb(null,JSON.parse(r.responseText));}catch(e){cb(e,null);}};r.onerror=function(){cb(new Error('接続エラー'),null);};r.ontimeout=function(){cb(new Error('タイムアウト'),null);};r.send(d?JSON.stringify(d):null);}
@@ -691,7 +658,7 @@ function runFullAuto(targetCat){
   var noteUrl=cfg.noteUrl||'https://note.com/rayphone';
   var blogUrl=cfg.blogUrl||'https://rayphone.github.io/rayphoneai/';
   var xUrl=cfg.xUrl||'';
-  go('article');
+  go('dash');
   document.getElementById('art-gp').classList.add('show');document.getElementById('art-ld').classList.add('show');
   document.getElementById('art-log').textContent='';document.getElementById('art-log').classList.add('show');
   document.getElementById('art-lt').textContent='[1/5] '+cat+' の記事企画を生成中...';
@@ -812,7 +779,7 @@ function checkApiWarn(){var el=document.getElementById('art-api-warn');if(!el)re
   if(cfg.ghRepo)document.getElementById('cfg-gh-repo').value=cfg.ghRepo;
   // スケジューラーは削除済み
   document.getElementById('dash-auto-btn').onclick=function(){runFullAuto(null);};
-  var _dlb=document.getElementById('dash-list-btn');if(_dlb)_dlb.onclick=function(){go('articles');};
+  var _dlb=document.getElementById('dash-list-btn');if(_dlb)_dlb.onclick=function(){go('dash');};
 
   // 起動時にarticles.jsonを自動読み込み（設定不要）
   setTimeout(function(){
