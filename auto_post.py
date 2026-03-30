@@ -315,6 +315,56 @@ def generate_eyecatch_svg(title, cat, art_id):
     ]
     return s[idx]
 
+# ── Claude API SVGアイキャッチ生成（管理画面と同方式・文字化けなし）──────────
+STYLES = {
+    'split':    'ノワール×幾何学：黒背景・オレンジの細いライングリッド・左側にタイトル・右に幾何学装飾',
+    'namecard': 'マガジン：白背景・極太黒タイポグラフィ・オレンジのアクセントライン',
+    'diagonal': 'テック：黒背景・斜め分割でオレンジゾーン・細いグリッドライン',
+    'bold':     'シネマティック：暗背景・上下黒帯・中央にタイトル・オレンジのアクセントライン',
+    'minimal':  'ブループリント：暗背景・同心円や設計図風装飾・オレンジ細線',
+    'frame':    'アーキテクチャ：黒背景・右側に幾何学構造物・左にミニマルテキスト',
+    'center':   'サイバーパンク：極暗背景・オレンジのネオン細枠・中央にタイトル',
+}
+
+def generate_eyecatch_claude(title: str, cat: str) -> str | None:
+    """Claude APIでSVGアイキャッチを生成して返す（管理画面と同方式）"""
+    import random
+    style_key = random.choice(list(STYLES.keys()))
+    style_desc = STYLES[style_key]
+    short = title[:18]
+
+    prompt = f"""RayPhoneAIブログのアイキャッチSVG（1280×670）を生成。
+
+タイトル：{short}
+カテゴリ：{cat}
+スタイル：クール・モダン・スタイリッシュ
+レイアウト参考：{style_desc}
+
+viewBox="0 0 1280 670" width="1280" height="670"
+カラー：白#fff（メイン背景）・黒#1A1A1A（アクセント）・オレンジ#FF6B00（ポイント）・rgba透明度
+font-family="Arial,sans-serif"
+
+【必須デザイン方針】
+・タイトルは18文字以内・font-size 52〜66px・font-weight="900"・fill="#1A1A1A"
+・グラフィック要素（幾何学・細線・ドット・円など）で余白を豊かに使う
+・テキストは小さめ（カテゴリ：font-size 10〜12px・letter-spacing 4〜6）
+・"RayPhoneAI"の文字を小さく品よく入れる
+
+<svg...></svg>のみ出力。前置き一切不要。"""
+
+    try:
+        result = gemini(prompt, 2000)
+        m = re.search(r'<svg[\s\S]*</svg>', result, re.IGNORECASE)
+        if m:
+            log(f"✓ SVGアイキャッチ生成完了(スタイル:{style_key})")
+            return m.group(0)
+        log("SVGアイキャッチ: SVGタグ未検出")
+        return None
+    except Exception as e:
+        log(f"SVGアイキャッチ生成エラー: {e}")
+        return None
+
+
 # ── Gemini 画像生成アイキャッチ ──────────────────────────────
 def generate_eyecatch_image(title: str, cat: str) -> bytes | None:
     """Gemini APIで画像を生成してPNGバイト列を返す。失敗時はNone。"""
@@ -670,14 +720,7 @@ def post_to_note(title: str, body: str, svg_code: str, eyecatch_png: bytes = b""
                 import tempfile as _tf, subprocess as _sp
                 png = None
 
-                if eyecatch_png:
-                    # Gemini生成PNGを直接使用
-                    _ptmp = _tf.NamedTemporaryFile(suffix=".png", delete=False)
-                    _ptmp.write(eyecatch_png)
-                    _ptmp.close()
-                    png = _ptmp.name
-                    log("note: Gemini生成PNGを使用")
-                elif svg_code and "<svg" in svg_code:
+                if svg_code and "<svg" in svg_code:
                     # SVG→PNG変換（subprocess経由）
                     tmp = _tf.NamedTemporaryFile(suffix=".svg", delete=False, mode="w", encoding="utf-8")
                     tmp.write(svg_code)
@@ -932,47 +975,14 @@ Rayphoneの一人称・体験談必須。""", 4500))
     svg_code    = None
     eyecatch_png: bytes = b""
 
-    if EYECATCH_MODEL == "svg":
+    # Claude API でSVGアイキャッチ生成（管理画面と同方式・文字化けなし）
+    svg_code = generate_eyecatch_claude(meta['title'], cat)
+    if not svg_code:
         svg_code = generate_eyecatch_svg(meta['title'], cat, art_id)
-        log(f"✓ アイキャッチSVG生成完了({len(svg_code)}字)")
+        log(f"✓ アイキャッチSVG生成完了(フォールバック)")
     else:
-        png_bytes = generate_eyecatch_image(meta['title'], cat)
-        if png_bytes:
-            # 1280×670にアスペクト比を保ちながらクロップリサイズ
-            try:
-                from PIL import Image as _Img
-                import io as _io
-                img_orig = _Img.open(_io.BytesIO(png_bytes))
-                target_w, target_h = 1280, 670
-                orig_w, orig_h = img_orig.size
-                target_ratio = target_w / target_h
-                orig_ratio = orig_w / orig_h
-                if orig_ratio > target_ratio:
-                    # 横が余る → 横をクロップ
-                    new_w = int(orig_h * target_ratio)
-                    left = (orig_w - new_w) // 2
-                    img_crop = img_orig.crop((left, 0, left + new_w, orig_h))
-                else:
-                    # 縦が余る → 縦をクロップ
-                    new_h = int(orig_w / target_ratio)
-                    top = (orig_h - new_h) // 2
-                    img_crop = img_orig.crop((0, top, orig_w, top + new_h))
-                img_resized = img_crop.resize((target_w, target_h), _Img.LANCZOS)
-                buf = _io.BytesIO()
-                img_resized.save(buf, format='PNG')
-                resized_bytes = buf.getvalue()
-                eyecatch_png = resized_bytes  # note用（正確な1280×670）
-                svg_code = "data:image/png;base64," + base64.b64encode(resized_bytes).decode()
-                log(f"✓ アイキャッチ画像生成完了({len(resized_bytes)//1024}KB / 1280×670)")
-            except Exception:
-                eyecatch_png = png_bytes
-                svg_code = "data:image/png;base64," + base64.b64encode(png_bytes).decode()
-                log(f"✓ アイキャッチ画像生成完了({len(png_bytes)//1024}KB)")
-        else:
-            log("アイキャッチ画像生成失敗 → SVGにフォールバック")
-            svg_code = generate_eyecatch_svg(meta['title'], cat, art_id)
-            log(f"✓ アイキャッチSVG生成完了({len(svg_code)}字)")
-
+        log(f"✓ アイキャッチSVG生成完了({len(svg_code)}字)")
+    eyecatch_png = b""  # noteアップロード用（SVG方式では不使用）
     # STEP 4: GitHub push
     log("[4/5] GitHubにarticles.jsonをプッシュ中...")
     art_url = f"{BLOG_URL}/?id={art_id}"
