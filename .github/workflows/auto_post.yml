@@ -1,23 +1,16 @@
-name: RayPhoneAI 自動投稿
+name: ブログ自動投稿
 
 on:
   schedule:
-    - cron: '0 23 * * *'   # 毎日 08:00 JST (23:00 UTC)
-    - cron: '0 3 * * *'    # 毎日 12:00 JST (03:00 UTC)
-    - cron: '0 12 * * *'   # 毎日 21:00 JST (12:00 UTC)
-  workflow_dispatch:        # 手動実行ボタン
-
-concurrency:
-  group: auto-post
-  cancel-in-progress: false
-
-permissions:
-  contents: write           # articles.jsonのプッシュに必要
+    - cron: '0 23 * * *'   # 毎日 08:00 JST
+    - cron: '0 3 * * *'    # 毎日 12:00 JST
+    - cron: '0 12 * * *'   # 毎日 21:00 JST
+  workflow_dispatch:        # 手動実行も可能
 
 jobs:
   auto-post:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
 
     steps:
       - name: リポジトリをチェックアウト
@@ -30,33 +23,20 @@ jobs:
 
       - name: 依存ライブラリをインストール
         run: |
-          pip install requests playwright python-dotenv flask flask-cors pillow
+          pip install playwright
           playwright install chromium
           playwright install-deps chromium
 
-      - name: 記事生成＆投稿を実行
+      - name: 自動投稿を実行
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          NOTE_EMAIL:     ${{ secrets.NOTE_EMAIL }}
-          NOTE_PASSWORD:  ${{ secrets.NOTE_PASSWORD }}
-          BLOG_URL:       ${{ secrets.BLOG_URL }}
-          NOTE_URL:       ${{ secrets.NOTE_URL }}
-          NOTE_SHOP_URL:  ${{ secrets.NOTE_SHOP_URL }}
-          GH_TOKEN:       ${{ secrets.GH_TOKEN }}
-          GH_USER:        ${{ secrets.GH_USER }}
-          GH_REPO:        ${{ secrets.GH_REPO }}
-          X_COOKIES_B64:  ${{ secrets.X_COOKIES_B64 }}
-          NOTE_COOKIES_B64: ${{ secrets.NOTE_COOKIES_B64 }}
-          X_AUTO:         ${{ secrets.X_AUTO }}
-          HEADLESS:       "true"
-          CAT_INDEX_FILE: "cat_index.txt"
+          GEMINI_API_KEY:   ${{ secrets.GEMINI_API_KEY }}
+          GH_TOKEN:         ${{ secrets.GH_TOKEN }}
+          GH_USER:          ${{ secrets.GH_USER }}
+          GH_REPO:          ${{ secrets.GH_REPO }}
+          BLOG_URL:         ${{ secrets.BLOG_URL }}
+          NOTE_URL:         ${{ secrets.NOTE_URL }}
+          ADMIN_URL:        ${{ secrets.ADMIN_URL }}
+          ADMIN_PASSWORD:   ${{ secrets.ADMIN_PASSWORD }}
+          HEADLESS:         "true"
           PYTHONUNBUFFERED: "1"
         run: python -u auto_post.py
-
-      - name: cat_index.txt を保存（カテゴリローテーション維持）
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cat-index
-          path: cat_index.txt
-          retention-days: 90
