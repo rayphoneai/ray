@@ -782,19 +782,31 @@ var ghUser = host.replace('.github.io','');
 var ghRepo = pathParts[0]||'';
 
 function loadFromGitHub(){
-  if(!ghUser || !ghRepo){
-    renderArts([]);
-    return;
-  }
+  // まず同一オリジンの相対パスで直接取得（最速・確実）
+  var relXhr = new XMLHttpRequest();
+  relXhr.open('GET', './articles.json?t='+Date.now(), true);
+  relXhr.onload = function(){
+    if(relXhr.status === 200){
+      try{
+        var arts = JSON.parse(relXhr.responseText);
+        renderArts(arts);
+        return;
+      }catch(e){}
+    }
+    // 相対パスで失敗した場合はraw.githubusercontent.comで試みる
+    loadFromRaw();
+  };
+  relXhr.onerror = loadFromRaw;
+  relXhr.send();
+}
+
+function loadFromRaw(){
+  if(!ghUser || !ghRepo){ renderArts([]); return; }
   var xhr = new XMLHttpRequest();
   xhr.open('GET','https://raw.githubusercontent.com/'+ghUser+'/'+ghRepo+'/main/articles.json?t='+Date.now(),true);
   xhr.onload=function(){
-    try{
-      var arts = JSON.parse(xhr.responseText);
-      renderArts(arts);
-    }catch(e){
-      renderArts([]);
-    }
+    try{ renderArts(JSON.parse(xhr.responseText)); }
+    catch(e){ renderArts([]); }
   };
   xhr.onerror=function(){ renderArts([]); };
   xhr.send();
