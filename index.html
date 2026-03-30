@@ -583,17 +583,24 @@ function makeCard(art, size) {
   var card = document.createElement('div');
   card.className = size === 'feat' ? 'feat-card' : 'art-card';
   card.style.cursor = 'pointer';
-  var thumbSrc;
-  if (art.svg && art.svg.startsWith('data:image')) {
-    thumbSrc = art.svg;
-  } else if (art.svg && art.svg.trim().startsWith('<svg')) {
-    thumbSrc = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(art.svg);
-  } else {
-    thumbSrc = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(makeEyecatch(art));
-  }
+  var thumbHtml;
   var thumbClass = size === 'feat' ? 'feat-card-thumb' : 'art-card-thumb';
-  var thumbHtml = '<div class="' + thumbClass + '" style="overflow:hidden;aspect-ratio:16/9;">'
-    + '<img src="' + thumbSrc + '" style="width:100%;height:100%;object-fit:contain;background:#fff;"></div>';
+  var svgSrc = '';
+  if (art.svg && art.svg.startsWith('data:image')) {
+    svgSrc = art.svg;
+  } else if (art.svg && art.svg.trim().startsWith('<svg')) {
+    // Blob URLで安全に表示（大きなSVGでもencodeURIComponentが壊れない）
+    try {
+      var blob = new Blob([art.svg], {type: 'image/svg+xml'});
+      svgSrc = URL.createObjectURL(blob);
+    } catch(e) {
+      svgSrc = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(makeEyecatch(art));
+    }
+  } else {
+    svgSrc = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(makeEyecatch(art));
+  }
+  thumbHtml = '<div class="' + thumbClass + '" style="overflow:hidden;aspect-ratio:16/9;">'
+    + '<img src="' + svgSrc + '" style="width:100%;height:100%;object-fit:contain;background:#fff;"></div>';
 
   if (size === 'feat') {
     card.innerHTML = thumbHtml

@@ -569,7 +569,7 @@ function saveAsDraft(){
   var title=document.getElementById('art-title').value.trim()||'無題';
   var cat=document.getElementById('art-cat').value;
   if(!K.lastArt){alert('先に記事を生成してください');return;}
-  var art={id:Date.now(),title:title,cat:cat,content:K.lastArt,svg:K.curSVG,status:'draft',date:new Date().toLocaleDateString('ja-JP')};
+  var art={id:Date.now(),title:title,cat:cat,content:K.lastArt,svg:minifySVG(K.curSVG),status:'draft',date:new Date().toLocaleDateString('ja-JP')};
   K.arts.unshift(art);saveArts();
   var res=document.getElementById('art-note-result');
   if(res){res.textContent='保存中...';res.className='alert';}
@@ -585,11 +585,24 @@ function saveAsDraft(){
   });
 }
 
+
+function minifySVG(svg){
+  if(!svg) return svg;
+  // コメント削除
+  svg = svg.replace(/<!--[\s\S]*?-->/g,'');
+  // 複数スペース・改行を1スペースに
+  svg = svg.replace(/\s+/g,' ');
+  // タグ前後の余分なスペース削除
+  svg = svg.replace(/> </g,'><');
+  svg = svg.replace(/ >/g,'>');
+  return svg.trim();
+}
+
 function publishNow(){
   var title=document.getElementById('art-title').value.trim()||'無題';
   var cat=document.getElementById('art-cat').value;
   if(!K.lastArt){alert('先に記事を生成してください');return;}
-  var art={id:Date.now(),title:title,cat:cat,content:K.lastArt,svg:K.curSVG,status:'published',date:new Date().toLocaleDateString('ja-JP')};
+  var art={id:Date.now(),title:title,cat:cat,content:K.lastArt,svg:minifySVG(K.curSVG),status:'published',date:new Date().toLocaleDateString('ja-JP')};
   K.arts.unshift(art);saveArts();
   var res2=document.getElementById('art-note-result');
   if(res2){res2.textContent='公開中...';res2.className='alert';}
@@ -606,7 +619,7 @@ function saveAndPostNote(){
   var title=document.getElementById('art-title').value.trim()||'無題';
   var cat=document.getElementById('art-cat').value;
   if(!K.lastArt){alert('先に記事を生成してください');return;}
-  var art={id:Date.now(),title:title,cat:cat,content:K.lastArt,svg:K.curSVG,status:'published',date:new Date().toLocaleDateString('ja-JP')};
+  var art={id:Date.now(),title:title,cat:cat,content:K.lastArt,svg:minifySVG(K.curSVG),status:'published',date:new Date().toLocaleDateString('ja-JP')};
   K.arts.unshift(art);saveArts();
   var res3=document.getElementById('art-note-result');
   if(res3){res3.textContent='GitHubに保存中...';res3.className='alert';}
@@ -735,7 +748,7 @@ function runFullAuto(targetCat){
         document.getElementById('art-gp').classList.remove('show');document.getElementById('art-ld').classList.remove('show');
         var artId=Date.now();
         var artUrl=(blogUrl.replace(/\/+$/,'')+'/?id='+artId);  // 記事固有URL
-        var art={id:artId,title:meta.title,cat:cat,content:K.lastArt,svg:K.curSVG,status:'published',date:new Date().toLocaleDateString('ja-JP'),url:artUrl};
+        var art={id:artId,title:meta.title,cat:cat,content:K.lastArt,svg:minifySVG(K.curSVG),status:'published',date:new Date().toLocaleDateString('ja-JP'),url:artUrl};
         K.arts.unshift(art);saveArts();
   var _res=document.getElementById('art-note-result');
   if(_res){_res.textContent='⏳ GitHubに保存中...';_res.className='alert';}
