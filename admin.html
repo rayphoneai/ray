@@ -698,49 +698,99 @@ function regenEC(){
     if(btn){btn.disabled=false;btn.textContent='🔄 再生成';}
   });
 }
-function genEC(title,cat,done){
-  var styles=['split','center','namecard','diagonal','bold','minimal','frame'];
-  var s=styles[Math.floor(Math.random()*styles.length)];
-  var sd={
-    split:'ノワール×幾何学：黒背景・オレンジの細いライングリッド・左側にタイトル・右に大きな円の幾何学装飾',
-    center:'サイバーパンク：極暗背景・オレンジのネオン細枠・中央にタイトル・背景にドットグリッド',
-    namecard:'マガジン：白背景・極太黒タイポグラフィ・オレンジのアクセントライン・レタースペーシング広め',
-    diagonal:'テック：黒背景・斜め分割でオレンジゾーン・細いグリッドライン・ミニマルテキスト',
-    bold:'シネマティック：暗背景・上下黒帯・中央にタイトル・オレンジのアクセントライン',
-    minimal:'ブループリント：暗背景・同心円や図形の設計図風装飾・オレンジ細線・小さいテキスト',
-    frame:'アーキテクチャ：黒背景・右側に幾何学構造物・左にミニマルテキスト・オレンジポイント'
-  }[s];
-  var short=title.slice(0,18);
-  var ecPrompt='RayPhoneAIブログのアイキャッチSVG（1280x670）を生成。\n\nタイトル：'+short+'\nカテゴリ：'+cat+'\nスタイル：クール・モダン・スタイリッシュ\nレイアウト参考：'+sd+'\n\nviewBox=\"0 0 1280 670\" width=\"1280\" height=\"670\"\nカラー：白#fff（メイン背景）・黒#1A1A1A（アクセント）・オレンジ#FF6B00（ポイント）・rgba透明度\nfont-family=\"Arial,sans-serif\"\n\n【必須デザイン方針】\n・背景は白（#fff または #f8f8f8）を基調とする\n・黒（#1A1A1A）を帯・タイポグラフィ・図形アクセントに使う\n・オレンジ（#FF6B00）は細線・バッジ・ポイントとして面積小さく使う\n・タイトルは18文字以内・font-size 52~66px・font-weight=\"900\"・fill=\"#1A1A1A\"\n・グラフィック要素（幾何学・細線・ドット・円など）で余白を豊かに使う\n・テキストは小さめ（カテゴリ：font-size 10~12px・letter-spacing 4~6）\n・\"RayPhoneAI\"の文字を小さく品よく入れる\n\n<svg...></svg>のみ出力。前置き一切不要。';
-  claudeCall(ecPrompt,2000,function(err,text){
-    try{
-      var svg='';
-      if(!err&&text){
-        var m=text.match(/<svg[\s\S]*<\/svg>/i);
-        svg=m?m[0]:'';
-        svg=svg.replace(/<!--[\s\S]*?-->/g,'').replace(/\s+/g,' ').replace(/> </g,'><').trim();
-      }
-      K.curSVG=svg||_fallbackSVG(short,cat);
-      showECPreview();
-    }catch(e){
-      K.curSVG=_fallbackSVG(short,cat);
-      showECPreview();
-    }
-    try{if(done)done();}catch(e){}
-  });
+function makeEyecatch(art){
+  var title = (art.title||'').replace(/【深掘り】/,'').replace(/【.*?】/g,'').trim();
+  var cat   = art.cat||'AI';
+  var short = title.slice(0,18);
+  var short2 = title.length>18 ? title.slice(18,36) : '';
+
+  var idx = Math.abs(parseInt(String(art.id||Date.now()).slice(-2))||0) % 10;
+
+  var svgs = [
+
+    // 0: 白ベース × 左オレンジ縦帯 × 右側幾何学
+    function(){
+      var grid=''; for(var i=0;i<8;i++) grid+='<line x1="'+(750+i*68)+'" y1="0" x2="'+(750+i*68)+'" y2="670" stroke="rgba(26,26,26,.06)" stroke-width="1"/>';
+      return '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><rect x="0" y="0" width="6" height="670" fill="#FF6B00"/>'+grid+'<circle cx="1000" cy="335" r="220" fill="none" stroke="rgba(255,107,0,.12)" stroke-width="40"/><circle cx="1000" cy="335" r="140" fill="rgba(255,107,0,.05)"/><rect x="0" y="600" width="1280" height="70" fill="#1A1A1A"/><text x="50" y="140" font-size="10" fill="#FF6B00" letter-spacing="5" font-weight="700" font-family="Arial,sans-serif">'+cat.toUpperCase()+'</text><rect x="50" y="160" width="50" height="2" fill="#FF6B00"/><text x="50" y="280" font-size="60" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short+'</text>'+(short2?'<text x="50" y="350" font-size="60" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short2+'</text>':'')+'<text x="50" y="638" font-size="13" fill="#FF6B00" font-weight="700" font-family="Arial,sans-serif">RayPhoneAI</text><text x="1230" y="638" font-size="11" fill="#888" text-anchor="end" font-family="Arial,sans-serif" letter-spacing="2">RAYPHONEAI.COM</text></svg>';
+    },
+
+    // 1: 白ベース × 右側ハーフブラック × オレンジライン
+    function(){
+      return '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><rect x="700" y="0" width="580" height="670" fill="#1A1A1A"/><rect x="0" y="0" width="1280" height="4" fill="#FF6B00"/><rect x="700" y="0" width="4" height="670" fill="#FF6B00"/><circle cx="990" cy="335" r="180" fill="rgba(255,107,0,.08)"/><circle cx="990" cy="335" r="100" fill="rgba(255,107,0,.12)"/><text x="1230" y="130" font-size="10" fill="rgba(255,107,0,.6)" text-anchor="end" letter-spacing="4" font-family="Arial,sans-serif">'+cat.toUpperCase()+'</text><text x="750" y="310" font-size="56" font-weight="900" fill="#fff" font-family="Arial,sans-serif">'+short.slice(0,9)+'</text>'+(short.length>9?'<text x="750" y="375" font-size="56" font-weight="900" fill="#fff" font-family="Arial,sans-serif">'+short.slice(9)+'</text>':'')+'<text x="50" y="140" font-size="10" fill="#FF6B00" letter-spacing="5" font-weight="700" font-family="Arial,sans-serif">'+cat.toUpperCase()+'</text><text x="50" y="270" font-size="56" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+(title.slice(0,9))+'</text><text x="50" y="340" font-size="56" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+(title.length>9?title.slice(9,18):'')+'</text><rect x="50" y="420" width="80" height="3" fill="#FF6B00"/><text x="50" y="470" font-size="12" fill="#888" letter-spacing="1" font-family="Arial,sans-serif">by Rayphone</text></svg>';
+    },
+
+    // 2: マガジン白 × 大ナンバー × 黒タイポ
+    function(){
+      var num = String(Math.abs(parseInt(String(art.id||1).slice(-3))||1) % 99 + 1).padStart(2,'0');
+      return '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#F8F8F8"/><text x="-20" y="600" font-size="650" font-weight="900" fill="rgba(26,26,26,.04)" font-family="Arial,sans-serif">'+num+'</text><rect x="0" y="0" width="1280" height="80" fill="#1A1A1A"/><rect x="0" y="78" width="1280" height="4" fill="#FF6B00"/><text x="40" y="52" font-size="13" fill="#FF6B00" letter-spacing="5" font-weight="700" font-family="Arial,sans-serif">RAYPHONEAI</text><text x="40" y="68" font-size="9" fill="rgba(255,255,255,.5)" letter-spacing="3" font-family="Arial,sans-serif">'+cat.toUpperCase()+'</text><text x="1240" y="52" font-size="36" font-weight="900" fill="#FF6B00" text-anchor="end" font-family="Arial,sans-serif">No.'+num+'</text><text x="80" y="270" font-size="66" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short+'</text>'+(short2?'<text x="80" y="345" font-size="66" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short2+'</text>':'')+'<rect x="80" y="395" width="320" height="3" fill="#FF6B00"/><text x="80" y="440" font-size="13" fill="#888" font-family="Arial,sans-serif">プロンプト設計士 Rayphone</text><rect x="0" y="610" width="1280" height="60" fill="#1A1A1A"/><text x="640" y="648" font-size="11" fill="rgba(255,107,0,.8)" text-anchor="middle" letter-spacing="4" font-family="Arial,sans-serif">AI BLOG — RAYPHONEAI.COM</text></svg>';
+    },
+
+    // 3: 白ベース × 斜め黒帯 × オレンジポイント
+    function(){
+      return '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><polygon points="800,0 1280,0 1280,670 480,670" fill="#1A1A1A"/><rect x="0" y="0" width="1280" height="4" fill="#FF6B00"/><circle cx="1050" cy="280" r="160" fill="rgba(255,107,0,.08)"/><circle cx="1050" cy="280" r="60" fill="rgba(255,107,0,.15)"/><text x="60" y="140" font-size="10" fill="#FF6B00" letter-spacing="5" font-weight="700" font-family="Arial,sans-serif">'+cat.toUpperCase()+'</text><rect x="60" y="155" width="40" height="2" fill="#FF6B00"/><text x="60" y="280" font-size="62" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short+'</text>'+(short2?'<text x="60" y="352" font-size="62" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short2+'</text>':'')+'<text x="60" y="460" font-size="12" fill="#aaa" letter-spacing="2" font-family="Arial,sans-serif">RAYPHONEAI.COM</text><text x="1050" y="540" font-size="11" fill="rgba(255,107,0,.6)" text-anchor="middle" letter-spacing="3" font-family="Arial,sans-serif">RAYPHONE</text></svg>';
+    },
+
+    // 4: ミニマル白 × 細いグリッド × オレンジ1点
+    function(){
+      var grid2='';
+      for(var gx=0;gx<22;gx++) grid2+='<line x1="'+(gx*62)+'" y1="0" x2="'+(gx*62)+'" y2="670" stroke="rgba(26,26,26,.04)" stroke-width="1"/>';
+      for(var gy=0;gy<12;gy++) grid2+='<line x1="0" y1="'+(gy*62)+'" x2="1280" y2="'+(gy*62)+'" stroke="rgba(26,26,26,.04)" stroke-width="1"/>';
+      return '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fafafa"/>'+grid2+'<rect x="0" y="610" width="1280" height="60" fill="#1A1A1A"/><rect x="60" y="180" width="2" height="260" fill="#FF6B00"/><text x="85" y="230" font-size="10" fill="#FF6B00" letter-spacing="5" font-weight="700" font-family="Arial,sans-serif">'+cat.toUpperCase()+'</text><text x="85" y="330" font-size="62" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short+'</text>'+(short2?'<text x="85" y="402" font-size="62" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short2+'</text>':'')+'<circle cx="1100" cy="280" r="120" fill="none" stroke="rgba(255,107,0,.15)" stroke-width="1"/><circle cx="1100" cy="280" r="60" fill="rgba(255,107,0,.07)"/><text x="640" y="648" font-size="11" fill="#FF6B00" text-anchor="middle" letter-spacing="4" font-family="Arial,sans-serif">RAYPHONEAI</text></svg>';
+    },
+
+    // 5: 白ベース × 下部ブラック大バー × オレンジ枠
+    function(){
+      return '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><rect x="0" y="430" width="1280" height="240" fill="#1A1A1A"/><rect x="0" y="428" width="1280" height="4" fill="#FF6B00"/><rect x="40" y="40" width="1200" height="360" fill="none" stroke="rgba(26,26,26,.06)" stroke-width="1"/><circle cx="1050" cy="200" r="180" fill="rgba(255,107,0,.04)"/><circle cx="1050" cy="200" r="80" fill="rgba(255,107,0,.07)"/><text x="80" y="130" font-size="10" fill="#FF6B00" letter-spacing="5" font-weight="700" font-family="Arial,sans-serif">'+cat.toUpperCase()+'</text><text x="80" y="250" font-size="64" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short+'</text>'+(short2?'<text x="80" y="328" font-size="64" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short2+'</text>':'')+'<text x="80" y="510" font-size="13" fill="#fff" letter-spacing="1" font-family="Arial,sans-serif">RayPhoneAI — プロンプト設計士 Rayphone</text><text x="80" y="600" font-size="11" fill="rgba(255,107,0,.7)" letter-spacing="3" font-family="Arial,sans-serif">RAYPHONEAI.COM</text></svg>';
+    },
+
+    // 6: 白ベース × 右側ドットパターン × 黒タイポ
+    function(){
+      var dots=''; for(var r=0;r<9;r++) for(var c=0;c<8;c++) dots+='<circle cx="'+(720+c*72)+'" cy="'+(40+r*72)+'" r="'+(3+Math.abs(c-3.5)*0.4).toFixed(1)+'" fill="rgba(26,26,26,'+(0.06+r*0.01).toFixed(2)+')" />';
+      return '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/>'+dots+'<rect x="0" y="0" width="4" height="670" fill="#FF6B00"/><rect x="0" y="620" width="1280" height="50" fill="#1A1A1A"/><text x="50" y="130" font-size="10" fill="#FF6B00" letter-spacing="5" font-weight="700" font-family="Arial,sans-serif">'+cat.toUpperCase()+'</text><rect x="50" y="148" width="50" height="2" fill="#FF6B00"/><text x="50" y="280" font-size="62" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short+'</text>'+(short2?'<text x="50" y="352" font-size="62" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short2+'</text>':'')+'<text x="50" y="460" font-size="12" fill="#bbb" letter-spacing="1" font-family="Arial,sans-serif">by Rayphone</text><text x="640" y="648" font-size="11" fill="#FF6B00" text-anchor="middle" letter-spacing="4" font-family="Arial,sans-serif">RAYPHONEAI</text></svg>';
+    },
+
+    // 7: 白ベース × オレンジ上帯 × 黒下帯
+    function(){
+      return '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><rect x="0" y="0" width="1280" height="100" fill="#FF6B00"/><rect x="0" y="580" width="1280" height="90" fill="#1A1A1A"/><text x="640" y="62" font-size="22" font-weight="900" fill="#fff" text-anchor="middle" letter-spacing="4" font-family="Arial,sans-serif">RAYPHONEAI</text><text x="640" y="84" font-size="10" fill="rgba(255,255,255,.7)" text-anchor="middle" letter-spacing="3" font-family="Arial,sans-serif">'+cat.toUpperCase()+'</text><text x="80" y="270" font-size="64" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short+'</text>'+(short2?'<text x="80" y="345" font-size="64" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short2+'</text>':'')+'<rect x="80" y="390" width="200" height="3" fill="#FF6B00"/><text x="80" y="435" font-size="13" fill="#999" font-family="Arial,sans-serif">プロンプト設計士 Rayphone</text><text x="640" y="635" font-size="11" fill="#FF6B00" text-anchor="middle" letter-spacing="3" font-family="Arial,sans-serif">あなたの仕事をAIで加速する</text></svg>';
+    },
+
+    // 8: 白ベース × 額縁ライン × 中央タイポ
+    function(){
+      return '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><rect x="30" y="30" width="1220" height="610" fill="none" stroke="#1A1A1A" stroke-width="2"/><rect x="46" y="46" width="1188" height="578" fill="none" stroke="rgba(255,107,0,.3)" stroke-width="1"/><rect x="30" y="30" width="300" height="4" fill="#FF6B00"/><rect x="950" y="30" width="300" height="4" fill="#FF6B00"/><rect x="30" y="636" width="300" height="4" fill="#FF6B00"/><rect x="950" y="636" width="300" height="4" fill="#FF6B00"/><text x="640" y="180" font-size="11" fill="#FF6B00" text-anchor="middle" letter-spacing="6" font-family="Arial,sans-serif">'+cat.toUpperCase()+'</text><rect x="540" y="195" width="200" height="1" fill="rgba(26,26,26,.15)"/><text x="640" y="320" font-size="62" font-weight="900" fill="#1A1A1A" text-anchor="middle" font-family="Arial,sans-serif">'+short+'</text>'+(short2?'<text x="640" y="392" font-size="62" font-weight="900" fill="#1A1A1A" text-anchor="middle" font-family="Arial,sans-serif">'+short2+'</text>':'')+'<rect x="540" y="440" width="200" height="1" fill="rgba(26,26,26,.15)"/><text x="640" y="490" font-size="12" fill="#bbb" text-anchor="middle" letter-spacing="2" font-family="Arial,sans-serif">RAYPHONEAI</text></svg>';
+    },
+
+    // 9: 白ベース × 右側三角ブラック × オレンジ細線
+    function(){
+      return '<svg viewBox="0 0 1280 670" xmlns="http://www.w3.org/2000/svg"><rect width="1280" height="670" fill="#fff"/><polygon points="700,0 1280,0 1280,670" fill="#1A1A1A"/><line x1="700" y1="0" x2="1280" y2="670" stroke="#FF6B00" stroke-width="3"/><rect x="0" y="0" width="1280" height="4" fill="#FF6B00"/><circle cx="1050" cy="250" r="130" fill="none" stroke="rgba(255,107,0,.15)" stroke-width="1"/><circle cx="1050" cy="250" r="60" fill="rgba(255,107,0,.07)"/><text x="60" y="140" font-size="10" fill="#FF6B00" letter-spacing="5" font-weight="700" font-family="Arial,sans-serif">'+cat.toUpperCase()+'</text><rect x="60" y="156" width="40" height="2" fill="#FF6B00"/><text x="60" y="290" font-size="64" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short+'</text>'+(short2?'<text x="60" y="364" font-size="64" font-weight="900" fill="#1A1A1A" font-family="Arial,sans-serif">'+short2+'</text>':'')+'<text x="60" y="480" font-size="12" fill="#bbb" letter-spacing="2" font-family="Arial,sans-serif">RAYPHONEAI.COM</text></svg>';
+    },
+  ];
+  return svgs[idx]();
 }
 
-function _fallbackSVG(title,cat){
-  var t=title.slice(0,16);
-  return '<svg viewBox="0 0 1280 670" width="1280" height="670" xmlns="http://www.w3.org/2000/svg">'
-    +'<rect width="1280" height="670" fill="#fff"/>'
-    +'<rect x="0" y="0" width="8" height="670" fill="#FF6B00"/>'
-    +'<rect x="0" y="580" width="1280" height="2" fill="#1A1A1A"/>'
-    +'<text x="80" y="300" font-family="Arial,sans-serif" font-size="62" font-weight="900" fill="#1A1A1A">'+t+'</text>'
-    +'<text x="80" y="360" font-family="Arial,sans-serif" font-size="20" fill="#FF6B00">'+cat+'</text>'
-    +'<text x="80" y="620" font-family="Arial,sans-serif" font-size="14" fill="#999">RayPhoneAI</text>'
-    +'</svg>';
+
+
+function genEC(title, cat, done) {
+  // index.htmlと同じ静的SVGテンプレートを使用（APIコール不要・確実表示）
+  var short  = title.slice(0, 18);
+  var short2 = title.length > 18 ? title.slice(18, 36) : '';
+  var pseudoArt = {
+    id: Date.now(),
+    title: title,
+    cat: cat
+  };
+  // 毎回ランダムなテンプレートを選択（記事IDではなく乱数で）
+  var forcedIdx = Math.floor(Math.random() * 10);
+  var originalFn = pseudoArt.id;
+  // idの末2桁をforcedIdxで上書きするトリック
+  pseudoArt.id = forcedIdx;
+  var svg = makeEyecatch(pseudoArt);
+  // コメント・空白を圧縮
+  svg = svg.replace(/<!--[\s\S]*?-->/g, '').replace(/\s+/g, ' ').replace(/> </g, '><').trim();
+  K.curSVG = svg;
+  showECPreview();
+  try { if (done) done(); } catch(e) {}
 }
+
 
 function runFullAuto(targetCat){
   if(!K.apiKey){go('settings');return;}
