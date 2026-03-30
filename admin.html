@@ -702,45 +702,25 @@ function genEC(title,cat,done){
   var styles=['split','center','namecard','diagonal','bold','minimal','frame'];
   var s=styles[Math.floor(Math.random()*styles.length)];
   var sd={
-    split:'左側にタイトルテキスト・右に大きな円',
-    center:'中央にタイトル・背景にドットグリッド',
-    namecard:'白背景・極太黒タイポグラフィ・オレンジライン',
-    diagonal:'黒背景・斜め分割オレンジゾーン',
-    bold:'暗背景・上下黒帯・中央タイトル',
-    minimal:'暗背景・同心円装飾・オレンジ細線',
-    frame:'黒背景・右側に幾何学構造物'
+    split:'ノワール×幾何学：黒背景・オレンジの細いライングリッド・左側にタイトル・右に大きな円の幾何学装飾',
+    center:'サイバーパンク：極暗背景・オレンジのネオン細枠・中央にタイトル・背景にドットグリッド',
+    namecard:'マガジン：白背景・極太黒タイポグラフィ・オレンジのアクセントライン・レタースペーシング広め',
+    diagonal:'テック：黒背景・斜め分割でオレンジゾーン・細いグリッドライン・ミニマルテキスト',
+    bold:'シネマティック：暗背景・上下黒帯・中央にタイトル・オレンジのアクセントライン',
+    minimal:'ブループリント：暗背景・同心円や図形の設計図風装飾・オレンジ細線・小さいテキスト',
+    frame:'アーキテクチャ：黒背景・右側に幾何学構造物・左にミニマルテキスト・オレンジポイント'
   }[s];
-  var short=title.slice(0,16);
-  // シンプルで小さいSVGを要求（要素は最小限・テキストのみ・3000字以内）
-  var ecPrompt='アイキャッチSVGを生成。viewBox="0 0 1280 670" width="1280" height="670"\n'
-    +'タイトル：'+short+'\nカテゴリ：'+cat+'\nスタイル：'+sd+'\n'
-    +'カラー：背景#fff・テキスト#1A1A1A・アクセント#FF6B00\n'
-    +'font-family="Arial,sans-serif"\n'
-    +'【厳守】要素数は10個以内。テキストはtspan不使用。コメント行禁止。\n'
-    +'タイトルtext: font-size="56" font-weight="900" fill="#1A1A1A"\n'
-    +'カテゴリtext: font-size="18" fill="#FF6B00"\n'
-    +'"RayPhoneAI"text: font-size="14" fill="#999"\n'
-    +'<svg>〜</svg>のみ出力。前置き禁止。';
-  claudeCall(ecPrompt,1200,function(err,text){
+  var short=title.slice(0,18);
+  var ecPrompt='RayPhoneAIブログのアイキャッチSVG（1280x670）を生成。\n\nタイトル：'+short+'\nカテゴリ：'+cat+'\nスタイル：クール・モダン・スタイリッシュ\nレイアウト参考：'+sd+'\n\nviewBox=\"0 0 1280 670\" width=\"1280\" height=\"670\"\nカラー：白#fff（メイン背景）・黒#1A1A1A（アクセント）・オレンジ#FF6B00（ポイント）・rgba透明度\nfont-family=\"Arial,sans-serif\"\n\n【必須デザイン方針】\n・背景は白（#fff または #f8f8f8）を基調とする\n・黒（#1A1A1A）を帯・タイポグラフィ・図形アクセントに使う\n・オレンジ（#FF6B00）は細線・バッジ・ポイントとして面積小さく使う\n・タイトルは18文字以内・font-size 52~66px・font-weight=\"900\"・fill=\"#1A1A1A\"\n・グラフィック要素（幾何学・細線・ドット・円など）で余白を豊かに使う\n・テキストは小さめ（カテゴリ：font-size 10~12px・letter-spacing 4~6）\n・\"RayPhoneAI\"の文字を小さく品よく入れる\n\n<svg...></svg>のみ出力。前置き一切不要。';
+  claudeCall(ecPrompt,2000,function(err,text){
     try{
       var svg='';
       if(!err&&text){
         var m=text.match(/<svg[\s\S]*<\/svg>/i);
         svg=m?m[0]:'';
-        // 圧縮：コメント・余分な空白を除去
         svg=svg.replace(/<!--[\s\S]*?-->/g,'').replace(/\s+/g,' ').replace(/> </g,'><').trim();
-        // 上限チェック：4000字超えたらフォールバック
-        if(svg.length>4000){
-          alog('SVG大きすぎ('+svg.length+'字) → フォールバック');
-          svg='';
-        }
       }
-      if(svg){
-        K.curSVG=svg;
-      } else {
-        // フォールバック：シンプルな静的SVG
-        K.curSVG=_fallbackSVG(short,cat);
-      }
+      K.curSVG=svg||_fallbackSVG(short,cat);
       showECPreview();
     }catch(e){
       K.curSVG=_fallbackSVG(short,cat);
