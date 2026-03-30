@@ -653,27 +653,33 @@ def main_note():
     title   = art.get("title", "")
     content = art.get("content", "")
     svg     = art.get("svg", "")
+    cat     = art.get("cat", "AI活用")
     art_url = art.get("url", "") or f"{BLOG_URL}/?id={art.get('id','')}"
 
     log(f"投稿対象: {title}")
+    log(f"ブログ本文: {len(content)}字")
 
-    # note専用コンテンツを生成
-    note_body = strip_preamble(gemini(f"""あなたはRayphoneです。ブログ記事のnote版（約2000字）を書いてください。
+    # ブログ全文を使ってnote深掘り版を生成
+    note_body = strip_preamble(gemini(f"""あなたはRayphone（プロンプト設計士・商品開発15年・Claude副業月収15万達成）です。
+下記のブログ記事を元に、noteで深掘り解説する記事（約2000字）を書いてください。
 
-【タイトル】{title}
+【ブログタイトル】{title}
+【カテゴリ】{cat}
 【ブログURL】{art_url}
-【本文抜粋】{content[:500]}...
+【ブログ本文（全文）】
+{content}
 
-■はじめに（300字）
-■この記事で解決できること（箇条書き3つ）
+■構成
+■はじめに（200字）―ブログの要点をnote読者向けに噛み砕く
+■ブログでは語れなかった深掘り（800字）―実体験・失敗談・応用例を追加
+■読者が今すぐ試せるアクション（400字）―具体的なプロンプト例を1つ以上
+■Rayphoneからの一言（200字）―締め
 
-▼ ブログ記事はこちら
+▼ ブログ記事はこちら（必ず本文中にそのまま記載）
 {art_url}
 
-■深掘り解説（1000字）
-■Rayphoneからの一言（300字）
-
-【禁止】# * マークダウン禁止。見出しは■。箇条書きは「・」。前置き・承諾文禁止。""", 3500))
+【禁止】# * マークダウン記号禁止。見出しは■。箇条書きは「・」。前置き・承諾文禁止。
+ブログと同じ情報を繰り返すのではなく、必ず「ブログの続き・深掘り」として書くこと。""", 3500))
 
     if art_url not in note_body:
         note_body += f"\n\n▼ ブログ記事はこちら\n{art_url}\n"
