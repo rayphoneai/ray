@@ -125,26 +125,16 @@ def main():
         log(f"生成ステータス: {lt_text}")
         time.sleep(2)
 
-        # ── STEP 5: すぐに公開ボタンをクリック ───────────────
-        log("【STEP 5】すぐに公開ボタンをクリック...")
-        publish_btn = page.query_selector("#art-publish-btn")
-        if publish_btn and publish_btn.is_visible():
-            publish_btn.click()
-            log("10秒待機中（GitHub push）...")
-            time.sleep(10)
-            log("✓ 公開完了")
-        else:
-            log("⚠ 公開ボタンが見つかりません → スキップ")
-
-        # ── STEP 6: noteに投稿ボタンをクリック ───────────────
-        log("【STEP 6】noteに投稿ボタンをクリック...")
+        # ── STEP 5: noteに投稿ボタンをクリック ───────────────
+        # このボタン1つで「ブログ公開（GitHub push）＋ note_post.yml トリガー」が完結する
+        log("【STEP 5】noteに投稿ボタンをクリック（ブログ公開＋note投稿ワークフロー起動）...")
         note_btn = page.query_selector("#art-to-note-btn")
         if note_btn and note_btn.is_visible():
             note_btn.click()
-            log("10秒待機中（ワークフロートリガー）...")
+            log("10秒待機中（GitHub push + ワークフロートリガー）...")
             time.sleep(10)
             result_text = page.text_content("#art-note-result") or ""
-            log(f"note投稿結果: {result_text}")
+            log(f"✓ 結果: {result_text}")
         else:
             log("⚠ note投稿ボタンが見つかりません → スキップ")
 
