@@ -992,19 +992,37 @@ Rayphoneの一人称・体験談必須。""", 4500))
         "date": datetime.now().strftime("%Y.%m.%d"),
         "status": "published", "url": art_url,
     }
+
+    # 既存記事を確実に取得（失敗しても空にしない）
     arts = []
-    if GH_TOKEN:
-        r = requests.get(
-            f"https://api.github.com/repos/{GH_USER}/{GH_REPO}/contents/articles.json",
-            headers=_gh_headers())
-        if r.status_code == 200:
-            try:
+    fetch_ok = False
+    for attempt in range(3):
+        try:
+            r = requests.get(
+                f"https://api.github.com/repos/{GH_USER}/{GH_REPO}/contents/articles.json",
+                headers=_gh_headers(), timeout=30)
+            if r.status_code == 200:
                 arts = json.loads(base64.b64decode(r.json()["content"]).decode())
-            except Exception:
-                arts = []
+                fetch_ok = True
+                log(f"既存記事取得: {len(arts)}件")
+                break
+            elif r.status_code == 404:
+                log("articles.json未作成 → 新規作成")
+                fetch_ok = True
+                break
+        except Exception as e:
+            log(f"既存記事取得失敗(試行{attempt+1}): {e}")
+            time.sleep(3)
+
+    if not fetch_ok:
+        log("⚠ 既存記事の取得に失敗しました。安全のため投稿を中断します。")
+        return
+
+    # 新記事を先頭に追加（同IDが既にあれば更新）
+    arts = [a for a in arts if str(a.get("id","")) != str(art_id)]
     arts.insert(0, new_art)
     push_articles(arts)
-    log(f"✓ ブログURL: {art_url}")
+    log(f"✓ ブログURL: {art_url} (合計{len(arts)}件)")
 
     # STEP 5a: note生成・投稿
     log("[5/5] note専用コンテンツを生成中...")
