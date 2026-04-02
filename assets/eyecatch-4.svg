@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg4" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#100a04"/>
+      <stop offset="100%" stop-color="#1e1208"/>
+    </linearGradient>
+    <radialGradient id="glow4" cx="80%" cy="20%" r="60%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur4"><feGaussianBlur stdDeviation="40"/></filter>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="1200" height="630" fill="url(#bg4)"/>
+  
+  <!-- グロー効果 -->
+  <rect width="1200" height="630" fill="url(#glow4)"/>
+  
+  <!-- グリッド線 -->
+  <line x1="0" y1="0" x2="0" y2="630" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="60" y1="0" x2="60" y2="630" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="120" y1="0" x2="120" y2="630" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="180" y1="0" x2="180" y2="630" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="240" y1="0" x2="240" y2="630" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="300" y1="0" x2="300" y2="630" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="360" y1="0" x2="360" y2="630" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="420" y1="0" x2="420" y2="630" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="480" y1="0" x2="480" y2="630" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="540" y1="0" x2="540" y2="630" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="600" y1="0" x2="600" y2="630" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="660" y1="0" x2="660" y2="630" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="720" y1="0" x2="720" y2="630" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="780" y1="0" x2="780" y2="630" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="840" y1="0" x2="840" y2="630" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="900" y1="0" x2="900" y2="630" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="960" y1="0" x2="960" y2="630" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="1020" y1="0" x2="1020" y2="630" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="1080" y1="0" x2="1080" y2="630" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="1140" y1="0" x2="1140" y2="630" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="1200" y1="0" x2="1200" y2="630" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/>
+  <line x1="0" y1="0" x2="1200" y2="0" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="0" y1="60" x2="1200" y2="60" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="0" y1="120" x2="1200" y2="120" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="0" y1="180" x2="1200" y2="180" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="0" y1="240" x2="1200" y2="240" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="0" y1="300" x2="1200" y2="300" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="0" y1="360" x2="1200" y2="360" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="0" y1="420" x2="1200" y2="420" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="0" y1="480" x2="1200" y2="480" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="0" y1="540" x2="1200" y2="540" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/><line x1="0" y1="600" x2="1200" y2="600" stroke="#f59e0b" stroke-opacity="0.07" stroke-width="1"/>
+  
+  <!-- 六角形デコ -->
+  <polygon points="900,80 940,60 980,80 980,120 940,140 900,120" fill="none" stroke="#f59e0b" stroke-opacity="0.2" stroke-width="1.5"/>
+  <polygon points="1050,200 1090,180 1130,200 1130,240 1090,260 1050,240" fill="none" stroke="#f59e0b" stroke-opacity="0.15" stroke-width="1"/>
+  <polygon points="950,300 990,280 1030,300 1030,340 990,360 950,340" fill="none" stroke="#f59e0b" stroke-opacity="0.1" stroke-width="1"/>
+  
+  <!-- 円デコ -->
+  <circle cx="1100" cy="100" r="160" fill="none" stroke="#f59e0b" stroke-opacity="0.1" stroke-width="1.5"/>
+  <circle cx="1100" cy="100" r="100" fill="none" stroke="#f59e0b" stroke-opacity="0.12" stroke-width="1"/>
+  <circle cx="1100" cy="100" r="50"  fill="#f59e0b" fill-opacity="0.06"/>
+  
+  <!-- カテゴリバッジ -->
+  <rect x="60" y="60" width="110" height="30" rx="8" fill="#f59e0b" fill-opacity="0.18" stroke="#f59e0b" stroke-opacity="0.6" stroke-width="1"/>
+  <text x="75" y="80" font-family="'Noto Sans JP',sans-serif" font-size="13" font-weight="700" fill="#f59e0b">ツール紹介</text>
+  
+  <!-- アイコン -->
+  <text x="62" y="190" font-size="64">🛠</text>
+  
+  <!-- タイトル -->
+  <rect x="56" y="210" width="306" height="48" rx="4" fill="white" fill-opacity="0.92"/>
+  <text x="66" y="244" font-family="'Noto Sans JP',sans-serif" font-size="28" font-weight="700" fill="#080c18">AIライティングツール</text>
+  
+  <rect x="56" y="266" width="228" height="48" rx="4" fill="white" fill-opacity="0.92"/><text x="66" y="300" font-family='Noto Sans JP',sans-serif font-size="28" font-weight="700" fill="#080c18">徹底比較2026</text>
+  
+  <!-- メタライン -->
+  <line x1="60" y1="330" x2="500" y2="330" stroke="#f59e0b" stroke-opacity="0.4" stroke-width="1"/>
+  <rect x="60" y="340" width="80" height="12" rx="3" fill="#f59e0b" fill-opacity="0.4"/>
+  <rect x="150" y="340" width="120" height="12" rx="3" fill="#f59e0b" fill-opacity="0.25"/>
+  <rect x="280" y="340" width="60" height="12" rx="3" fill="#f59e0b" fill-opacity="0.15"/>
+  
+  <!-- ロゴ -->
+  <rect x="880" y="560" width="260" height="40" rx="6" fill="black" fill-opacity="0.5"/>
+  <text x="900" y="585" font-family="'Noto Sans JP',sans-serif" font-size="16" font-weight="900" fill="white">Rayphoneai</text>
+  <text x="1040" y="585" font-family="'Noto Sans JP',sans-serif" font-size="16" font-weight="900" fill="#f59e0b"> theme</text>
+  
+  <!-- ボトムライン -->
+  <rect x="0" y="626" width="1200" height="4" fill="#f59e0b" fill-opacity="0.8"/>
+</svg>
