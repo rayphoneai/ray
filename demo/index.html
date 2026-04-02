@@ -1,1 +1,649 @@
-a
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rayphoneai theme — WordPress テーマ デモ</title>
+<meta name="description" content="AI × ライティング専門メディア向けWordPressテーマ「Rayphoneai theme」のデモページ。全カラー・レイアウトをCustomizerから変更可能。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* =============================================
+   CSS カスタムプロパティ
+   ============================================= */
+:root {
+  --primary:     #00d4ff;
+  --secondary:   #7c5cfc;
+  --accent:      #ff6b6b;
+  --bg:          #080c18;
+  --bg2:         #0d1226;
+  --bg3:         #121832;
+  --border:      #1e2a4a;
+  --text:        #e8eaf0;
+  --muted:       #8899bb;
+  --heading:     #ffffff;
+  --card-r:      12px;
+  --max-w:       1200px;
+}
+
+/* ── Reset ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;-webkit-font-smoothing:antialiased}
+a{color:var(--primary);text-decoration:none;transition:.2s}
+a:hover{color:#fff}
+img{max-width:100%;height:auto;display:block}
+ul{list-style:none}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg3)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ── Demo Banner ── */
+.demo-banner{
+  position:fixed;bottom:20px;right:20px;z-index:999;
+  background:linear-gradient(135deg,var(--secondary),var(--primary));
+  color:#fff;padding:14px 20px;border-radius:14px;
+  font-size:.82rem;font-weight:700;
+  box-shadow:0 8px 32px rgba(0,212,255,.35);
+  display:flex;flex-direction:column;gap:6px;
+  max-width:240px;
+  animation:bannerPop .5s cubic-bezier(.34,1.56,.64,1) .8s both;
+}
+@keyframes bannerPop{from{opacity:0;transform:translateY(20px) scale(.95)}to{opacity:1;transform:none}}
+.demo-banner span{font-weight:400;font-size:.75rem;opacity:.85}
+.demo-banner a{color:#fff;text-decoration:underline;opacity:.9}
+
+/* ── Header ── */
+header{
+  position:sticky;top:0;z-index:100;
+  background:rgba(8,12,24,.95);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(12px);
+}
+.header-inner{
+  max-width:var(--max-w);margin:0 auto;padding:0 20px;
+  height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px;
+}
+.logo{font-size:1.2rem;font-weight:900;color:var(--heading);display:flex;align-items:center;gap:4px}
+.logo span{color:var(--primary)}
+.logo small{font-size:.65rem;color:var(--muted);font-weight:400;margin-left:4px}
+nav{display:flex;gap:2px}
+nav a{
+  padding:6px 12px;font-size:.83rem;font-weight:500;
+  color:var(--muted);border-radius:6px;transition:.2s;
+}
+nav a:hover,nav a.active{color:var(--primary);background:rgba(0,212,255,.08)}
+.header-right{display:flex;align-items:center;gap:10px}
+.search-btn{
+  background:none;border:none;color:var(--muted);
+  cursor:pointer;padding:6px;border-radius:6px;
+  display:flex;align-items:center;transition:.2s;
+}
+.search-btn:hover{color:var(--primary);background:rgba(0,212,255,.08)}
+.hamburger{display:none;background:none;border:none;cursor:pointer;color:var(--text);padding:6px}
+
+/* ── Container ── */
+.container{max-width:var(--max-w);margin:0 auto;padding:0 20px}
+
+/* ── Hero ── */
+.hero{padding:56px 0 32px}
+.hero-card{
+  display:grid;grid-template-columns:1fr 1fr;
+  min-height:440px;border-radius:20px;overflow:hidden;
+  border:1px solid var(--border);
+  background:var(--bg2);
+  transition:.3s;cursor:pointer;
+  animation:fadeUp .6s both;
+}
+.hero-card:hover{border-color:var(--primary);box-shadow:0 8px 48px rgba(0,212,255,.15);transform:translateY(-3px)}
+.hero-img{position:relative;overflow:hidden}
+.hero-img img{width:100%;height:100%;object-fit:cover;transition:.5s}
+.hero-card:hover .hero-img img{transform:scale(1.04)}
+.hero-img::after{content:'';position:absolute;inset:0;background:linear-gradient(to right,transparent 60%,var(--bg2))}
+.hero-body{padding:40px;display:flex;flex-direction:column;justify-content:center;gap:14px}
+.hero-tagline{font-size:.7rem;font-weight:700;letter-spacing:.12em;color:var(--primary);display:flex;align-items:center;gap:6px}
+.hero-tagline::before{content:'';display:block;width:14px;height:2px;background:var(--primary)}
+.cat-badge{
+  display:inline-block;padding:3px 10px;border-radius:10px;
+  font-size:.68rem;font-weight:700;width:fit-content;
+}
+.cat-writing-skills    {background:rgba(16,185,129,.12);color:#10b981}
+.cat-prompt-engineering{background:rgba(245,158,11,.12);color:#f59e0b}
+.cat-use-cases         {background:rgba(236,72,153,.12);color:#ec4899}
+.cat-tool-reviews      {background:rgba(124,92,252,.12);color:#7c5cfc}
+.cat-trend-analysis    {background:rgba(255,107,107,.12);color:#ff6b6b}
+.cat-ai-technology     {background:rgba(0,212,255,.12);color:#00d4ff}
+.hero-body h2{font-size:1.55rem;font-weight:700;color:var(--heading);line-height:1.4;letter-spacing:-.02em}
+.hero-excerpt{font-size:.85rem;color:var(--muted);line-height:1.7;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.hero-meta{display:flex;gap:14px;font-size:.75rem;color:var(--muted)}
+.read-more{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:10px 22px;background:var(--primary);color:var(--bg);
+  font-size:.83rem;font-weight:700;border-radius:22px;width:fit-content;
+  transition:.2s;
+}
+.read-more:hover{opacity:.88;color:var(--bg);transform:translateX(2px)}
+
+/* ── Sub Cards ── */
+.sub-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:20px}
+.sub-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--card-r);
+  overflow:hidden;transition:.3s;cursor:pointer;
+  animation:fadeUp .6s both;
+}
+.sub-card:nth-child(1){animation-delay:.05s}
+.sub-card:nth-child(2){animation-delay:.1s}
+.sub-card:nth-child(3){animation-delay:.15s}
+.sub-card:nth-child(4){animation-delay:.2s}
+.sub-card:hover{border-color:var(--primary);box-shadow:0 6px 28px rgba(0,212,255,.12);transform:translateY(-4px)}
+.sub-card-img{aspect-ratio:16/9;overflow:hidden}
+.sub-card-img img{width:100%;height:100%;object-fit:cover;transition:.4s}
+.sub-card:hover .sub-card-img img{transform:scale(1.06)}
+.sub-card-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:7px}
+.sub-card-body h3{font-size:.82rem;font-weight:600;color:var(--heading);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sub-meta{font-size:.7rem;color:var(--muted)}
+
+/* ── Category Tabs ── */
+.cat-tabs{display:flex;gap:8px;flex-wrap:wrap;padding-bottom:28px;border-bottom:1px solid var(--border);margin-bottom:40px}
+.cat-tab{
+  padding:5px 16px;border-radius:18px;font-size:.79rem;font-weight:600;
+  border:1.5px solid var(--border);color:var(--muted);
+  cursor:pointer;transition:.2s;background:transparent;
+}
+.cat-tab:hover,.cat-tab.active{border-color:var(--primary);color:var(--primary);background:rgba(0,212,255,.06)}
+.cat-tab.active{box-shadow:0 0 10px rgba(0,212,255,.15)}
+
+/* ── Main Layout ── */
+.main-area{padding:56px 0}
+.content-grid{display:grid;grid-template-columns:1fr 320px;gap:48px;align-items:start}
+.section-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px}
+.section-title{font-size:1.1rem;font-weight:700;color:var(--heading);display:flex;align-items:center;gap:10px}
+.section-title::before{content:'';display:block;width:4px;height:20px;background:var(--primary);border-radius:2px}
+.see-all{font-size:.78rem;font-weight:600;color:var(--muted);padding:4px 12px;border:1px solid var(--border);border-radius:6px;transition:.2s}
+.see-all:hover{border-color:var(--primary);color:var(--primary)}
+
+/* ── Article Grid ── */
+.article-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.article-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--card-r);
+  overflow:hidden;transition:.3s;cursor:pointer;display:flex;flex-direction:column;
+  animation:fadeUp .5s both;
+}
+.article-card:nth-child(1){animation-delay:.05s}
+.article-card:nth-child(2){animation-delay:.1s}
+.article-card:nth-child(3){animation-delay:.15s}
+.article-card:nth-child(4){animation-delay:.2s}
+.article-card:hover{border-color:var(--primary);box-shadow:0 6px 32px rgba(0,212,255,.13);transform:translateY(-4px)}
+.card-img{aspect-ratio:16/9;overflow:hidden}
+.card-img img{width:100%;height:100%;object-fit:cover;transition:.5s}
+.article-card:hover .card-img img{transform:scale(1.05)}
+.card-body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:9px;flex:1}
+.card-body h2{font-size:.92rem;font-weight:600;color:var(--heading);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-excerpt{font-size:.8rem;color:var(--muted);line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-tags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:.68rem;padding:2px 8px;border-radius:4px;background:rgba(255,255,255,.04);color:var(--muted);border:1px solid var(--border);transition:.2s}
+.tag::before{content:'#'}
+.tag:hover{border-color:var(--primary);color:var(--primary)}
+.card-meta{margin-top:auto;font-size:.72rem;color:var(--muted);display:flex;gap:10px}
+
+/* ── Sidebar ── */
+.sidebar{display:flex;flex-direction:column;gap:24px}
+.widget{background:var(--bg2);border:1px solid var(--border);border-radius:var(--card-r);overflow:hidden}
+.widget-hd{padding:14px 18px;border-bottom:1px solid var(--border)}
+.widget-hd h3{font-size:.88rem;font-weight:700;color:var(--heading);display:flex;align-items:center;gap:7px}
+.widget-hd h3::before{content:'';display:block;width:3px;height:15px;background:var(--primary);border-radius:2px}
+.widget-body{padding:14px 18px}
+
+/* Popular posts */
+.pop-list{display:flex;flex-direction:column}
+.pop-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:.2s}
+.pop-item:last-child{border-bottom:none;padding-bottom:0}
+.pop-item:first-child{padding-top:0}
+.pop-item:hover .pop-title{color:var(--primary)}
+.pop-rank{font-size:1.1rem;font-weight:900;min-width:22px;text-align:center}
+.rank-1{color:#ffd700}
+.rank-2{color:#c0c0c0}
+.rank-3{color:#cd7f32}
+.rank-other{color:var(--muted);font-size:.85rem}
+.pop-thumb{width:56px;height:42px;border-radius:5px;overflow:hidden;flex-shrink:0}
+.pop-thumb img{width:100%;height:100%;object-fit:cover}
+.pop-info{flex:1;min-width:0}
+.pop-title{font-size:.78rem;font-weight:600;color:var(--text);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;transition:.2s}
+.pop-date{font-size:.68rem;color:var(--muted);margin-top:3px}
+
+/* Category list */
+.cat-list{display:flex;flex-direction:column;gap:5px}
+.cat-item a{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 12px;border-radius:7px;background:rgba(255,255,255,.02);
+  border:1px solid var(--border);color:var(--text);font-size:.82rem;transition:.2s;
+}
+.cat-item a:hover{border-color:var(--primary);color:var(--primary);background:rgba(0,212,255,.04)}
+.cat-count{font-size:.7rem;font-weight:600;background:var(--bg3);padding:2px 7px;border-radius:9px;color:var(--muted)}
+
+/* About widget */
+.about-logo{font-size:1.4rem;font-weight:900;color:var(--heading);text-align:center;margin-bottom:8px}
+.about-logo span{color:var(--primary)}
+.about-desc{font-size:.8rem;color:var(--muted);text-align:center;line-height:1.65}
+.about-badge{display:block;text-align:center;margin-top:10px;font-size:.7rem;font-weight:600;color:var(--primary);background:rgba(0,212,255,.1);padding:3px 14px;border-radius:10px;width:fit-content;margin-inline:auto}
+
+/* Search */
+.search-form{display:flex}
+.search-form input{flex:1;padding:9px 14px;background:var(--bg3);border:1px solid var(--border);border-right:none;border-radius:7px 0 0 7px;color:var(--text);font-size:.85rem;font-family:inherit;outline:none;transition:.2s}
+.search-form input:focus{border-color:var(--primary)}
+.search-form input::placeholder{color:var(--muted)}
+.search-form button{padding:9px 16px;background:var(--primary);color:var(--bg);border:none;border-radius:0 7px 7px 0;cursor:pointer;font-size:.85rem}
+
+/* ── Footer ── */
+footer{background:var(--bg3);border-top:1px solid var(--border);margin-top:56px}
+.footer-main{display:grid;grid-template-columns:260px 1fr 1fr;gap:40px;padding:44px 0;border-bottom:1px solid var(--border)}
+.footer-logo{font-size:1.2rem;font-weight:900;color:var(--heading);margin-bottom:10px}
+.footer-logo span{color:var(--primary)}
+.footer-desc{font-size:.8rem;color:var(--muted);line-height:1.7}
+.footer-badge{display:inline-block;margin-top:10px;padding:3px 12px;border-radius:10px;background:rgba(0,212,255,.08);color:var(--primary);font-size:.7rem;font-weight:600}
+.footer-col h4{font-size:.86rem;font-weight:700;color:var(--heading);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.footer-links{display:flex;flex-direction:column;gap:7px}
+.footer-links a{font-size:.8rem;color:var(--muted);display:flex;align-items:center;gap:5px;transition:.2s}
+.footer-links a::before{content:'▸';font-size:.6rem;color:var(--primary)}
+.footer-links a:hover{color:var(--primary)}
+.footer-bottom{display:flex;align-items:center;justify-content:space-between;padding:18px 0;font-size:.76rem;color:var(--muted)}
+
+/* ── Animations ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 20px rgba(0,212,255,.2)}50%{box-shadow:0 0 40px rgba(0,212,255,.4)}}
+
+/* Progress bar */
+#progress{position:fixed;top:0;left:0;height:3px;width:0%;background:var(--primary);z-index:9999;transition:width .1s;box-shadow:0 0 8px rgba(0,212,255,.6)}
+
+/* ── Mobile ── */
+@media(max-width:1100px){
+  .content-grid{grid-template-columns:1fr}
+  .sidebar{flex-direction:row;flex-wrap:wrap}
+  .sidebar .widget{flex:1;min-width:240px}
+}
+@media(max-width:768px){
+  nav{display:none}
+  .hamburger{display:block}
+  .hero-card{grid-template-columns:1fr}
+  .hero-img{min-height:220px}
+  .hero-img::after{background:linear-gradient(to bottom,transparent 50%,var(--bg2))}
+  .hero-body{padding:20px}
+  .hero-body h2{font-size:1.2rem}
+  .sub-grid{grid-template-columns:repeat(2,1fr)}
+  .article-grid{grid-template-columns:1fr}
+  .footer-main{grid-template-columns:1fr;gap:24px}
+  .footer-bottom{flex-direction:column;gap:6px;text-align:center}
+}
+@media(max-width:480px){
+  .sub-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- 進捗バー -->
+<div id="progress"></div>
+
+<!-- デモバナー -->
+<div class="demo-banner">
+  <strong>🎨 Rayphoneai theme</strong>
+  <span>WordPressテーマ デモページ</span>
+  <a href="https://github.com/rayphoneai/rayphoneai-theme" target="_blank">テーマをダウンロード →</a>
+</div>
+
+<!-- ===================== HEADER ===================== -->
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      Rayphoneai <span>theme</span>
+      <small>AI × ライティング</small>
+    </div>
+    <nav>
+      <a href="#" class="active">ホーム</a>
+      <a href="#">記事一覧</a>
+      <a href="#">AI技術</a>
+      <a href="#">ツール紹介</a>
+      <a href="#">トレンド分析</a>
+      <a href="#">プロンプト技術</a>
+    </nav>
+    <div class="header-right">
+      <button class="search-btn" aria-label="検索">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <button class="hamburger" aria-label="メニュー">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero">
+  <div class="container">
+
+    <!-- メインヒーローカード -->
+    <div class="hero-card">
+      <div class="hero-img">
+        <img src="assets/eyecatch-1.svg" alt="ChatGPT・Geminiを使ったブログ記事の書き方" loading="eager">
+      </div>
+      <div class="hero-body">
+        <div class="hero-tagline">AI × ライティングの最前線をお届け</div>
+        <span class="cat-badge cat-writing-skills">ライティング術</span>
+        <h2>ChatGPT・Geminiを使ったブログ記事の書き方入門：プロが実践する10のテクニック</h2>
+        <p class="hero-excerpt">ChatGPTやGeminiの登場により、ブログ記事の執筆方法は根本から変わりつつあります。プロのライターがAIと協働して高品質な記事を生産するための10のテクニックを解説します。</p>
+        <div class="hero-meta">
+          <span>📅 2026/04/01</span>
+          <span>👁 1,240</span>
+        </div>
+        <a href="post.html" class="read-more">
+          記事を読む
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- サブカードグリッド -->
+    <div class="sub-grid">
+      <div class="sub-card">
+        <div class="sub-card-img"><img src="assets/eyecatch-2.svg" alt="" loading="lazy"></div>
+        <div class="sub-card-body">
+          <span class="cat-badge cat-prompt-engineering">プロンプト技術</span>
+          <h3>AIプロンプトエンジニアリング完全ガイド2025：良い文章を引き出す魔法の言葉</h3>
+          <div class="sub-meta">2026/03/25 · 987 views</div>
+        </div>
+      </div>
+      <div class="sub-card">
+        <div class="sub-card-img"><img src="assets/eyecatch-3.svg" alt="" loading="lazy"></div>
+        <div class="sub-card-body">
+          <span class="cat-badge cat-use-cases">活用事例</span>
+          <h3>SEO記事をAIで量産する方法：品質を落とさずに生産性を10倍にする戦略</h3>
+          <div class="sub-meta">2026/03/17 · 856 views</div>
+        </div>
+      </div>
+      <div class="sub-card">
+        <div class="sub-card-img"><img src="assets/eyecatch-4.svg" alt="" loading="lazy"></div>
+        <div class="sub-card-body">
+          <span class="cat-badge cat-tool-reviews">ツール紹介</span>
+          <h3>おすすめAIライティングツール：Jasper・Copy.ai・Gemini・Claude徹底比較</h3>
+          <div class="sub-meta">2026/03/08 · 723 views</div>
+        </div>
+      </div>
+      <div class="sub-card">
+        <div class="sub-card-img"><img src="assets/eyecatch-5.svg" alt="" loading="lazy"></div>
+        <div class="sub-card-body">
+          <span class="cat-badge cat-trend-analysis">トレンド分析</span>
+          <h3>生成AI時代を生き抜くライターの未来：消える仕事・残る仕事・生まれる仕事</h3>
+          <div class="sub-meta">2026/02/28 · 612 views</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== MAIN ===================== -->
+<div class="main-area">
+  <div class="container">
+
+    <!-- カテゴリタブ -->
+    <div class="cat-tabs">
+      <button class="cat-tab active">すべて</button>
+      <button class="cat-tab">AI技術</button>
+      <button class="cat-tab">ツール紹介</button>
+      <button class="cat-tab">トレンド分析</button>
+      <button class="cat-tab">プロンプト技術</button>
+      <button class="cat-tab">ライティング術</button>
+      <button class="cat-tab">活用事例</button>
+    </div>
+
+    <div class="content-grid">
+      <!-- 記事グリッド -->
+      <main>
+        <div class="section-hd">
+          <h2 class="section-title">最新記事</h2>
+          <a href="#" class="see-all">すべて見る →</a>
+        </div>
+        <div class="article-grid">
+
+          <div class="article-card">
+            <div class="card-img"><img src="assets/eyecatch-1.svg" alt="" loading="lazy"></div>
+            <div class="card-body">
+              <span class="cat-badge cat-writing-skills">ライティング術</span>
+              <h2>ChatGPT・Geminiを使ったブログ記事の書き方入門：プロが実践する10のテクニック</h2>
+              <p class="card-excerpt">ChatGPTやGeminiを使ってブログ記事を書く際に、プロが実践する10のテクニックを解説します。AI任せにせず人間とAIが協働することで高品質なコンテンツを効率よく生産する方法とは。</p>
+              <div class="card-tags"><span class="tag">AI</span><span class="tag">ライティング</span><span class="tag">ChatGPT</span></div>
+              <div class="card-meta"><span>📅 2026/04/01</span><span>👁 1,240</span></div>
+            </div>
+          </div>
+
+          <div class="article-card">
+            <div class="card-img"><img src="assets/eyecatch-2.svg" alt="" loading="lazy"></div>
+            <div class="card-body">
+              <span class="cat-badge cat-prompt-engineering">プロンプト技術</span>
+              <h2>AIプロンプトエンジニアリング完全ガイド2025：良い文章を引き出す魔法の言葉の作り方</h2>
+              <p class="card-excerpt">AIから最高の出力を引き出すプロンプトエンジニアリングの基本と応用を解説。役割・指示・文脈・制約の4要素からChain of Thought、Few-shotまで実践テンプレートも紹介。</p>
+              <div class="card-tags"><span class="tag">プロンプト</span><span class="tag">Gemini</span><span class="tag">Claude</span></div>
+              <div class="card-meta"><span>📅 2026/03/25</span><span>👁 987</span></div>
+            </div>
+          </div>
+
+          <div class="article-card">
+            <div class="card-img"><img src="assets/eyecatch-3.svg" alt="" loading="lazy"></div>
+            <div class="card-body">
+              <span class="cat-badge cat-use-cases">活用事例</span>
+              <h2>SEO記事をAIで量産する方法：品質を落とさずに生産性を10倍にする戦略</h2>
+              <p class="card-excerpt">AIを活用したSEO記事の量産戦略を解説。キーワードリサーチから公開までの6ステップワークフロー、品質管理のチェックポイント、生産性10倍を実現するハイブリッドアプローチ。</p>
+              <div class="card-tags"><span class="tag">AI</span><span class="tag">SEO</span><span class="tag">量産</span></div>
+              <div class="card-meta"><span>📅 2026/03/17</span><span>👁 856</span></div>
+            </div>
+          </div>
+
+          <div class="article-card">
+            <div class="card-img"><img src="assets/eyecatch-4.svg" alt="" loading="lazy"></div>
+            <div class="card-body">
+              <span class="cat-badge cat-tool-reviews">ツール紹介</span>
+              <h2>おすすめAIライティングツール完全ガイド：Jasper・Copy.ai・Gemini・Claude徹底比較2026</h2>
+              <p class="card-excerpt">Jasper・Copy.ai・Gemini・Claude・ChatGPTの主要AIライティングツールを料金・機能・用途別に徹底比較。2026年版おすすめ選び方ガイドで自分に合ったツールを見つけましょう。</p>
+              <div class="card-tags"><span class="tag">ツール</span><span class="tag">Jasper</span><span class="tag">比較</span></div>
+              <div class="card-meta"><span>📅 2026/03/08</span><span>👁 723</span></div>
+            </div>
+          </div>
+
+          <div class="article-card">
+            <div class="card-img"><img src="assets/eyecatch-5.svg" alt="" loading="lazy"></div>
+            <div class="card-body">
+              <span class="cat-badge cat-trend-analysis">トレンド分析</span>
+              <h2>生成AI時代を生き抜くライターの未来：消える仕事・残る仕事・新たに生まれる仕事</h2>
+              <p class="card-excerpt">生成AI時代にライターの仕事はどう変わるのか。AIに代替される仕事・人間が優位な仕事・新たに生まれる役割を分析。今から身につけるべきスキルも解説します。</p>
+              <div class="card-tags"><span class="tag">AI</span><span class="tag">未来</span><span class="tag">キャリア</span></div>
+              <div class="card-meta"><span>📅 2026/02/28</span><span>👁 612</span></div>
+            </div>
+          </div>
+
+          <div class="article-card">
+            <div class="card-img"><img src="assets/eyecatch-6.svg" alt="" loading="lazy"></div>
+            <div class="card-body">
+              <span class="cat-badge cat-ai-technology">AI技術</span>
+              <h2>Gemini 2.5 Flashで記事を自動生成：WordPress完全連携ガイド</h2>
+              <p class="card-excerpt">Gemini 2.5 FlashのAPIを使ってWordPressに記事を自動投稿する方法を解説。このテーマに搭載されたAI記事生成機能の使い方と、プロンプトのカスタマイズ方法を詳しく紹介します。</p>
+              <div class="card-tags"><span class="tag">Gemini</span><span class="tag">WordPress</span><span class="tag">自動化</span></div>
+              <div class="card-meta"><span>📅 2026/02/20</span><span>👁 534</span></div>
+            </div>
+          </div>
+
+        </div><!-- /article-grid -->
+      </main>
+
+      <!-- サイドバー -->
+      <aside class="sidebar">
+
+        <!-- About -->
+        <div class="widget">
+          <div class="widget-hd"><h3>このサイトについて</h3></div>
+          <div class="widget-body">
+            <div class="about-logo">Rayphoneai<span> theme</span></div>
+            <p class="about-desc">AI×ライティングの最前線をお届けするメディア。最新のAI技術とライティングのトレンドを分かりやすく解説します。</p>
+            <span class="about-badge">Powered by AI</span>
+          </div>
+        </div>
+
+        <!-- 人気記事 -->
+        <div class="widget">
+          <div class="widget-hd"><h3>人気記事</h3></div>
+          <div class="widget-body">
+            <div class="pop-list">
+              <div class="pop-item">
+                <span class="pop-rank rank-1">1</span>
+                <div class="pop-thumb"><img src="assets/eyecatch-1.svg" alt="" loading="lazy"></div>
+                <div class="pop-info">
+                  <div class="pop-title">ChatGPT・Geminiを使ったブログ記事の書き方入門</div>
+                  <div class="pop-date">2026/04/01 · 1,240 views</div>
+                </div>
+              </div>
+              <div class="pop-item">
+                <span class="pop-rank rank-2">2</span>
+                <div class="pop-thumb"><img src="assets/eyecatch-2.svg" alt="" loading="lazy"></div>
+                <div class="pop-info">
+                  <div class="pop-title">AIプロンプトエンジニアリング完全ガイド</div>
+                  <div class="pop-date">2026/03/25 · 987 views</div>
+                </div>
+              </div>
+              <div class="pop-item">
+                <span class="pop-rank rank-3">3</span>
+                <div class="pop-thumb"><img src="assets/eyecatch-3.svg" alt="" loading="lazy"></div>
+                <div class="pop-info">
+                  <div class="pop-title">SEO記事をAIで量産する方法</div>
+                  <div class="pop-date">2026/03/17 · 856 views</div>
+                </div>
+              </div>
+              <div class="pop-item">
+                <span class="pop-rank rank-other">4</span>
+                <div class="pop-thumb"><img src="assets/eyecatch-4.svg" alt="" loading="lazy"></div>
+                <div class="pop-info">
+                  <div class="pop-title">おすすめAIライティングツール完全ガイド</div>
+                  <div class="pop-date">2026/03/08 · 723 views</div>
+                </div>
+              </div>
+              <div class="pop-item">
+                <span class="pop-rank rank-other">5</span>
+                <div class="pop-thumb"><img src="assets/eyecatch-5.svg" alt="" loading="lazy"></div>
+                <div class="pop-info">
+                  <div class="pop-title">生成AI時代を生き抜くライターの未来</div>
+                  <div class="pop-date">2026/02/28 · 612 views</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- カテゴリ -->
+        <div class="widget">
+          <div class="widget-hd"><h3>カテゴリ</h3></div>
+          <div class="widget-body">
+            <ul class="cat-list">
+              <li class="cat-item"><a href="#"><span>AI技術</span><span class="cat-count">8</span></a></li>
+              <li class="cat-item"><a href="#"><span>ツール紹介</span><span class="cat-count">6</span></a></li>
+              <li class="cat-item"><a href="#"><span>トレンド分析</span><span class="cat-count">5</span></a></li>
+              <li class="cat-item"><a href="#"><span>プロンプト技術</span><span class="cat-count">4</span></a></li>
+              <li class="cat-item"><a href="#"><span>ライティング術</span><span class="cat-count">4</span></a></li>
+              <li class="cat-item"><a href="#"><span>活用事例</span><span class="cat-count">3</span></a></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 検索 -->
+        <div class="widget">
+          <div class="widget-hd"><h3>記事を検索</h3></div>
+          <div class="widget-body">
+            <div class="search-form">
+              <input type="search" placeholder="キーワードで検索...">
+              <button>🔍</button>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+    </div><!-- /content-grid -->
+  </div>
+</div>
+
+<!-- ===================== FOOTER ===================== -->
+<footer>
+  <div class="container">
+    <div class="footer-main">
+      <div>
+        <div class="footer-logo">Rayphoneai <span>theme</span></div>
+        <p class="footer-desc">AI×ライティングの最前線をお届けするメディア。最新のAI技術とライティングのトレンドを分かりやすく解説します。</p>
+        <span class="footer-badge">Powered by AI</span>
+      </div>
+      <div class="footer-col">
+        <h4>カテゴリ</h4>
+        <div class="footer-links">
+          <a href="#">AI技術</a>
+          <a href="#">ツール紹介</a>
+          <a href="#">トレンド分析</a>
+          <a href="#">プロンプト技術</a>
+          <a href="#">ライティング術</a>
+          <a href="#">活用事例</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>リンク</h4>
+        <div class="footer-links">
+          <a href="#">ホーム</a>
+          <a href="#">記事一覧</a>
+          <a href="https://github.com/rayphoneai" target="_blank">GitHub</a>
+          <a href="#">プライバシーポリシー</a>
+          <a href="#">お問い合わせ</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Rayphoneai theme. All rights reserved.</span>
+      <span>AI × ライティング専門メディア</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// 読書進捗バー
+window.addEventListener('scroll', () => {
+  const el = document.documentElement;
+  const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+  document.getElementById('progress').style.width = pct + '%';
+}, { passive: true });
+
+// カテゴリタブ
+document.querySelectorAll('.cat-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.cat-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+// カードホバーグロー
+document.querySelectorAll('.article-card, .sub-card, .hero-card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const r = card.getBoundingClientRect();
+    card.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
+    card.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
+  });
+});
+
+// トップ戻るボタン
+const topBtn = document.createElement('button');
+topBtn.textContent = '↑';
+topBtn.style.cssText = 'position:fixed;bottom:80px;right:24px;width:42px;height:42px;border-radius:50%;background:var(--bg2);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:1.1rem;opacity:0;transition:.25s;z-index:89';
+document.body.appendChild(topBtn);
+window.addEventListener('scroll', () => {
+  topBtn.style.opacity = window.scrollY > 400 ? '1' : '0';
+}, { passive: true });
+topBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+topBtn.addEventListener('mouseenter', () => { topBtn.style.borderColor = 'var(--primary)'; topBtn.style.color = 'var(--primary)' });
+topBtn.addEventListener('mouseleave', () => { topBtn.style.borderColor = 'var(--border)'; topBtn.style.color = 'var(--muted)' });
+</script>
+</body>
+</html>
