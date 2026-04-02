@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChatGPT・Geminiを使ったブログ記事の書き方入門 | Rayphoneai theme</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{--primary:#00d4ff;--secondary:#7c5cfc;--bg:#080c18;--bg2:#0d1226;--bg3:#121832;--border:#1e2a4a;--text:#e8eaf0;--muted:#8899bb;--heading:#fff;--max-w:1200px;--content-w:800px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);line-height:1.85;-webkit-font-smoothing:antialiased}
+a{color:var(--primary);text-decoration:none;transition:.2s}
+img{max-width:100%;display:block}
+#progress{position:fixed;top:0;left:0;height:3px;width:0%;background:var(--primary);z-index:9999;box-shadow:0 0 8px rgba(0,212,255,.6);transition:width .1s}
+
+header{position:sticky;top:0;z-index:100;background:rgba(8,12,24,.95);border-bottom:1px solid var(--border);backdrop-filter:blur(12px)}
+.header-inner{max-width:var(--max-w);margin:0 auto;padding:0 20px;height:64px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:1.15rem;font-weight:900;color:#fff}
+.logo span{color:var(--primary)}
+.back-btn{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:.82rem;border:1px solid var(--border);padding:5px 14px;border-radius:6px;transition:.2s}
+.back-btn:hover{border-color:var(--primary);color:var(--primary)}
+
+.container{max-width:var(--max-w);margin:0 auto;padding:0 20px}
+
+/* breadcrumb */
+.breadcrumb{display:flex;align-items:center;gap:6px;padding:14px 0;font-size:.77rem;color:var(--muted)}
+.breadcrumb a{color:var(--muted);transition:.2s}
+.breadcrumb a:hover{color:var(--primary)}
+.breadcrumb span{color:var(--border)}
+
+/* layout */
+.post-layout{display:grid;grid-template-columns:1fr 300px;gap:48px;align-items:start;padding:0 0 64px}
+
+/* article */
+.post-header{margin-bottom:28px}
+.cat-badge{display:inline-block;padding:3px 10px;border-radius:10px;font-size:.68rem;font-weight:700;margin-bottom:12px;background:rgba(16,185,129,.12);color:#10b981}
+.post-title{font-size:1.85rem;font-weight:700;color:var(--heading);line-height:1.35;letter-spacing:-.02em;margin-bottom:16px}
+.post-meta{display:flex;align-items:center;gap:18px;font-size:.8rem;color:var(--muted)}
+.post-eyecatch{border-radius:12px;overflow:hidden;margin-bottom:36px}
+.post-eyecatch img{width:100%}
+
+/* TOC */
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:0;margin-bottom:36px;overflow:hidden}
+.toc-hd{padding:12px 18px;border-bottom:1px solid var(--border);font-size:.85rem;font-weight:700;color:var(--heading);display:flex;align-items:center;gap:6px}
+.toc-hd::before{content:'';display:block;width:3px;height:14px;background:var(--primary);border-radius:2px}
+.toc-list{list-style:none;padding:10px 16px;display:flex;flex-direction:column;gap:2px}
+.toc-list li a{display:block;padding:5px 8px;border-radius:5px;font-size:.79rem;color:var(--muted);border-left:2px solid transparent;transition:.2s}
+.toc-list li a:hover{color:var(--primary);background:rgba(0,212,255,.04);border-left-color:var(--primary);padding-left:12px}
+
+/* content */
+.entry-content h2{font-size:1.4rem;font-weight:700;color:var(--heading);margin:2.5em 0 .8em;padding-left:14px;border-left:4px solid var(--primary);line-height:1.4}
+.entry-content h3{font-size:1.15rem;font-weight:700;color:var(--heading);margin:2em 0 .6em}
+.entry-content p{margin-bottom:1.4em}
+.entry-content strong{color:#fff;font-weight:700}
+.entry-content ul,.entry-content ol{margin:1em 0 1.4em 1.5em}
+.entry-content li{margin-bottom:.4em}
+.entry-content ul li{list-style:disc}
+.entry-content ol li{list-style:decimal}
+.entry-content pre{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:20px;overflow-x:auto;margin:1.5em 0}
+.entry-content code{font-family:'JetBrains Mono',monospace;font-size:.85em;background:var(--bg3);border:1px solid var(--border);padding:2px 6px;border-radius:4px;color:var(--primary)}
+.entry-content pre code{background:none;border:none;padding:0;color:var(--text)}
+.entry-content table{width:100%;border-collapse:collapse;margin:1.5em 0;font-size:.9rem}
+.entry-content th{background:var(--bg3);padding:10px 14px;border:1px solid var(--border);color:#fff;font-weight:600;text-align:left}
+.entry-content td{padding:10px 14px;border:1px solid var(--border)}
+
+/* post footer */
+.post-footer{margin-top:48px;padding-top:32px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:24px}
+.tags-wrap{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:.7rem;padding:3px 10px;border-radius:5px;background:rgba(255,255,255,.04);color:var(--muted);border:1px solid var(--border)}
+.tag::before{content:'#'}
+.share-btns{display:flex;gap:10px}
+.share-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;text-decoration:none;transition:.2s}
+.share-tw{background:#1d9bf0;color:#fff}
+.share-fb{background:#1877f2;color:#fff}
+.share-cp{background:var(--bg2);border:1px solid var(--border);color:var(--text)}
+.share-btn:hover{opacity:.85}
+
+/* nav between posts */
+.post-nav{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:32px}
+.post-nav-item{padding:16px 18px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;transition:.3s;cursor:pointer}
+.post-nav-item:hover{border-color:var(--primary);box-shadow:0 4px 20px rgba(0,212,255,.12)}
+.post-nav-label{font-size:.7rem;font-weight:700;color:var(--primary);letter-spacing:.08em;margin-bottom:6px}
+.post-nav-title{font-size:.86rem;font-weight:600;color:var(--heading);line-height:1.4}
+
+/* sidebar */
+.sidebar{display:flex;flex-direction:column;gap:22px;position:sticky;top:80px}
+.widget{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.widget-hd{padding:13px 18px;border-bottom:1px solid var(--border)}
+.widget-hd h3{font-size:.86rem;font-weight:700;color:var(--heading);display:flex;align-items:center;gap:7px}
+.widget-hd h3::before{content:'';display:block;width:3px;height:14px;background:var(--primary);border-radius:2px}
+.widget-body{padding:14px 18px}
+.related-list{display:flex;flex-direction:column;gap:10px}
+.related-item{display:flex;gap:10px;cursor:pointer;transition:.2s}
+.related-item:hover .related-title{color:var(--primary)}
+.related-thumb{width:60px;height:44px;border-radius:5px;overflow:hidden;flex-shrink:0}
+.related-thumb img{width:100%;height:100%;object-fit:cover}
+.related-title{font-size:.78rem;font-weight:600;color:var(--text);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;transition:.2s}
+.related-date{font-size:.68rem;color:var(--muted);margin-top:3px}
+
+/* related posts section */
+.related-section{margin-top:48px}
+.related-section h3{font-size:1.05rem;font-weight:700;color:var(--heading);display:flex;align-items:center;gap:8px;margin-bottom:18px}
+.related-section h3::before{content:'';width:3px;height:17px;background:var(--primary);border-radius:2px;display:block}
+.related-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.mini-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:.3s;cursor:pointer}
+.mini-card:hover{border-color:var(--primary);transform:translateY(-3px)}
+.mini-img{aspect-ratio:16/9;overflow:hidden}
+.mini-img img{width:100%;height:100%;object-fit:cover;transition:.4s}
+.mini-card:hover .mini-img img{transform:scale(1.05)}
+.mini-body{padding:12px 14px}
+.mini-title{font-size:.8rem;font-weight:600;color:var(--heading);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+@media(max-width:1000px){.post-layout{grid-template-columns:1fr}}
+@media(max-width:640px){.post-title{font-size:1.4rem}.post-nav{grid-template-columns:1fr}.related-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">Rayphoneai <span>theme</span></div>
+    <a href="index.html" class="back-btn">← 記事一覧に戻る</a>
+  </div>
+</header>
+
+<div class="container">
+  <nav class="breadcrumb">
+    <a href="index.html">🏠 ホーム</a>
+    <span>›</span>
+    <a href="#">ライティング術</a>
+    <span>›</span>
+    <span>ChatGPT・Geminiを使ったブログ記事の書き方入門</span>
+  </nav>
+
+  <div class="post-layout">
+    <article>
+      <header class="post-header">
+        <span class="cat-badge">ライティング術</span>
+        <h1 class="post-title">ChatGPT・Geminiを使ったブログ記事の書き方入門：プロが実践する10のテクニック</h1>
+        <div class="post-meta">
+          <span>📅 2026年4月1日</span>
+          <span>🔄 2026年4月1日更新</span>
+          <span>👁 1,240 回閲覧</span>
+        </div>
+      </header>
+
+      <div class="post-eyecatch">
+        <img src="assets/eyecatch-1.svg" alt="ChatGPT・Geminiを使ったブログ記事の書き方入門">
+      </div>
+
+      <!-- 目次 -->
+      <div class="toc">
+        <div class="toc-hd">📋 目次</div>
+        <ul class="toc-list">
+          <li><a href="#section1">AI時代のブログライティングとは</a></li>
+          <li><a href="#section2">テクニック1：構成設計はAIに任せる</a></li>
+          <li><a href="#section3">テクニック2：ペルソナを明示したプロンプトを使う</a></li>
+          <li><a href="#section4">テクニック3〜5：事実確認・導入文・リライト</a></li>
+          <li><a href="#section5">テクニック6〜10：応用編</a></li>
+          <li><a href="#section6">まとめ</a></li>
+        </ul>
+      </div>
+
+      <!-- 本文 -->
+      <div class="entry-content">
+        <h2 id="section1">AI時代のブログライティングとは</h2>
+        <p>ChatGPTやGeminiの登場により、ブログ記事の執筆方法は根本から変わりつつあります。しかし、単にAIに文章を書かせるだけでは、読者の心を掴む記事にはなりません。本記事では、プロのライターがAIと協働して高品質な記事を生産するための10のテクニックを解説します。</p>
+
+        <h2 id="section2">テクニック1：構成設計はAIに任せる</h2>
+        <p>記事を書き始める前に、AIにアウトライン（見出し構成）を作らせましょう。「〇〇について5,000字の記事の構成を作って」と指示するだけで、SEOを意識した見出し構造が出来上がります。</p>
+        <p>ポイントは<strong>構成の段階でキーワードを伝えること</strong>。メインキーワードと関連キーワードを一緒に渡すと、検索意図に合った構成が自動生成されます。</p>
+        <pre><code># プロンプト例
+「AIライティング 初心者」をキーワードに、
+初心者向けブログ記事の見出し構成（h2×5、各h2にh3×2〜3）を
+SEOを意識して作成してください。</code></pre>
+
+        <h2 id="section3">テクニック2：ペルソナを明示したプロンプトを使う</h2>
+        <p>AIへの指示に「読者は〇〇歳で〇〇に興味がある初心者です」と付け加えるだけで、文章のトーンと深さが劇的に変わります。</p>
+
+        <h2 id="section4">テクニック3〜5：事実確認・導入文・リライト</h2>
+        <h3>テクニック3：事実確認は必ず人間が行う</h3>
+        <p>AIは「もっともらしい嘘（ハルシネーション）」を生成することがあります。統計データや固有名詞は必ず一次ソースで確認しましょう。</p>
+        <h3>テクニック4：導入文は自分で書く</h3>
+        <p>読者が最初に目にする導入文は、記事の「顔」です。AIに任せずに自分の言葉で書くことで、記事全体に個性と温度感が生まれます。</p>
+        <h3>テクニック5：リライトで人間味を加える</h3>
+        <p>AIが生成した文章は、どこかフォーマルで均質になりがちです。「こなれた表現」「体験談」「比喩」を加えてリライトすることで、独自性が高まります。</p>
+
+        <h2 id="section5">テクニック6〜10：応用編</h2>
+        <ul>
+          <li><strong>テクニック6</strong>：セクションごとに分割生成する</li>
+          <li><strong>テクニック7</strong>：競合記事を参考にプロンプトを改善する</li>
+          <li><strong>テクニック8</strong>：ツールを使い分ける（Gemini・Claude・ChatGPT）</li>
+          <li><strong>テクニック9</strong>：SEOメタ情報もAIに生成させる</li>
+          <li><strong>テクニック10</strong>：品質チェックはチェックリストを使う</li>
+        </ul>
+
+        <h2 id="section6">まとめ</h2>
+        <p>AIを使ったブログライティングは「AIに書かせる」から「AIと協働する」へとステージが上がっています。10のテクニックを実践することで、品質と生産性を両立した記事制作フローが構築できます。</p>
+      </div>
+
+      <!-- 記事フッター -->
+      <div class="post-footer">
+        <div>
+          <h4 style="font-size:.83rem;color:var(--muted);margin-bottom:8px;font-weight:600;">🏷 タグ</h4>
+          <div class="tags-wrap">
+            <span class="tag">AI</span>
+            <span class="tag">ライティング</span>
+            <span class="tag">ChatGPT</span>
+            <span class="tag">Gemini</span>
+            <span class="tag">ブログ</span>
+          </div>
+        </div>
+        <div>
+          <h4 style="font-size:.83rem;color:var(--muted);margin-bottom:8px;font-weight:600;">🔗 この記事をシェア</h4>
+          <div class="share-btns">
+            <a href="#" class="share-btn share-tw">𝕏 Twitter</a>
+            <a href="#" class="share-btn share-fb">Facebook</a>
+            <button class="share-btn share-cp" onclick="navigator.clipboard.writeText(location.href);this.textContent='✅ コピー済み'">🔗 URLをコピー</button>
+          </div>
+        </div>
+        <!-- 前後ナビ -->
+        <div class="post-nav">
+          <div class="post-nav-item">
+            <div class="post-nav-label">← 前の記事</div>
+            <div class="post-nav-title">AIプロンプトエンジニアリング完全ガイド2025</div>
+          </div>
+          <div class="post-nav-item" style="text-align:right">
+            <div class="post-nav-label">次の記事 →</div>
+            <div class="post-nav-title">SEO記事をAIで量産する方法：生産性10倍の戦略</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 関連記事 -->
+      <div class="related-section">
+        <h3>関連記事</h3>
+        <div class="related-grid">
+          <div class="mini-card">
+            <div class="mini-img"><img src="assets/eyecatch-2.svg" alt="" loading="lazy"></div>
+            <div class="mini-body"><div class="mini-title">AIプロンプトエンジニアリング完全ガイド2025</div></div>
+          </div>
+          <div class="mini-card">
+            <div class="mini-img"><img src="assets/eyecatch-3.svg" alt="" loading="lazy"></div>
+            <div class="mini-body"><div class="mini-title">SEO記事をAIで量産する方法</div></div>
+          </div>
+          <div class="mini-card">
+            <div class="mini-img"><img src="assets/eyecatch-6.svg" alt="" loading="lazy"></div>
+            <div class="mini-body"><div class="mini-title">Gemini APIで記事自動生成</div></div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- サイドバー -->
+    <aside class="sidebar">
+      <div class="widget">
+        <div class="widget-hd"><h3>関連記事</h3></div>
+        <div class="widget-body">
+          <div class="related-list">
+            <div class="related-item">
+              <div class="related-thumb"><img src="assets/eyecatch-2.svg" alt="" loading="lazy"></div>
+              <div><div class="related-title">AIプロンプトエンジニアリング完全ガイド</div><div class="related-date">2026/03/25</div></div>
+            </div>
+            <div class="related-item">
+              <div class="related-thumb"><img src="assets/eyecatch-4.svg" alt="" loading="lazy"></div>
+              <div><div class="related-title">おすすめAIライティングツール徹底比較</div><div class="related-date">2026/03/08</div></div>
+            </div>
+            <div class="related-item">
+              <div class="related-thumb"><img src="assets/eyecatch-6.svg" alt="" loading="lazy"></div>
+              <div><div class="related-title">Gemini APIで記事自動生成の方法</div><div class="related-date">2026/02/20</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="widget">
+        <div class="widget-hd"><h3>カテゴリ</h3></div>
+        <div class="widget-body">
+          <ul style="display:flex;flex-direction:column;gap:5px">
+            <li><a href="#" style="display:flex;justify-content:space-between;padding:7px 10px;border-radius:6px;background:rgba(255,255,255,.02);border:1px solid var(--border);color:var(--text);font-size:.82rem;transition:.2s">ライティング術<span style="font-size:.7rem;background:var(--bg3);padding:1px 7px;border-radius:8px;color:var(--muted)">4</span></a></li>
+            <li><a href="#" style="display:flex;justify-content:space-between;padding:7px 10px;border-radius:6px;background:rgba(255,255,255,.02);border:1px solid var(--border);color:var(--text);font-size:.82rem;transition:.2s">プロンプト技術<span style="font-size:.7rem;background:var(--bg3);padding:1px 7px;border-radius:8px;color:var(--muted)">4</span></a></li>
+            <li><a href="#" style="display:flex;justify-content:space-between;padding:7px 10px;border-radius:6px;background:rgba(255,255,255,.02);border:1px solid var(--border);color:var(--text);font-size:.82rem;transition:.2s">AI技術<span style="font-size:.7rem;background:var(--bg3);padding:1px 7px;border-radius:8px;color:var(--muted)">8</span></a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<footer style="background:var(--bg3);border-top:1px solid var(--border);padding:28px 0;margin-top:0;text-align:center">
+  <div style="font-size:.78rem;color:var(--muted)">© 2026 Rayphoneai theme · <a href="index.html">トップへ戻る</a></div>
+</footer>
+
+<script>
+window.addEventListener('scroll',()=>{
+  const el=document.documentElement;
+  document.getElementById('progress').style.width=(el.scrollTop/(el.scrollHeight-el.clientHeight)*100)+'%';
+},{passive:true});
+
+// TOCアクティブ追跡
+const headings=document.querySelectorAll('.entry-content h2');
+const tocLinks=document.querySelectorAll('.toc-list a');
+window.addEventListener('scroll',()=>{
+  let cur=null;
+  headings.forEach(h=>{if(h.offsetTop<=window.scrollY+100)cur=h;});
+  tocLinks.forEach(a=>a.style.color='');
+  if(cur){
+    const link=document.querySelector(`.toc-list a[href="#${cur.id}"]`);
+    if(link)link.style.color='var(--primary)';
+  }
+},{passive:true});
+</script>
+</body>
+</html>
