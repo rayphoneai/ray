@@ -1,1 +1,934 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Rayphoneai theme — WordPress テーマ デモ</title>
+<meta name="description" content="AI × ライティング専門メディア向けWordPressテーマ「Rayphoneai theme」のデモページ。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --p:#00d4ff;--s:#7c5cfc;--ac:#ff6b6b;
+  --bg:#080c18;--bg2:#0d1226;--bg3:#121832;
+  --bd:#1e2a4a;--tx:#e8eaf0;--mu:#8899bb;--h:#fff;
+  --mw:1200px;--r:12px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--tx);line-height:1.8;-webkit-font-smoothing:antialiased}
+a{color:var(--p);text-decoration:none;transition:.2s}
+a:hover{opacity:.8}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg3)}::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}
 
+/* Progress */
+#prog{position:fixed;top:0;left:0;height:3px;width:0;background:var(--p);z-index:9999;box-shadow:0 0 8px #00d4ff99;transition:width .1s}
+
+/* Demo banner */
+.demo-flag{
+  position:fixed;bottom:20px;right:20px;z-index:900;
+  background:linear-gradient(135deg,var(--s),var(--p));
+  color:#fff;padding:12px 18px;border-radius:14px;
+  font-size:.8rem;font-weight:700;
+  box-shadow:0 8px 30px #00d4ff44;
+  display:flex;flex-direction:column;gap:5px;max-width:220px;
+  animation:pop .5s cubic-bezier(.34,1.56,.64,1) .6s both;
+}
+@keyframes pop{from{opacity:0;transform:translateY(16px) scale(.95)}to{opacity:1;transform:none}}
+.demo-flag small{font-weight:400;opacity:.85;font-size:.72rem}
+.demo-flag a{color:#fff;text-decoration:underline;font-size:.72rem}
+
+/* Header */
+header{position:sticky;top:0;z-index:100;background:#080c18ee;border-bottom:1px solid var(--bd);backdrop-filter:blur(12px)}
+.hdr{max-width:var(--mw);margin:0 auto;padding:0 20px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.logo{font-size:1.15rem;font-weight:900;color:var(--h)}
+.logo em{color:var(--p);font-style:normal}
+nav{display:flex;gap:2px}
+nav a{padding:5px 11px;font-size:.82rem;font-weight:500;color:var(--mu);border-radius:6px;transition:.2s}
+nav a:hover,nav a.on{color:var(--p);background:#00d4ff10}
+.hdr-r{display:flex;align-items:center;gap:8px}
+.srch-btn{background:none;border:none;color:var(--mu);cursor:pointer;padding:6px;border-radius:6px;font-size:1rem}
+.srch-btn:hover{color:var(--p);background:#00d4ff10}
+.ham{display:none;background:none;border:none;cursor:pointer;color:var(--tx);font-size:1.3rem;padding:6px}
+
+/* Container */
+.wrap{max-width:var(--mw);margin:0 auto;padding:0 20px}
+
+/* Cat badges */
+.badge{display:inline-block;padding:2px 9px;border-radius:9px;font-size:.67rem;font-weight:700;line-height:1.5}
+.cat-writing-skills    {background:#10b98118;color:#10b981}
+.cat-prompt-engineering{background:#f59e0b18;color:#f59e0b}
+.cat-use-cases         {background:#ec489918;color:#ec4899}
+.cat-tool-reviews      {background:#7c5cfc18;color:#7c5cfc}
+.cat-trend-analysis    {background:#ff6b6b18;color:#ff6b6b}
+.cat-ai-technology     {background:#00d4ff18;color:#00d4ff}
+
+/* ── HERO ── */
+.hero{padding:52px 0 28px}
+.hero-card{
+  display:grid;grid-template-columns:1fr 1fr;
+  min-height:420px;border-radius:20px;overflow:hidden;
+  border:1px solid var(--bd);background:var(--bg2);
+  transition:.3s;cursor:pointer;
+  animation:fadeUp .55s both;
+}
+.hero-card:hover{border-color:var(--p);box-shadow:0 8px 48px #00d4ff18;transform:translateY(-3px)}
+.hero-thumb{position:relative;overflow:hidden}
+.hero-thumb:hover .hero-thumb-inner{transform:scale(1.04)}
+.hero-thumb-inner{width:100%;height:100%;transition:.5s}
+.hero-body{padding:36px 40px;display:flex;flex-direction:column;justify-content:center;gap:12px}
+.hero-tag{font-size:.68rem;font-weight:700;letter-spacing:.12em;color:var(--p);display:flex;align-items:center;gap:6px}
+.hero-tag::before{content:'';display:block;width:12px;height:2px;background:var(--p)}
+.hero-body h2{font-size:1.5rem;font-weight:700;color:var(--h);line-height:1.4;letter-spacing:-.02em}
+.hero-exc{font-size:.84rem;color:var(--mu);line-height:1.65;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.hero-meta{font-size:.74rem;color:var(--mu);display:flex;gap:14px}
+.read-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 20px;background:var(--p);color:var(--bg);
+  font-size:.82rem;font-weight:700;border-radius:20px;width:fit-content;transition:.2s;
+}
+.read-btn:hover{opacity:.88;color:var(--bg);transform:translateX(2px)}
+
+/* Sub grid */
+.sub-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:18px}
+.sub-card{
+  background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);
+  overflow:hidden;transition:.3s;cursor:pointer;
+  animation:fadeUp .55s both;
+}
+.sub-card:nth-child(1){animation-delay:.05s}.sub-card:nth-child(2){animation-delay:.1s}
+.sub-card:nth-child(3){animation-delay:.15s}.sub-card:nth-child(4){animation-delay:.2s}
+.sub-card:hover{border-color:var(--p);box-shadow:0 6px 28px #00d4ff12;transform:translateY(-4px)}
+.sub-thumb{aspect-ratio:16/9;overflow:hidden}
+.sub-body{padding:11px 13px;display:flex;flex-direction:column;gap:6px}
+.sub-body h3{font-size:.8rem;font-weight:600;color:var(--h);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sub-meta{font-size:.7rem;color:var(--mu)}
+
+/* Cat tabs */
+.tabs{display:flex;gap:7px;flex-wrap:wrap;padding-bottom:26px;border-bottom:1px solid var(--bd);margin-bottom:38px}
+.tab{
+  padding:5px 15px;border-radius:17px;font-size:.78rem;font-weight:600;
+  border:1.5px solid var(--bd);color:var(--mu);
+  cursor:pointer;transition:.2s;background:transparent;font-family:inherit;
+}
+.tab:hover,.tab.on{border-color:var(--p);color:var(--p);background:#00d4ff08}
+.tab.on{box-shadow:0 0 10px #00d4ff20}
+
+/* Main */
+.main{padding:52px 0}
+.two-col{display:grid;grid-template-columns:1fr 310px;gap:44px;align-items:start}
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.sec-ttl{font-size:1.08rem;font-weight:700;color:var(--h);display:flex;align-items:center;gap:8px}
+.sec-ttl::before{content:'';display:block;width:4px;height:20px;background:var(--p);border-radius:2px}
+.see-all{font-size:.77rem;font-weight:600;color:var(--mu);padding:4px 12px;border:1px solid var(--bd);border-radius:6px;transition:.2s}
+.see-all:hover{border-color:var(--p);color:var(--p)}
+
+/* Article grid */
+.ag{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+.ac{
+  background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);
+  overflow:hidden;transition:.3s;cursor:pointer;display:flex;flex-direction:column;
+  animation:fadeUp .5s both;
+}
+.ac:nth-child(1){animation-delay:.05s}.ac:nth-child(2){animation-delay:.1s}
+.ac:nth-child(3){animation-delay:.15s}.ac:nth-child(4){animation-delay:.2s}
+.ac:nth-child(5){animation-delay:.25s}.ac:nth-child(6){animation-delay:.3s}
+.ac:hover{border-color:var(--p);box-shadow:0 6px 32px #00d4ff12;transform:translateY(-4px)}
+.ac-thumb{aspect-ratio:16/9;overflow:hidden}
+.ac-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
+.ac-body h2{font-size:.9rem;font-weight:600;color:var(--h);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ac-exc{font-size:.79rem;color:var(--mu);line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ac-tags{display:flex;gap:5px;flex-wrap:wrap}
+.t{font-size:.67rem;padding:2px 7px;border-radius:4px;background:#ffffff08;color:var(--mu);border:1px solid var(--bd)}
+.t::before{content:'#'}
+.ac-meta{margin-top:auto;font-size:.72rem;color:var(--mu);display:flex;gap:10px}
+
+/* Sidebar */
+.sb{display:flex;flex-direction:column;gap:20px}
+.wg{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+.wg-h{padding:13px 16px;border-bottom:1px solid var(--bd)}
+.wg-h h3{font-size:.86rem;font-weight:700;color:var(--h);display:flex;align-items:center;gap:7px}
+.wg-h h3::before{content:'';display:block;width:3px;height:14px;background:var(--p);border-radius:2px}
+.wg-b{padding:13px 16px}
+.about-logo{font-size:1.3rem;font-weight:900;color:var(--h);text-align:center;margin-bottom:7px}
+.about-logo em{color:var(--p);font-style:normal}
+.about-desc{font-size:.78rem;color:var(--mu);text-align:center;line-height:1.65}
+.about-badge{display:block;text-align:center;margin-top:9px;font-size:.68rem;font-weight:600;color:var(--p);background:#00d4ff12;padding:2px 14px;border-radius:9px;width:fit-content;margin-inline:auto}
+
+/* Popular */
+.pop-list{display:flex;flex-direction:column}
+.pop-item{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--bd);cursor:pointer;transition:.2s}
+.pop-item:last-child{border-bottom:none;padding-bottom:0}
+.pop-item:first-child{padding-top:0}
+.pop-item:hover .pop-ttl{color:var(--p)}
+.pop-rk{font-size:1rem;font-weight:900;min-width:20px;text-align:center}
+.rk1{color:#ffd700}.rk2{color:#c0c0c0}.rk3{color:#cd7f32}.rk4,.rk5{color:var(--mu);font-size:.82rem}
+.pop-th{width:52px;height:39px;border-radius:5px;overflow:hidden;flex-shrink:0}
+.pop-th .ec{width:100%;height:100%}
+.pop-info{flex:1;min-width:0}
+.pop-ttl{font-size:.76rem;font-weight:600;color:var(--tx);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;transition:.2s}
+.pop-dt{font-size:.67rem;color:var(--mu);margin-top:2px}
+
+/* Cat list */
+.cat-ul{display:flex;flex-direction:column;gap:5px}
+.cat-ul li a{display:flex;align-items:center;justify-content:space-between;padding:7px 11px;border-radius:7px;background:#ffffff04;border:1px solid var(--bd);color:var(--tx);font-size:.8rem;transition:.2s}
+.cat-ul li a:hover{border-color:var(--p);color:var(--p);background:#00d4ff06}
+.cnt{font-size:.68rem;font-weight:600;background:var(--bg3);padding:1px 7px;border-radius:8px;color:var(--mu)}
+
+/* Search */
+.sf{display:flex}
+.sf input{flex:1;padding:8px 13px;background:var(--bg3);border:1px solid var(--bd);border-right:none;border-radius:7px 0 0 7px;color:var(--tx);font-size:.83rem;font-family:inherit;outline:none;transition:.2s}
+.sf input:focus{border-color:var(--p)}
+.sf input::placeholder{color:var(--mu)}
+.sf button{padding:8px 14px;background:var(--p);color:var(--bg);border:none;border-radius:0 7px 7px 0;cursor:pointer}
+
+/* Footer */
+footer{background:var(--bg3);border-top:1px solid var(--bd);margin-top:52px}
+.ft-main{display:grid;grid-template-columns:250px 1fr 1fr;gap:36px;padding:40px 0;border-bottom:1px solid var(--bd)}
+.ft-logo{font-size:1.15rem;font-weight:900;color:var(--h);margin-bottom:9px}
+.ft-logo em{color:var(--p);font-style:normal}
+.ft-desc{font-size:.78rem;color:var(--mu);line-height:1.7}
+.ft-badge{display:inline-block;margin-top:9px;padding:2px 11px;border-radius:9px;background:#00d4ff10;color:var(--p);font-size:.68rem;font-weight:600}
+.ft-col h4{font-size:.84rem;font-weight:700;color:var(--h);margin-bottom:11px;padding-bottom:7px;border-bottom:1px solid var(--bd)}
+.ft-links{display:flex;flex-direction:column;gap:6px}
+.ft-links a{font-size:.78rem;color:var(--mu);display:flex;align-items:center;gap:5px;transition:.2s}
+.ft-links a::before{content:'▸';font-size:.58rem;color:var(--p)}
+.ft-links a:hover{color:var(--p)}
+.ft-bot{display:flex;align-items:center;justify-content:space-between;padding:16px 0;font-size:.74rem;color:var(--mu)}
+
+/* Back to top */
+#top-btn{position:fixed;bottom:78px;right:22px;width:40px;height:40px;border-radius:50%;background:var(--bg2);border:1px solid var(--bd);color:var(--mu);cursor:pointer;font-size:1rem;opacity:0;transition:.25s;z-index:88;display:flex;align-items:center;justify-content:center}
+#top-btn:hover{border-color:var(--p);color:var(--p)}
+
+/* Animations */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+/* Responsive */
+@media(max-width:1100px){.two-col{grid-template-columns:1fr}.sb{flex-direction:row;flex-wrap:wrap}.sb .wg{flex:1;min-width:240px}}
+@media(max-width:768px){nav{display:none}.ham{display:block}.hero-card{grid-template-columns:1fr}.hero-thumb{min-height:200px}.hero-body{padding:20px 22px}.hero-body h2{font-size:1.2rem}.sub-grid{grid-template-columns:repeat(2,1fr)}.ag{grid-template-columns:1fr}.ft-main{grid-template-columns:1fr;gap:22px}.ft-bot{flex-direction:column;gap:6px;text-align:center}}
+@media(max-width:480px){.sub-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="prog"></div>
+
+<div class="demo-flag">
+  <strong>🎨 Rayphoneai theme</strong>
+  <small>WordPress テーマ デモ</small>
+  <a href="https://github.com/rayphoneai" target="_blank">テーマをダウンロード →</a>
+</div>
+
+<header>
+  <div class="hdr">
+    <div class="logo">Rayphoneai <em>theme</em></div>
+    <nav>
+      <a href="#" class="on">ホーム</a>
+      <a href="#">記事一覧</a>
+      <a href="#">AI技術</a>
+      <a href="#">ツール紹介</a>
+      <a href="#">プロンプト技術</a>
+    </nav>
+    <div class="hdr-r">
+      <button class="srch-btn">🔍</button>
+      <button class="ham">☰</button>
+    </div>
+  </div>
+</header>
+
+
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-card" onclick="location.href='post.html'">
+      <div class="hero-thumb">
+        <div style="background:linear-gradient(135deg,#080c18 0%,#0d1226 100%);
+position:relative;overflow:hidden;width:100%;height:100%;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#00d4ff22 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #00d4ff22;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #00d4ff30;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#00d4ff14;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#00d4ff06 0px,#00d4ff06 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#00d4ff06 0px,#00d4ff06 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#00d4ff;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#00d4ff;
+    background:#00d4ff20;border:1px solid #00d4ff60;padding:2px 10px;border-radius:8px;width:fit-content;">
+    ライティング術
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">✍️</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">Writing</span>
+  </div>
+</div></div>
+      </div>
+      <div class="hero-body">
+        <div class="hero-tag">AI × ライティングの最前線をお届け</div>
+        <span class="badge cat-writing-skills">ライティング術</span>
+        <h2>ChatGPT・Geminiを使ったブログ記事の書き方入門<br><span style="font-size:.85em;opacity:.9">プロが実践する10のテクニック</span></h2>
+        <p class="hero-exc">ChatGPTやGeminiの登場により、ブログ記事の執筆方法は根本から変わりつつあります。プロのライターがAIと協働して高品質な記事を生産するための10のテクニックを解説します。</p>
+        <div class="hero-meta">
+          <span>📅 2026/04/01</span>
+          <span>👁 1,240</span>
+        </div>
+        <a href="post.html" class="read-btn">記事を読む →</a>
+      </div>
+    </div>
+
+    <div class="sub-grid">
+      <div class="sub-card" onclick="location.href='post.html'">
+        <div class="sub-thumb"><div style="background:linear-gradient(135deg,#0a0618 0%,#100d2a 100%);
+position:relative;overflow:hidden;width:100%;height:100%;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#7c5cfc22 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #7c5cfc22;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #7c5cfc30;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#7c5cfc14;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#7c5cfc06 0px,#7c5cfc06 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#7c5cfc06 0px,#7c5cfc06 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#7c5cfc;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#7c5cfc;
+    background:#7c5cfc20;border:1px solid #7c5cfc60;padding:2px 10px;border-radius:8px;width:fit-content;">
+    プロンプト技術
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">💡</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">Prompt</span>
+  </div>
+</div></div></div>
+        <div class="sub-body">
+          <span class="badge cat-prompt-engineering">プロンプト技術</span>
+          <h3>AIプロンプトエンジニアリング完全ガイド<br><small style="font-weight:400;color:var(--mu);font-size:.85em">良い文章を引き出す魔法の言葉の作り方</small></h3>
+          <div class="sub-meta">📅 2026/03/25 · 👁 987</div>
+        </div>
+      </div>
+      <div class="sub-card" onclick="location.href='post.html'">
+        <div class="sub-thumb"><div style="background:linear-gradient(135deg,#060e10 0%,#0a1a1c 100%);
+position:relative;overflow:hidden;width:100%;height:100%;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#10b98122 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #10b98122;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #10b98130;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#10b98114;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#10b98106 0px,#10b98106 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#10b98106 0px,#10b98106 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#10b981;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#10b981;
+    background:#10b98120;border:1px solid #10b98160;padding:2px 10px;border-radius:8px;width:fit-content;">
+    活用事例
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">🚀</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">UseCase</span>
+  </div>
+</div></div></div>
+        <div class="sub-body">
+          <span class="badge cat-use-cases">活用事例</span>
+          <h3>SEO記事をAIで量産する方法<br><small style="font-weight:400;color:var(--mu);font-size:.85em">品質を落とさずに生産性を10倍にする戦略</small></h3>
+          <div class="sub-meta">📅 2026/03/17 · 👁 856</div>
+        </div>
+      </div>
+      <div class="sub-card" onclick="location.href='post.html'">
+        <div class="sub-thumb"><div style="background:linear-gradient(135deg,#100a04 0%,#1e1208 100%);
+position:relative;overflow:hidden;width:100%;height:100%;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#f59e0b22 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #f59e0b22;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #f59e0b30;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#f59e0b14;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#f59e0b06 0px,#f59e0b06 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#f59e0b06 0px,#f59e0b06 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#f59e0b;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#f59e0b;
+    background:#f59e0b20;border:1px solid #f59e0b60;padding:2px 10px;border-radius:8px;width:fit-content;">
+    ツール紹介
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">🛠️</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">Tools</span>
+  </div>
+</div></div></div>
+        <div class="sub-body">
+          <span class="badge cat-tool-reviews">ツール紹介</span>
+          <h3>AIライティングツール徹底比較2026<br><small style="font-weight:400;color:var(--mu);font-size:.85em">Jasper・Copy.ai・Gemini・Claude</small></h3>
+          <div class="sub-meta">📅 2026/03/08 · 👁 723</div>
+        </div>
+      </div>
+      <div class="sub-card" onclick="location.href='post.html'">
+        <div class="sub-thumb"><div style="background:linear-gradient(135deg,#120406 0%,#1e080c 100%);
+position:relative;overflow:hidden;width:100%;height:100%;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#ff6b6b22 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #ff6b6b22;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #ff6b6b30;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#ff6b6b14;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#ff6b6b06 0px,#ff6b6b06 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#ff6b6b06 0px,#ff6b6b06 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#ff6b6b;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#ff6b6b;
+    background:#ff6b6b20;border:1px solid #ff6b6b60;padding:2px 10px;border-radius:8px;width:fit-content;">
+    トレンド分析
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">🔮</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">Trend</span>
+  </div>
+</div></div></div>
+        <div class="sub-body">
+          <span class="badge cat-trend-analysis">トレンド分析</span>
+          <h3>生成AI時代を生き抜くライターの未来<br><small style="font-weight:400;color:var(--mu);font-size:.85em">消える仕事・残る仕事・新たに生まれる仕事</small></h3>
+          <div class="sub-meta">📅 2026/02/28 · 👁 612</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="main">
+  <div class="wrap">
+    <div class="tabs">
+      <button class="tab on">すべて</button>
+      <button class="tab">AI技術</button>
+      <button class="tab">ツール紹介</button>
+      <button class="tab">トレンド分析</button>
+      <button class="tab">プロンプト技術</button>
+      <button class="tab">ライティング術</button>
+      <button class="tab">活用事例</button>
+    </div>
+    <div class="two-col">
+      <main>
+        <div class="sec-hd">
+          <h2 class="sec-ttl">最新記事</h2>
+          <a href="#" class="see-all">すべて見る →</a>
+        </div>
+        <div class="ag">
+      <div class="ac" onclick="location.href='post.html'">
+        <div class="ac-thumb"><div style="background:linear-gradient(135deg,#080c18 0%,#0d1226 100%);
+position:relative;overflow:hidden;width:100%;height:100%;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#00d4ff22 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #00d4ff22;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #00d4ff30;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#00d4ff14;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#00d4ff06 0px,#00d4ff06 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#00d4ff06 0px,#00d4ff06 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#00d4ff;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#00d4ff;
+    background:#00d4ff20;border:1px solid #00d4ff60;padding:2px 10px;border-radius:8px;width:fit-content;">
+    ライティング術
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">✍️</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">Writing</span>
+  </div>
+</div></div></div>
+        <div class="ac-body">
+          <span class="badge cat-writing-skills">ライティング術</span>
+          <h2>ChatGPT・Geminiを使ったブログ記事の書き方入門</h2>
+          <p class="ac-exc">ChatGPTやGeminiの登場により、ブログ記事の執筆方法は根本から変わりつつあります。プロのライターがAIと協働して高品質な記事を生産するための10のテクニックを解説します。</p>
+          <div class="ac-tags"><span class="t">AI</span><span class="t">ライティング</span><span class="t">ChatGPT</span></div>
+          <div class="ac-meta"><span>📅 2026/04/01</span><span>👁 1,240</span></div>
+        </div>
+      </div>
+      <div class="ac" onclick="location.href='post.html'">
+        <div class="ac-thumb"><div style="background:linear-gradient(135deg,#0a0618 0%,#100d2a 100%);
+position:relative;overflow:hidden;width:100%;height:100%;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#7c5cfc22 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #7c5cfc22;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #7c5cfc30;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#7c5cfc14;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#7c5cfc06 0px,#7c5cfc06 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#7c5cfc06 0px,#7c5cfc06 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#7c5cfc;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#7c5cfc;
+    background:#7c5cfc20;border:1px solid #7c5cfc60;padding:2px 10px;border-radius:8px;width:fit-content;">
+    プロンプト技術
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">💡</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">Prompt</span>
+  </div>
+</div></div></div>
+        <div class="ac-body">
+          <span class="badge cat-prompt-engineering">プロンプト技術</span>
+          <h2>AIプロンプトエンジニアリング完全ガイド</h2>
+          <p class="ac-exc">AIから最高の出力を引き出すプロンプトエンジニアリングの基本と応用を解説。役割・指示・文脈・制約の4要素からChain of Thought、Few-shotまで実践テンプレートを紹介します。</p>
+          <div class="ac-tags"><span class="t">プロンプト</span><span class="t">Gemini</span><span class="t">Claude</span></div>
+          <div class="ac-meta"><span>📅 2026/03/25</span><span>👁 987</span></div>
+        </div>
+      </div>
+      <div class="ac" onclick="location.href='post.html'">
+        <div class="ac-thumb"><div style="background:linear-gradient(135deg,#060e10 0%,#0a1a1c 100%);
+position:relative;overflow:hidden;width:100%;height:100%;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#10b98122 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #10b98122;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #10b98130;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#10b98114;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#10b98106 0px,#10b98106 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#10b98106 0px,#10b98106 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#10b981;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#10b981;
+    background:#10b98120;border:1px solid #10b98160;padding:2px 10px;border-radius:8px;width:fit-content;">
+    活用事例
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">🚀</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">UseCase</span>
+  </div>
+</div></div></div>
+        <div class="ac-body">
+          <span class="badge cat-use-cases">活用事例</span>
+          <h2>SEO記事をAIで量産する方法</h2>
+          <p class="ac-exc">AIを活用したSEO記事の量産戦略を解説。キーワードリサーチから公開までの6ステップワークフロー、品質管理のチェックポイント、生産性10倍を実現するハイブリッドアプローチを紹介。</p>
+          <div class="ac-tags"><span class="t">SEO</span><span class="t">量産</span><span class="t">AI</span></div>
+          <div class="ac-meta"><span>📅 2026/03/17</span><span>👁 856</span></div>
+        </div>
+      </div>
+      <div class="ac" onclick="location.href='post.html'">
+        <div class="ac-thumb"><div style="background:linear-gradient(135deg,#100a04 0%,#1e1208 100%);
+position:relative;overflow:hidden;width:100%;height:100%;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#f59e0b22 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #f59e0b22;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #f59e0b30;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#f59e0b14;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#f59e0b06 0px,#f59e0b06 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#f59e0b06 0px,#f59e0b06 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#f59e0b;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#f59e0b;
+    background:#f59e0b20;border:1px solid #f59e0b60;padding:2px 10px;border-radius:8px;width:fit-content;">
+    ツール紹介
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">🛠️</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">Tools</span>
+  </div>
+</div></div></div>
+        <div class="ac-body">
+          <span class="badge cat-tool-reviews">ツール紹介</span>
+          <h2>AIライティングツール徹底比較2026</h2>
+          <p class="ac-exc">Jasper・Copy.ai・Gemini・Claude・ChatGPTの主要AIライティングツールを料金・機能・用途別に徹底比較。2026年版おすすめ選び方ガイドで自分に合ったツールを見つけましょう。</p>
+          <div class="ac-tags"><span class="t">ツール</span><span class="t">Jasper</span><span class="t">比較</span></div>
+          <div class="ac-meta"><span>📅 2026/03/08</span><span>👁 723</span></div>
+        </div>
+      </div>
+      <div class="ac" onclick="location.href='post.html'">
+        <div class="ac-thumb"><div style="background:linear-gradient(135deg,#120406 0%,#1e080c 100%);
+position:relative;overflow:hidden;width:100%;height:100%;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#ff6b6b22 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #ff6b6b22;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #ff6b6b30;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#ff6b6b14;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#ff6b6b06 0px,#ff6b6b06 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#ff6b6b06 0px,#ff6b6b06 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#ff6b6b;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#ff6b6b;
+    background:#ff6b6b20;border:1px solid #ff6b6b60;padding:2px 10px;border-radius:8px;width:fit-content;">
+    トレンド分析
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">🔮</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">Trend</span>
+  </div>
+</div></div></div>
+        <div class="ac-body">
+          <span class="badge cat-trend-analysis">トレンド分析</span>
+          <h2>生成AI時代を生き抜くライターの未来</h2>
+          <p class="ac-exc">生成AI時代にライターの仕事はどう変わるのか。AIに代替される仕事・人間が優位な仕事・新たに生まれる役割を分析。今から身につけるべきスキルも解説します。</p>
+          <div class="ac-tags"><span class="t">AI</span><span class="t">未来</span><span class="t">キャリア</span></div>
+          <div class="ac-meta"><span>📅 2026/02/28</span><span>👁 612</span></div>
+        </div>
+      </div>
+      <div class="ac" onclick="location.href='post.html'">
+        <div class="ac-thumb"><div style="background:linear-gradient(135deg,#040a14 0%,#081426 100%);
+position:relative;overflow:hidden;width:100%;height:100%;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#00d4ff22 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #00d4ff22;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #00d4ff30;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#00d4ff14;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#00d4ff06 0px,#00d4ff06 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#00d4ff06 0px,#00d4ff06 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#00d4ff;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#00d4ff;
+    background:#00d4ff20;border:1px solid #00d4ff60;padding:2px 10px;border-radius:8px;width:fit-content;">
+    AI技術
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">⚡</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">Tech</span>
+  </div>
+</div></div></div>
+        <div class="ac-body">
+          <span class="badge cat-ai-technology">AI技術</span>
+          <h2>Gemini APIで記事自動生成</h2>
+          <p class="ac-exc">Gemini 2.5 FlashのAPIを使ってWordPressに記事を自動投稿する方法を解説。このテーマに搭載されたAI記事生成機能の使い方とプロンプトのカスタマイズ方法を詳しく紹介します。</p>
+          <div class="ac-tags"><span class="t">Gemini</span><span class="t">WordPress</span><span class="t">API</span></div>
+          <div class="ac-meta"><span>📅 2026/02/20</span><span>👁 534</span></div>
+        </div>
+      </div>
+        </div>
+      </main>
+
+      <aside class="sb">
+        <div class="wg">
+          <div class="wg-h"><h3>このサイトについて</h3></div>
+          <div class="wg-b">
+            <div class="about-logo">Rayphoneai <em>theme</em></div>
+            <p class="about-desc">AI×ライティングの最前線をお届けするメディア。最新のAI技術とライティングのトレンドを分かりやすく解説します。</p>
+            <span class="about-badge">Powered by AI</span>
+          </div>
+        </div>
+
+        <div class="wg">
+          <div class="wg-h"><h3>人気記事</h3></div>
+          <div class="wg-b">
+            <div class="pop-list">
+          <div class="pop-item">
+            <span class="pop-rk rk1">1</span>
+            <div class="pop-th"><div style="background:linear-gradient(135deg,#080c18 0%,#0d1226 100%);
+position:relative;overflow:hidden;border-radius:5px;width:100%;height:39px;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#00d4ff22 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #00d4ff22;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #00d4ff30;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#00d4ff14;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#00d4ff06 0px,#00d4ff06 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#00d4ff06 0px,#00d4ff06 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#00d4ff;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#00d4ff;
+    background:#00d4ff20;border:1px solid #00d4ff60;padding:2px 10px;border-radius:8px;width:fit-content;">
+    ライティング術
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">✍️</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">Writing</span>
+  </div>
+</div></div></div>
+            <div class="pop-info">
+              <div class="pop-ttl">ChatGPT・Geminiを使ったブログ記事の書き方入門</div>
+              <div class="pop-dt">📅 2026/04/01 · 👁 1,240</div>
+            </div>
+          </div>
+          <div class="pop-item">
+            <span class="pop-rk rk2">2</span>
+            <div class="pop-th"><div style="background:linear-gradient(135deg,#0a0618 0%,#100d2a 100%);
+position:relative;overflow:hidden;border-radius:5px;width:100%;height:39px;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#7c5cfc22 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #7c5cfc22;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #7c5cfc30;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#7c5cfc14;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#7c5cfc06 0px,#7c5cfc06 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#7c5cfc06 0px,#7c5cfc06 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#7c5cfc;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#7c5cfc;
+    background:#7c5cfc20;border:1px solid #7c5cfc60;padding:2px 10px;border-radius:8px;width:fit-content;">
+    プロンプト技術
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">💡</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">Prompt</span>
+  </div>
+</div></div></div>
+            <div class="pop-info">
+              <div class="pop-ttl">AIプロンプトエンジニアリング完全ガイド</div>
+              <div class="pop-dt">📅 2026/03/25 · 👁 987</div>
+            </div>
+          </div>
+          <div class="pop-item">
+            <span class="pop-rk rk3">3</span>
+            <div class="pop-th"><div style="background:linear-gradient(135deg,#060e10 0%,#0a1a1c 100%);
+position:relative;overflow:hidden;border-radius:5px;width:100%;height:39px;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#10b98122 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #10b98122;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #10b98130;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#10b98114;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#10b98106 0px,#10b98106 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#10b98106 0px,#10b98106 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#10b981;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#10b981;
+    background:#10b98120;border:1px solid #10b98160;padding:2px 10px;border-radius:8px;width:fit-content;">
+    活用事例
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">🚀</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">UseCase</span>
+  </div>
+</div></div></div>
+            <div class="pop-info">
+              <div class="pop-ttl">SEO記事をAIで量産する方法</div>
+              <div class="pop-dt">📅 2026/03/17 · 👁 856</div>
+            </div>
+          </div>
+          <div class="pop-item">
+            <span class="pop-rk rk4">4</span>
+            <div class="pop-th"><div style="background:linear-gradient(135deg,#100a04 0%,#1e1208 100%);
+position:relative;overflow:hidden;border-radius:5px;width:100%;height:39px;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#f59e0b22 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #f59e0b22;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #f59e0b30;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#f59e0b14;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#f59e0b06 0px,#f59e0b06 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#f59e0b06 0px,#f59e0b06 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#f59e0b;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#f59e0b;
+    background:#f59e0b20;border:1px solid #f59e0b60;padding:2px 10px;border-radius:8px;width:fit-content;">
+    ツール紹介
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">🛠️</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">Tools</span>
+  </div>
+</div></div></div>
+            <div class="pop-info">
+              <div class="pop-ttl">AIライティングツール徹底比較2026</div>
+              <div class="pop-dt">📅 2026/03/08 · 👁 723</div>
+            </div>
+          </div>
+          <div class="pop-item">
+            <span class="pop-rk rk5">5</span>
+            <div class="pop-th"><div style="background:linear-gradient(135deg,#120406 0%,#1e080c 100%);
+position:relative;overflow:hidden;border-radius:5px;width:100%;height:39px;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#ff6b6b22 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #ff6b6b22;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #ff6b6b30;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#ff6b6b14;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#ff6b6b06 0px,#ff6b6b06 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#ff6b6b06 0px,#ff6b6b06 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#ff6b6b;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#ff6b6b;
+    background:#ff6b6b20;border:1px solid #ff6b6b60;padding:2px 10px;border-radius:8px;width:fit-content;">
+    トレンド分析
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">🔮</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">Trend</span>
+  </div>
+</div></div></div>
+            <div class="pop-info">
+              <div class="pop-ttl">生成AI時代を生き抜くライターの未来</div>
+              <div class="pop-dt">📅 2026/02/28 · 👁 612</div>
+            </div>
+          </div>
+          <div class="pop-item">
+            <span class="pop-rk rk4">6</span>
+            <div class="pop-th"><div style="background:linear-gradient(135deg,#040a14 0%,#081426 100%);
+position:relative;overflow:hidden;border-radius:5px;width:100%;height:39px;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#00d4ff22 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #00d4ff22;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #00d4ff30;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#00d4ff14;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#00d4ff06 0px,#00d4ff06 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#00d4ff06 0px,#00d4ff06 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#00d4ff;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#00d4ff;
+    background:#00d4ff20;border:1px solid #00d4ff60;padding:2px 10px;border-radius:8px;width:fit-content;">
+    AI技術
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">⚡</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">Tech</span>
+  </div>
+</div></div></div>
+            <div class="pop-info">
+              <div class="pop-ttl">Gemini APIで記事自動生成</div>
+              <div class="pop-dt">📅 2026/02/20 · 👁 534</div>
+            </div>
+          </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="wg">
+          <div class="wg-h"><h3>カテゴリ</h3></div>
+          <div class="wg-b">
+            <ul class="cat-ul">
+              <li><a href="#"><span>AI技術</span><span class="cnt">8</span></a></li>
+              <li><a href="#"><span>ツール紹介</span><span class="cnt">6</span></a></li>
+              <li><a href="#"><span>トレンド分析</span><span class="cnt">5</span></a></li>
+              <li><a href="#"><span>プロンプト技術</span><span class="cnt">4</span></a></li>
+              <li><a href="#"><span>ライティング術</span><span class="cnt">4</span></a></li>
+              <li><a href="#"><span>活用事例</span><span class="cnt">3</span></a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="wg">
+          <div class="wg-h"><h3>記事を検索</h3></div>
+          <div class="wg-b">
+            <div class="sf">
+              <input type="search" placeholder="キーワードで検索...">
+              <button>🔍</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="ft-main">
+      <div>
+        <div class="ft-logo">Rayphoneai <em>theme</em></div>
+        <p class="ft-desc">AI×ライティングの最前線をお届けするメディア。最新のAI技術とライティングのトレンドを分かりやすく解説します。</p>
+        <span class="ft-badge">Powered by AI</span>
+      </div>
+      <div class="ft-col">
+        <h4>カテゴリ</h4>
+        <div class="ft-links">
+          <a href="#">AI技術</a><a href="#">ツール紹介</a>
+          <a href="#">トレンド分析</a><a href="#">プロンプト技術</a>
+          <a href="#">ライティング術</a><a href="#">活用事例</a>
+        </div>
+      </div>
+      <div class="ft-col">
+        <h4>リンク</h4>
+        <div class="ft-links">
+          <a href="#">ホーム</a><a href="post.html">記事詳細デモ</a>
+          <a href="https://github.com/rayphoneai" target="_blank">GitHub</a>
+          <a href="#">プライバシーポリシー</a>
+        </div>
+      </div>
+    </div>
+    <div class="ft-bot">
+      <span>© 2026 Rayphoneai theme. All rights reserved.</span>
+      <span>AI × ライティング専門メディア</span>
+    </div>
+  </div>
+</footer>
+
+<button id="top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+// 進捗バー
+window.addEventListener('scroll',()=>{
+  const e=document.documentElement;
+  document.getElementById('prog').style.width=(e.scrollTop/(e.scrollHeight-e.clientHeight)*100)+'%';
+},{passive:true});
+
+// トップボタン
+window.addEventListener('scroll',()=>{
+  document.getElementById('top-btn').style.opacity=window.scrollY>400?'1':'0';
+},{passive:true});
+
+// タブ
+document.querySelectorAll('.tab').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+  });
+});
+</script>
+</body>
+</html>
