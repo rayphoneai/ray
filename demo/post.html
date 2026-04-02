@@ -1,1 +1,686 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Rayphoneai theme — WordPress テーマ デモ</title>
+<meta name="description" content="AI × ライティング専門メディア向けWordPressテーマ「Rayphoneai theme」のデモページ。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --p:#00d4ff;--s:#7c5cfc;--ac:#ff6b6b;
+  --bg:#080c18;--bg2:#0d1226;--bg3:#121832;
+  --bd:#1e2a4a;--tx:#e8eaf0;--mu:#8899bb;--h:#fff;
+  --mw:1200px;--r:12px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--tx);line-height:1.8;-webkit-font-smoothing:antialiased}
+a{color:var(--p);text-decoration:none;transition:.2s}
+a:hover{opacity:.8}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg3)}::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}
 
+/* Progress */
+#prog{position:fixed;top:0;left:0;height:3px;width:0;background:var(--p);z-index:9999;box-shadow:0 0 8px #00d4ff99;transition:width .1s}
+
+/* Demo banner */
+.demo-flag{
+  position:fixed;bottom:20px;right:20px;z-index:900;
+  background:linear-gradient(135deg,var(--s),var(--p));
+  color:#fff;padding:12px 18px;border-radius:14px;
+  font-size:.8rem;font-weight:700;
+  box-shadow:0 8px 30px #00d4ff44;
+  display:flex;flex-direction:column;gap:5px;max-width:220px;
+  animation:pop .5s cubic-bezier(.34,1.56,.64,1) .6s both;
+}
+@keyframes pop{from{opacity:0;transform:translateY(16px) scale(.95)}to{opacity:1;transform:none}}
+.demo-flag small{font-weight:400;opacity:.85;font-size:.72rem}
+.demo-flag a{color:#fff;text-decoration:underline;font-size:.72rem}
+
+/* Header */
+header{position:sticky;top:0;z-index:100;background:#080c18ee;border-bottom:1px solid var(--bd);backdrop-filter:blur(12px)}
+.hdr{max-width:var(--mw);margin:0 auto;padding:0 20px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.logo{font-size:1.15rem;font-weight:900;color:var(--h)}
+.logo em{color:var(--p);font-style:normal}
+nav{display:flex;gap:2px}
+nav a{padding:5px 11px;font-size:.82rem;font-weight:500;color:var(--mu);border-radius:6px;transition:.2s}
+nav a:hover,nav a.on{color:var(--p);background:#00d4ff10}
+.hdr-r{display:flex;align-items:center;gap:8px}
+.srch-btn{background:none;border:none;color:var(--mu);cursor:pointer;padding:6px;border-radius:6px;font-size:1rem}
+.srch-btn:hover{color:var(--p);background:#00d4ff10}
+.ham{display:none;background:none;border:none;cursor:pointer;color:var(--tx);font-size:1.3rem;padding:6px}
+
+/* Container */
+.wrap{max-width:var(--mw);margin:0 auto;padding:0 20px}
+
+/* Cat badges */
+.badge{display:inline-block;padding:2px 9px;border-radius:9px;font-size:.67rem;font-weight:700;line-height:1.5}
+.cat-writing-skills    {background:#10b98118;color:#10b981}
+.cat-prompt-engineering{background:#f59e0b18;color:#f59e0b}
+.cat-use-cases         {background:#ec489918;color:#ec4899}
+.cat-tool-reviews      {background:#7c5cfc18;color:#7c5cfc}
+.cat-trend-analysis    {background:#ff6b6b18;color:#ff6b6b}
+.cat-ai-technology     {background:#00d4ff18;color:#00d4ff}
+
+/* ── HERO ── */
+.hero{padding:52px 0 28px}
+.hero-card{
+  display:grid;grid-template-columns:1fr 1fr;
+  min-height:420px;border-radius:20px;overflow:hidden;
+  border:1px solid var(--bd);background:var(--bg2);
+  transition:.3s;cursor:pointer;
+  animation:fadeUp .55s both;
+}
+.hero-card:hover{border-color:var(--p);box-shadow:0 8px 48px #00d4ff18;transform:translateY(-3px)}
+.hero-thumb{position:relative;overflow:hidden}
+.hero-thumb:hover .hero-thumb-inner{transform:scale(1.04)}
+.hero-thumb-inner{width:100%;height:100%;transition:.5s}
+.hero-body{padding:36px 40px;display:flex;flex-direction:column;justify-content:center;gap:12px}
+.hero-tag{font-size:.68rem;font-weight:700;letter-spacing:.12em;color:var(--p);display:flex;align-items:center;gap:6px}
+.hero-tag::before{content:'';display:block;width:12px;height:2px;background:var(--p)}
+.hero-body h2{font-size:1.5rem;font-weight:700;color:var(--h);line-height:1.4;letter-spacing:-.02em}
+.hero-exc{font-size:.84rem;color:var(--mu);line-height:1.65;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.hero-meta{font-size:.74rem;color:var(--mu);display:flex;gap:14px}
+.read-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 20px;background:var(--p);color:var(--bg);
+  font-size:.82rem;font-weight:700;border-radius:20px;width:fit-content;transition:.2s;
+}
+.read-btn:hover{opacity:.88;color:var(--bg);transform:translateX(2px)}
+
+/* Sub grid */
+.sub-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:18px}
+.sub-card{
+  background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);
+  overflow:hidden;transition:.3s;cursor:pointer;
+  animation:fadeUp .55s both;
+}
+.sub-card:nth-child(1){animation-delay:.05s}.sub-card:nth-child(2){animation-delay:.1s}
+.sub-card:nth-child(3){animation-delay:.15s}.sub-card:nth-child(4){animation-delay:.2s}
+.sub-card:hover{border-color:var(--p);box-shadow:0 6px 28px #00d4ff12;transform:translateY(-4px)}
+.sub-thumb{aspect-ratio:16/9;overflow:hidden}
+.sub-body{padding:11px 13px;display:flex;flex-direction:column;gap:6px}
+.sub-body h3{font-size:.8rem;font-weight:600;color:var(--h);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sub-meta{font-size:.7rem;color:var(--mu)}
+
+/* Cat tabs */
+.tabs{display:flex;gap:7px;flex-wrap:wrap;padding-bottom:26px;border-bottom:1px solid var(--bd);margin-bottom:38px}
+.tab{
+  padding:5px 15px;border-radius:17px;font-size:.78rem;font-weight:600;
+  border:1.5px solid var(--bd);color:var(--mu);
+  cursor:pointer;transition:.2s;background:transparent;font-family:inherit;
+}
+.tab:hover,.tab.on{border-color:var(--p);color:var(--p);background:#00d4ff08}
+.tab.on{box-shadow:0 0 10px #00d4ff20}
+
+/* Main */
+.main{padding:52px 0}
+.two-col{display:grid;grid-template-columns:1fr 310px;gap:44px;align-items:start}
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.sec-ttl{font-size:1.08rem;font-weight:700;color:var(--h);display:flex;align-items:center;gap:8px}
+.sec-ttl::before{content:'';display:block;width:4px;height:20px;background:var(--p);border-radius:2px}
+.see-all{font-size:.77rem;font-weight:600;color:var(--mu);padding:4px 12px;border:1px solid var(--bd);border-radius:6px;transition:.2s}
+.see-all:hover{border-color:var(--p);color:var(--p)}
+
+/* Article grid */
+.ag{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+.ac{
+  background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);
+  overflow:hidden;transition:.3s;cursor:pointer;display:flex;flex-direction:column;
+  animation:fadeUp .5s both;
+}
+.ac:nth-child(1){animation-delay:.05s}.ac:nth-child(2){animation-delay:.1s}
+.ac:nth-child(3){animation-delay:.15s}.ac:nth-child(4){animation-delay:.2s}
+.ac:nth-child(5){animation-delay:.25s}.ac:nth-child(6){animation-delay:.3s}
+.ac:hover{border-color:var(--p);box-shadow:0 6px 32px #00d4ff12;transform:translateY(-4px)}
+.ac-thumb{aspect-ratio:16/9;overflow:hidden}
+.ac-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
+.ac-body h2{font-size:.9rem;font-weight:600;color:var(--h);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ac-exc{font-size:.79rem;color:var(--mu);line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ac-tags{display:flex;gap:5px;flex-wrap:wrap}
+.t{font-size:.67rem;padding:2px 7px;border-radius:4px;background:#ffffff08;color:var(--mu);border:1px solid var(--bd)}
+.t::before{content:'#'}
+.ac-meta{margin-top:auto;font-size:.72rem;color:var(--mu);display:flex;gap:10px}
+
+/* Sidebar */
+.sb{display:flex;flex-direction:column;gap:20px}
+.wg{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+.wg-h{padding:13px 16px;border-bottom:1px solid var(--bd)}
+.wg-h h3{font-size:.86rem;font-weight:700;color:var(--h);display:flex;align-items:center;gap:7px}
+.wg-h h3::before{content:'';display:block;width:3px;height:14px;background:var(--p);border-radius:2px}
+.wg-b{padding:13px 16px}
+.about-logo{font-size:1.3rem;font-weight:900;color:var(--h);text-align:center;margin-bottom:7px}
+.about-logo em{color:var(--p);font-style:normal}
+.about-desc{font-size:.78rem;color:var(--mu);text-align:center;line-height:1.65}
+.about-badge{display:block;text-align:center;margin-top:9px;font-size:.68rem;font-weight:600;color:var(--p);background:#00d4ff12;padding:2px 14px;border-radius:9px;width:fit-content;margin-inline:auto}
+
+/* Popular */
+.pop-list{display:flex;flex-direction:column}
+.pop-item{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--bd);cursor:pointer;transition:.2s}
+.pop-item:last-child{border-bottom:none;padding-bottom:0}
+.pop-item:first-child{padding-top:0}
+.pop-item:hover .pop-ttl{color:var(--p)}
+.pop-rk{font-size:1rem;font-weight:900;min-width:20px;text-align:center}
+.rk1{color:#ffd700}.rk2{color:#c0c0c0}.rk3{color:#cd7f32}.rk4,.rk5{color:var(--mu);font-size:.82rem}
+.pop-th{width:52px;height:39px;border-radius:5px;overflow:hidden;flex-shrink:0}
+.pop-th .ec{width:100%;height:100%}
+.pop-info{flex:1;min-width:0}
+.pop-ttl{font-size:.76rem;font-weight:600;color:var(--tx);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;transition:.2s}
+.pop-dt{font-size:.67rem;color:var(--mu);margin-top:2px}
+
+/* Cat list */
+.cat-ul{display:flex;flex-direction:column;gap:5px}
+.cat-ul li a{display:flex;align-items:center;justify-content:space-between;padding:7px 11px;border-radius:7px;background:#ffffff04;border:1px solid var(--bd);color:var(--tx);font-size:.8rem;transition:.2s}
+.cat-ul li a:hover{border-color:var(--p);color:var(--p);background:#00d4ff06}
+.cnt{font-size:.68rem;font-weight:600;background:var(--bg3);padding:1px 7px;border-radius:8px;color:var(--mu)}
+
+/* Search */
+.sf{display:flex}
+.sf input{flex:1;padding:8px 13px;background:var(--bg3);border:1px solid var(--bd);border-right:none;border-radius:7px 0 0 7px;color:var(--tx);font-size:.83rem;font-family:inherit;outline:none;transition:.2s}
+.sf input:focus{border-color:var(--p)}
+.sf input::placeholder{color:var(--mu)}
+.sf button{padding:8px 14px;background:var(--p);color:var(--bg);border:none;border-radius:0 7px 7px 0;cursor:pointer}
+
+/* Footer */
+footer{background:var(--bg3);border-top:1px solid var(--bd);margin-top:52px}
+.ft-main{display:grid;grid-template-columns:250px 1fr 1fr;gap:36px;padding:40px 0;border-bottom:1px solid var(--bd)}
+.ft-logo{font-size:1.15rem;font-weight:900;color:var(--h);margin-bottom:9px}
+.ft-logo em{color:var(--p);font-style:normal}
+.ft-desc{font-size:.78rem;color:var(--mu);line-height:1.7}
+.ft-badge{display:inline-block;margin-top:9px;padding:2px 11px;border-radius:9px;background:#00d4ff10;color:var(--p);font-size:.68rem;font-weight:600}
+.ft-col h4{font-size:.84rem;font-weight:700;color:var(--h);margin-bottom:11px;padding-bottom:7px;border-bottom:1px solid var(--bd)}
+.ft-links{display:flex;flex-direction:column;gap:6px}
+.ft-links a{font-size:.78rem;color:var(--mu);display:flex;align-items:center;gap:5px;transition:.2s}
+.ft-links a::before{content:'▸';font-size:.58rem;color:var(--p)}
+.ft-links a:hover{color:var(--p)}
+.ft-bot{display:flex;align-items:center;justify-content:space-between;padding:16px 0;font-size:.74rem;color:var(--mu)}
+
+/* Back to top */
+#top-btn{position:fixed;bottom:78px;right:22px;width:40px;height:40px;border-radius:50%;background:var(--bg2);border:1px solid var(--bd);color:var(--mu);cursor:pointer;font-size:1rem;opacity:0;transition:.25s;z-index:88;display:flex;align-items:center;justify-content:center}
+#top-btn:hover{border-color:var(--p);color:var(--p)}
+
+/* Animations */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+/* Responsive */
+@media(max-width:1100px){.two-col{grid-template-columns:1fr}.sb{flex-direction:row;flex-wrap:wrap}.sb .wg{flex:1;min-width:240px}}
+@media(max-width:768px){nav{display:none}.ham{display:block}.hero-card{grid-template-columns:1fr}.hero-thumb{min-height:200px}.hero-body{padding:20px 22px}.hero-body h2{font-size:1.2rem}.sub-grid{grid-template-columns:repeat(2,1fr)}.ag{grid-template-columns:1fr}.ft-main{grid-template-columns:1fr;gap:22px}.ft-bot{flex-direction:column;gap:6px;text-align:center}}
+@media(max-width:480px){.sub-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="prog"></div>
+
+<style>
+#prog{position:fixed;top:0;left:0;height:3px;width:0;background:var(--p);z-index:9999;box-shadow:0 0 8px #00d4ff99;transition:width .1s}
+header{position:sticky;top:0;z-index:100;background:#080c18ee;border-bottom:1px solid var(--bd);backdrop-filter:blur(12px)}
+.hdr{max-width:var(--mw);margin:0 auto;padding:0 20px;height:64px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:1.15rem;font-weight:900;color:var(--h)}
+.logo em{color:var(--p);font-style:normal}
+.back{display:flex;align-items:center;gap:6px;color:var(--mu);font-size:.8rem;border:1px solid var(--bd);padding:5px 14px;border-radius:6px;transition:.2s}
+.back:hover{border-color:var(--p);color:var(--p)}
+.wrap{max-width:var(--mw);margin:0 auto;padding:0 20px}
+.bc{display:flex;align-items:center;gap:6px;padding:12px 0;font-size:.75rem;color:var(--mu)}
+.bc a{color:var(--mu);transition:.2s}.bc a:hover{color:var(--p)}
+.bc span{color:var(--bd)}
+.post-layout{display:grid;grid-template-columns:1fr 290px;gap:44px;align-items:start;padding-bottom:60px}
+.post-hdr{margin-bottom:24px}
+.badge{display:inline-block;padding:2px 9px;border-radius:9px;font-size:.67rem;font-weight:700;line-height:1.5}
+.cat-writing-skills{background:#10b98118;color:#10b981}
+.cat-prompt-engineering{background:#f59e0b18;color:#f59e0b}
+.cat-use-cases{background:#ec489918;color:#ec4899}
+.cat-tool-reviews{background:#7c5cfc18;color:#7c5cfc}
+.cat-trend-analysis{background:#ff6b6b18;color:#ff6b6b}
+.cat-ai-technology{background:#00d4ff18;color:#00d4ff}
+.post-ttl{font-size:1.8rem;font-weight:700;color:var(--h);line-height:1.35;letter-spacing:-.02em;margin:10px 0 14px}
+.post-meta{display:flex;align-items:center;gap:16px;font-size:.78rem;color:var(--mu)}
+.post-eye{border-radius:12px;overflow:hidden;margin-bottom:32px}
+.toc{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:32px}
+.toc-h{padding:11px 16px;border-bottom:1px solid var(--bd);font-size:.84rem;font-weight:700;color:var(--h);display:flex;align-items:center;gap:6px}
+.toc-h::before{content:'';display:block;width:3px;height:13px;background:var(--p);border-radius:2px}
+.toc-ul{list-style:none;padding:9px 14px;display:flex;flex-direction:column;gap:2px}
+.toc-ul li a{display:block;padding:4px 8px;border-radius:5px;font-size:.78rem;color:var(--mu);border-left:2px solid transparent;transition:.2s}
+.toc-ul li a:hover,.toc-ul li a.on{color:var(--p);background:#00d4ff06;border-left-color:var(--p);padding-left:12px}
+.ec h2{font-size:1.35rem;font-weight:700;color:var(--h);margin:2.3em 0 .7em;padding-left:13px;border-left:4px solid var(--p);line-height:1.4}
+.ec h3{font-size:1.1rem;font-weight:700;color:var(--h);margin:1.8em 0 .6em}
+.ec p{margin-bottom:1.3em;color:var(--tx)}
+.ec strong{color:#fff;font-weight:700}
+.ec ul,.ec ol{margin:1em 0 1.3em 1.4em}
+.ec li{margin-bottom:.35em}
+.ec ul li{list-style:disc}.ec ol li{list-style:decimal}
+.ec pre{background:var(--bg3);border:1px solid var(--bd);border-radius:8px;padding:18px;overflow-x:auto;margin:1.4em 0;font-family:monospace;font-size:.85rem;color:var(--tx)}
+.pf{margin-top:40px;padding-top:28px;border-top:1px solid var(--bd);display:flex;flex-direction:column;gap:20px}
+.tag-wrap{display:flex;flex-wrap:wrap;gap:5px}
+.tg{font-size:.68rem;padding:2px 8px;border-radius:4px;background:#ffffff06;color:var(--mu);border:1px solid var(--bd)}
+.tg::before{content:'#'}
+.shr-btns{display:flex;gap:8px}
+.sb-btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:7px;font-size:.8rem;font-weight:600;cursor:pointer;border:none;transition:.2s}
+.sb-tw{background:#1d9bf0;color:#fff}.sb-fb{background:#1877f2;color:#fff}
+.sb-cp{background:var(--bg2);border:1px solid var(--bd);color:var(--tx)}
+.pnav{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:28px}
+.pnav-i{padding:14px 16px;background:var(--bg2);border:1px solid var(--bd);border-radius:11px;transition:.3s;cursor:pointer}
+.pnav-i:hover{border-color:var(--p);box-shadow:0 4px 18px #00d4ff12}
+.pnav-l{font-size:.68rem;font-weight:700;color:var(--p);letter-spacing:.08em;margin-bottom:5px}
+.pnav-t{font-size:.82rem;font-weight:600;color:var(--h);line-height:1.4}
+.rel-sec{margin-top:40px}
+.rel-sec h3{font-size:1rem;font-weight:700;color:var(--h);display:flex;align-items:center;gap:7px;margin-bottom:16px}
+.rel-sec h3::before{content:'';width:3px;height:16px;background:var(--p);border-radius:2px;display:block}
+.rel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+.mini-c{background:var(--bg2);border:1px solid var(--bd);border-radius:10px;overflow:hidden;transition:.3s;cursor:pointer}
+.mini-c:hover{border-color:var(--p);transform:translateY(-3px)}
+.mini-th{aspect-ratio:16/9;overflow:hidden}
+.mini-b{padding:10px 12px}
+.mini-ttl{font-size:.78rem;font-weight:600;color:var(--h);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sb{display:flex;flex-direction:column;gap:20px;position:sticky;top:80px}
+.wg{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;overflow:hidden}
+.wg-h{padding:12px 16px;border-bottom:1px solid var(--bd)}
+.wg-h h3{font-size:.84rem;font-weight:700;color:var(--h);display:flex;align-items:center;gap:6px}
+.wg-h h3::before{content:'';display:block;width:3px;height:13px;background:var(--p);border-radius:2px}
+.wg-b{padding:12px 16px}
+.pop-list{display:flex;flex-direction:column}
+.pop-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bd)}
+.pop-item:last-child{border-bottom:none;padding-bottom:0}.pop-item:first-child{padding-top:0}
+.pop-rk{font-size:.95rem;font-weight:900;min-width:20px;text-align:center}
+.rk1{color:#ffd700}.rk2{color:#c0c0c0}.rk3{color:#cd7f32}.rk4,.rk5{color:var(--mu);font-size:.8rem}
+.pop-th{width:50px;height:38px;border-radius:5px;overflow:hidden;flex-shrink:0}
+.pop-info{flex:1;min-width:0}
+.pop-ttl{font-size:.75rem;font-weight:600;color:var(--tx);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pop-dt{font-size:.66rem;color:var(--mu);margin-top:2px}
+@media(max-width:1000px){.post-layout{grid-template-columns:1fr}.sb{position:static}}
+@media(max-width:640px){.post-ttl{font-size:1.35rem}.pnav{grid-template-columns:1fr}.rel-grid{grid-template-columns:1fr 1fr}}
+</style>
+
+<div id="prog"></div>
+<header>
+  <div class="hdr">
+    <div class="logo">Rayphoneai <em>theme</em></div>
+    <a href="index.html" class="back">← 記事一覧に戻る</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="bc">
+    <a href="index.html">🏠 ホーム</a><span>›</span>
+    <a href="#">ライティング術</a><span>›</span>
+    <span>ChatGPT・Geminiを使ったブログ記事の書き方入門</span>
+  </nav>
+
+  <div class="post-layout">
+    <article>
+      <header class="post-hdr">
+        <span class="badge cat-writing-skills">ライティング術</span>
+        <h1 class="post-ttl">ChatGPT・Geminiを使ったブログ記事の書き方入門：プロが実践する10のテクニック</h1>
+        <div class="post-meta">
+          <span>📅 2026年4月1日</span>
+          <span>🔄 2026年4月1日更新</span>
+          <span>👁 1,240 回閲覧</span>
+        </div>
+      </header>
+
+      <div class="post-eye"><div style="background:linear-gradient(135deg,#080c18 0%,#0d1226 100%);
+position:relative;overflow:hidden;width:100%;height:100%;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#00d4ff22 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #00d4ff22;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #00d4ff30;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#00d4ff14;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#00d4ff06 0px,#00d4ff06 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#00d4ff06 0px,#00d4ff06 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#00d4ff;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#00d4ff;
+    background:#00d4ff20;border:1px solid #00d4ff60;padding:2px 10px;border-radius:8px;width:fit-content;">
+    ライティング術
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">✍️</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">Writing</span>
+  </div>
+</div></div></div>
+
+      <div class="toc">
+        <div class="toc-h">📋 目次</div>
+        <ul class="toc-ul">
+          <li><a href="#s1" class="on">AI時代のブログライティングとは</a></li>
+          <li><a href="#s2">テクニック1：構成設計はAIに任せる</a></li>
+          <li><a href="#s3">テクニック2〜5：ペルソナ・事実確認・リライト</a></li>
+          <li><a href="#s4">テクニック6〜10：応用編</a></li>
+          <li><a href="#s5">まとめ</a></li>
+        </ul>
+      </div>
+
+      <div class="ec">
+        <h2 id="s1">AI時代のブログライティングとは</h2>
+        <p>ChatGPTやGeminiの登場により、ブログ記事の執筆方法は根本から変わりつつあります。しかし、単にAIに文章を書かせるだけでは、読者の心を掴む記事にはなりません。本記事では、プロのライターがAIと協働して高品質な記事を生産するための10のテクニックを解説します。</p>
+
+        <h2 id="s2">テクニック1：構成設計はAIに任せる</h2>
+        <p>記事を書き始める前に、AIにアウトライン（見出し構成）を作らせましょう。「〇〇について5,000字の記事の構成を作って」と指示するだけで、SEOを意識した見出し構造が出来上がります。</p>
+        <p>ポイントは<strong>構成の段階でキーワードを伝えること</strong>。メインキーワードと関連キーワードを一緒に渡すと、検索意図に合った構成が自動生成されます。</p>
+        <pre>「AIライティング 初心者」をキーワードに、
+初心者向けブログ記事の見出し構成を
+SEOを意識して作成してください。</pre>
+
+        <h2 id="s3">テクニック2〜5：ペルソナ・事実確認・リライト</h2>
+        <h3>テクニック2：ペルソナを明示したプロンプトを使う</h3>
+        <p>AIへの指示に「読者は〇〇歳で〇〇に興味がある初心者です」と付け加えるだけで、文章のトーンと深さが劇的に変わります。</p>
+        <h3>テクニック3：事実確認は必ず人間が行う</h3>
+        <p>AIは「もっともらしい嘘（ハルシネーション）」を生成することがあります。統計データや固有名詞は必ず一次ソースで確認しましょう。</p>
+        <h3>テクニック4・5：導入文・リライト</h3>
+        <p>導入文は自分の言葉で書き、AIの出力に体験談・比喩・こなれた表現を加えてリライトすることで独自性が生まれます。</p>
+
+        <h2 id="s4">テクニック6〜10：応用編</h2>
+        <ul>
+          <li><strong>テクニック6</strong>：セクションごとに分割生成する</li>
+          <li><strong>テクニック7</strong>：競合記事を参考にプロンプトを改善する</li>
+          <li><strong>テクニック8</strong>：Gemini・Claude・ChatGPTを使い分ける</li>
+          <li><strong>テクニック9</strong>：SEOメタ情報もAIに生成させる</li>
+          <li><strong>テクニック10</strong>：品質チェックはチェックリストを使う</li>
+        </ul>
+
+        <h2 id="s5">まとめ</h2>
+        <p>AIを使ったブログライティングは「AIに書かせる」から「AIと協働する」へとステージが上がっています。10のテクニックを実践することで、品質と生産性を両立した記事制作フローが構築できます。</p>
+      </div>
+
+      <div class="pf">
+        <div>
+          <p style="font-size:.8rem;color:var(--mu);margin-bottom:7px;font-weight:600;">🏷 タグ</p>
+          <div class="tag-wrap">
+            <span class="tg">AI</span><span class="tg">ライティング</span>
+            <span class="tg">ChatGPT</span><span class="tg">Gemini</span><span class="tg">ブログ</span>
+          </div>
+        </div>
+        <div>
+          <p style="font-size:.8rem;color:var(--mu);margin-bottom:7px;font-weight:600;">🔗 この記事をシェア</p>
+          <div class="shr-btns">
+            <button class="sb-btn sb-tw">𝕏 Twitter</button>
+            <button class="sb-btn sb-fb">Facebook</button>
+            <button class="sb-btn sb-cp" onclick="navigator.clipboard.writeText(location.href);this.textContent='✅ コピー済み'">🔗 URLをコピー</button>
+          </div>
+        </div>
+        <div class="pnav">
+          <div class="pnav-i"><div class="pnav-l">← 前の記事</div><div class="pnav-t">AIプロンプトエンジニアリング完全ガイド2025</div></div>
+          <div class="pnav-i" style="text-align:right"><div class="pnav-l">次の記事 →</div><div class="pnav-t">SEO記事をAIで量産する方法：生産性10倍の戦略</div></div>
+        </div>
+      </div>
+
+      <div class="rel-sec">
+        <h3>関連記事</h3>
+        <div class="rel-grid">
+<div class="mini-c">
+  <div class="mini-th"><div style="background:linear-gradient(135deg,#0a0618 0%,#100d2a 100%);
+position:relative;overflow:hidden;width:100%;height:100%;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#7c5cfc22 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #7c5cfc22;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #7c5cfc30;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#7c5cfc14;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#7c5cfc06 0px,#7c5cfc06 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#7c5cfc06 0px,#7c5cfc06 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#7c5cfc;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#7c5cfc;
+    background:#7c5cfc20;border:1px solid #7c5cfc60;padding:2px 10px;border-radius:8px;width:fit-content;">
+    プロンプト技術
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">💡</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">Prompt</span>
+  </div>
+</div></div></div>
+  <div class="mini-b"><div class="mini-ttl">AIプロンプトエンジニアリング完全ガイド</div></div></div>
+<div class="mini-c">
+  <div class="mini-th"><div style="background:linear-gradient(135deg,#060e10 0%,#0a1a1c 100%);
+position:relative;overflow:hidden;width:100%;height:100%;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#10b98122 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #10b98122;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #10b98130;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#10b98114;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#10b98106 0px,#10b98106 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#10b98106 0px,#10b98106 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#10b981;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#10b981;
+    background:#10b98120;border:1px solid #10b98160;padding:2px 10px;border-radius:8px;width:fit-content;">
+    活用事例
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">🚀</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">UseCase</span>
+  </div>
+</div></div></div>
+  <div class="mini-b"><div class="mini-ttl">SEO記事をAIで量産する方法</div></div></div>
+<div class="mini-c">
+  <div class="mini-th"><div style="background:linear-gradient(135deg,#100a04 0%,#1e1208 100%);
+position:relative;overflow:hidden;width:100%;height:100%;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#f59e0b22 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #f59e0b22;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #f59e0b30;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#f59e0b14;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#f59e0b06 0px,#f59e0b06 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#f59e0b06 0px,#f59e0b06 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#f59e0b;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#f59e0b;
+    background:#f59e0b20;border:1px solid #f59e0b60;padding:2px 10px;border-radius:8px;width:fit-content;">
+    ツール紹介
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">🛠️</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">Tools</span>
+  </div>
+</div></div></div>
+  <div class="mini-b"><div class="mini-ttl">AIライティングツール徹底比較2026</div></div></div>
+        </div>
+      </div>
+    </article>
+
+    <aside class="sb">
+      <div class="wg">
+        <div class="wg-h"><h3>人気記事</h3></div>
+        <div class="wg-b">
+          <div class="pop-list">
+<div class="pop-item">
+  <span class="pop-rk rk1">1</span>
+  <div class="pop-th"><div style="background:linear-gradient(135deg,#080c18 0%,#0d1226 100%);
+position:relative;overflow:hidden;border-radius:5px;width:100%;height:39px;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#00d4ff22 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #00d4ff22;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #00d4ff30;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#00d4ff14;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#00d4ff06 0px,#00d4ff06 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#00d4ff06 0px,#00d4ff06 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#00d4ff;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#00d4ff;
+    background:#00d4ff20;border:1px solid #00d4ff60;padding:2px 10px;border-radius:8px;width:fit-content;">
+    ライティング術
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">✍️</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">Writing</span>
+  </div>
+</div></div></div>
+  <div class="pop-info"><div class="pop-ttl">ChatGPT・Geminiを使ったブログ記事の書き方入門</div>
+  <div class="pop-dt">📅 2026/04/01 · 👁 1,240</div></div></div>
+<div class="pop-item">
+  <span class="pop-rk rk2">2</span>
+  <div class="pop-th"><div style="background:linear-gradient(135deg,#0a0618 0%,#100d2a 100%);
+position:relative;overflow:hidden;border-radius:5px;width:100%;height:39px;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#7c5cfc22 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #7c5cfc22;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #7c5cfc30;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#7c5cfc14;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#7c5cfc06 0px,#7c5cfc06 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#7c5cfc06 0px,#7c5cfc06 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#7c5cfc;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#7c5cfc;
+    background:#7c5cfc20;border:1px solid #7c5cfc60;padding:2px 10px;border-radius:8px;width:fit-content;">
+    プロンプト技術
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">💡</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">Prompt</span>
+  </div>
+</div></div></div>
+  <div class="pop-info"><div class="pop-ttl">AIプロンプトエンジニアリング完全ガイド</div>
+  <div class="pop-dt">📅 2026/03/25 · 👁 987</div></div></div>
+<div class="pop-item">
+  <span class="pop-rk rk3">3</span>
+  <div class="pop-th"><div style="background:linear-gradient(135deg,#060e10 0%,#0a1a1c 100%);
+position:relative;overflow:hidden;border-radius:5px;width:100%;height:39px;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#10b98122 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #10b98122;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #10b98130;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#10b98114;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#10b98106 0px,#10b98106 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#10b98106 0px,#10b98106 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#10b981;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#10b981;
+    background:#10b98120;border:1px solid #10b98160;padding:2px 10px;border-radius:8px;width:fit-content;">
+    活用事例
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">🚀</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">UseCase</span>
+  </div>
+</div></div></div>
+  <div class="pop-info"><div class="pop-ttl">SEO記事をAIで量産する方法</div>
+  <div class="pop-dt">📅 2026/03/17 · 👁 856</div></div></div>
+<div class="pop-item">
+  <span class="pop-rk rk4">4</span>
+  <div class="pop-th"><div style="background:linear-gradient(135deg,#100a04 0%,#1e1208 100%);
+position:relative;overflow:hidden;border-radius:5px;width:100%;height:39px;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#f59e0b22 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #f59e0b22;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #f59e0b30;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#f59e0b14;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#f59e0b06 0px,#f59e0b06 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#f59e0b06 0px,#f59e0b06 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#f59e0b;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#f59e0b;
+    background:#f59e0b20;border:1px solid #f59e0b60;padding:2px 10px;border-radius:8px;width:fit-content;">
+    ツール紹介
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">🛠️</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">Tools</span>
+  </div>
+</div></div></div>
+  <div class="pop-info"><div class="pop-ttl">AIライティングツール徹底比較2026</div>
+  <div class="pop-dt">📅 2026/03/08 · 👁 723</div></div></div>
+<div class="pop-item">
+  <span class="pop-rk rk5">5</span>
+  <div class="pop-th"><div style="background:linear-gradient(135deg,#120406 0%,#1e080c 100%);
+position:relative;overflow:hidden;border-radius:5px;width:100%;height:39px;position:relative;">
+
+<div style="position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,#ff6b6b22 0%,transparent 65%);"></div>
+<div style="position:absolute;right:40px;top:20px;width:140px;height:140px;
+  border-radius:50%;border:1.5px solid #ff6b6b22;"></div>
+<div style="position:absolute;right:60px;top:40px;width:90px;height:90px;
+  border-radius:50%;border:1px solid #ff6b6b30;"></div>
+<div style="position:absolute;right:80px;top:60px;width:44px;height:44px;
+  border-radius:50%;background:#ff6b6b14;"></div>
+<div style="position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,#ff6b6b06 0px,#ff6b6b06 1px,transparent 1px,transparent 60px),
+             repeating-linear-gradient(0deg,#ff6b6b06 0px,#ff6b6b06 1px,transparent 1px,transparent 60px);"></div>
+<div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#ff6b6b;opacity:.7;"></div>
+<div style="position:relative;z-index:1;padding:20px 22px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
+  <div style="font-size:.65rem;font-weight:700;letter-spacing:.1em;color:#ff6b6b;
+    background:#ff6b6b20;border:1px solid #ff6b6b60;padding:2px 10px;border-radius:8px;width:fit-content;">
+    トレンド分析
+  </div>
+  <div style="font-size:2.2rem;line-height:1;">🔮</div>
+  <div style="background:rgba(255,255,255,.92);border-radius:4px;padding:4px 10px;width:fit-content;">
+    <span style="font-size:.82rem;font-weight:700;color:#080c18;">Trend</span>
+  </div>
+</div></div></div>
+  <div class="pop-info"><div class="pop-ttl">生成AI時代を生き抜くライターの未来</div>
+  <div class="pop-dt">📅 2026/02/28 · 👁 612</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="wg">
+        <div class="wg-h"><h3>カテゴリ</h3></div>
+        <div class="wg-b">
+          <ul style="display:flex;flex-direction:column;gap:4px">
+            <li><a href="index.html" style="display:flex;justify-content:space-between;padding:6px 10px;border-radius:6px;background:#ffffff04;border:1px solid var(--bd);color:var(--tx);font-size:.78rem;transition:.2s">ライティング術<span style="font-size:.67rem;background:var(--bg3);padding:1px 6px;border-radius:7px;color:var(--mu)">4</span></a></li>
+            <li><a href="index.html" style="display:flex;justify-content:space-between;padding:6px 10px;border-radius:6px;background:#ffffff04;border:1px solid var(--bd);color:var(--tx);font-size:.78rem;transition:.2s">プロンプト技術<span style="font-size:.67rem;background:var(--bg3);padding:1px 6px;border-radius:7px;color:var(--mu)">4</span></a></li>
+            <li><a href="index.html" style="display:flex;justify-content:space-between;padding:6px 10px;border-radius:6px;background:#ffffff04;border:1px solid var(--bd);color:var(--tx);font-size:.78rem;transition:.2s">AI技術<span style="font-size:.67rem;background:var(--bg3);padding:1px 6px;border-radius:7px;color:var(--mu)">8</span></a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<footer style="background:var(--bg3);border-top:1px solid var(--bd);padding:24px 0;text-align:center">
+  <div style="font-size:.75rem;color:var(--mu)">© 2026 Rayphoneai theme · <a href="index.html">← トップへ</a></div>
+</footer>
+
+<script>
+window.addEventListener('scroll',()=>{
+  const e=document.documentElement;
+  document.getElementById('prog').style.width=(e.scrollTop/(e.scrollHeight-e.clientHeight)*100)+'%';
+},{passive:true});
+const hs=document.querySelectorAll('.ec h2');
+const tl=document.querySelectorAll('.toc-ul a');
+window.addEventListener('scroll',()=>{
+  let cur=null;hs.forEach(h=>{if(h.offsetTop<=window.scrollY+110)cur=h;});
+  tl.forEach(a=>a.classList.remove('on'));
+  if(cur){const l=document.querySelector(`.toc-ul a[href="#${cur.id}"]`);if(l)l.classList.add('on');}
+},{passive:true});
+</script>
+</body>
+</html>
