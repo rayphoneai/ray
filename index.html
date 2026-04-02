@@ -1,1 +1,763 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio — 祠堂じゅまる</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #faf9f6;
+    --bg2:     #f2f0eb;
+    --bg3:     #e8e5de;
+    --dark:    #16140f;
+    --dark2:   #2e2b24;
+    --muted:   #8c897f;
+    --muted2:  #b5b1a7;
+    --gold:    #a0783a;
+    --gold2:   #c9a464;
+    --border:  rgba(22,20,15,0.10);
+    --border2: rgba(22,20,15,0.06);
+    --pad:     clamp(32px, 5vw, 96px);
+    --max:     1440px;
+  }
 
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--dark);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ── カーソル ── */
+  #cursor { position: fixed; top: 0; left: 0; z-index: 9999; pointer-events: none; }
+  #cursor .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--dark);
+    position: absolute; transform: translate(-50%,-50%);
+  }
+  #cursor .ring {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 1.5px solid rgba(22,20,15,0.35);
+    position: absolute; transform: translate(-50%,-50%);
+    transition: width .3s, height .3s, border-color .3s;
+  }
+  body.hovering #cursor .ring { width: 54px; height: 54px; border-color: var(--gold); }
+  body.hovering #cursor .dot  { background: var(--gold); }
+
+  /* ── Nav ── */
+  nav {
+    position: fixed; top: 0; left: 0; width: 100%; z-index: 100;
+    padding: 30px var(--pad);
+    display: flex; align-items: center; justify-content: space-between;
+    transition: background .5s, padding .4s, box-shadow .4s;
+  }
+  nav.scrolled {
+    background: rgba(250,249,246,0.92);
+    backdrop-filter: blur(14px);
+    padding: 18px var(--pad);
+    box-shadow: 0 1px 0 var(--border);
+  }
+  nav > * { max-width: calc(var(--max) - var(--pad) * 2); }
+  .nav-inner {
+    width: 100%; max-width: var(--max);
+    margin: 0 auto; display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 21px; font-weight: 400; letter-spacing: 0.1em;
+    color: var(--dark); text-decoration: none;
+  }
+  .nav-links { display: flex; gap: 48px; list-style: none; }
+  .nav-links a {
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--muted); text-decoration: none; position: relative;
+    transition: color .3s;
+  }
+  .nav-links a::after {
+    content: ''; position: absolute; bottom: -3px; left: 0;
+    width: 0; height: 1px; background: var(--gold); transition: width .35s;
+  }
+  .nav-links a:hover { color: var(--dark); }
+  .nav-links a:hover::after { width: 100%; }
+
+  /* ── Hero ── */
+  #hero {
+    min-height: 100vh; display: flex; align-items: center;
+    padding: 0 var(--pad); position: relative; overflow: hidden;
+    background: var(--bg);
+  }
+  /* 背景 geometric */
+  .hero-geo {
+    position: absolute; top: 0; right: 0; width: 50%; height: 100%;
+    background: var(--bg2); clip-path: polygon(12% 0, 100% 0, 100% 100%, 0 100%);
+    z-index: 0;
+  }
+  .hero-geo::after {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      45deg, transparent, transparent 40px,
+      rgba(22,20,15,0.025) 40px, rgba(22,20,15,0.025) 41px
+    );
+  }
+  /* 縦ライン装飾 */
+  .hero-vline {
+    position: absolute; top: 15%; right: calc(50% - 1px);
+    width: 1px; height: 70%;
+    background: linear-gradient(to bottom, transparent, var(--gold2), transparent);
+    opacity: 0.4; z-index: 1;
+    animation: vpulse 5s ease-in-out infinite;
+  }
+  @keyframes vpulse { 0%,100%{opacity:.15;transform:scaleY(.8)} 50%{opacity:.5;transform:scaleY(1)} }
+
+  .hero-content { position: relative; z-index: 2; max-width: 640px; }
+  .hero-label {
+    font-size: clamp(10px, 1vw, 12px); letter-spacing: 0.32em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 40px;
+    display: flex; align-items: center; gap: 16px;
+    opacity: 0; transform: translateY(20px);
+    animation: fadeUp .9s ease forwards .3s;
+  }
+  .hero-label::before { content: ''; width: 36px; height: 1px; background: var(--gold); }
+
+  .hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(64px, 7vw, 112px);
+    font-weight: 300; line-height: 0.93; letter-spacing: -0.02em;
+  }
+  .hero-title .line { display: block; overflow: hidden; }
+  .hero-title .line span {
+    display: block; transform: translateY(110%);
+    animation: slideUp 1s cubic-bezier(0.16,1,0.3,1) forwards;
+  }
+  .hero-title .line:nth-child(1) span { animation-delay: .5s; }
+  .hero-title .line:nth-child(2) span { animation-delay: .65s; }
+  .hero-title .line:nth-child(3) span { animation-delay: .8s; color: var(--gold); font-style: italic; }
+
+  .hero-desc {
+    margin-top: 36px; font-size: clamp(15px, 1.3vw, 18px); line-height: 1.85;
+    color: var(--muted); max-width: 480px;
+    opacity: 0; transform: translateY(20px);
+    animation: fadeUp .9s ease forwards 1.2s;
+  }
+  .hero-cta {
+    margin-top: 48px; display: flex; gap: 20px; align-items: center;
+    opacity: 0; transform: translateY(20px);
+    animation: fadeUp .9s ease forwards 1.5s;
+  }
+  .btn-primary {
+    padding: 14px 36px; font-size: 11px; letter-spacing: 0.22em;
+    text-transform: uppercase; text-decoration: none;
+    color: #fff; background: var(--dark);
+    border: 1.5px solid var(--dark); cursor: none;
+    transition: background .3s, color .3s; display: inline-block;
+  }
+  .btn-primary:hover { background: var(--gold); border-color: var(--gold); }
+  .btn-outline {
+    padding: 14px 36px; font-size: 11px; letter-spacing: 0.22em;
+    text-transform: uppercase; text-decoration: none;
+    color: var(--dark); border: 1.5px solid var(--border2);
+    cursor: none; transition: border-color .3s, color .3s; display: inline-block;
+    border-color: rgba(22,20,15,0.2);
+  }
+  .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+  .scroll-hint {
+    position: absolute; bottom: 48px; left: var(--pad);
+    font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--muted2); display: flex; align-items: center; gap: 14px;
+    opacity: 0; animation: fadeUp 1s ease forwards 2s;
+  }
+  .scroll-hint::before {
+    content: ''; width: 1px; height: 44px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+    animation: scrollLine 2s ease-in-out infinite 2.5s;
+  }
+  @keyframes scrollLine { 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(0.55)} }
+
+  /* ── 共通 ── */
+  section { padding: clamp(80px, 8vw, 130px) var(--pad); }
+  .section-inner { max-width: var(--max); margin: 0 auto; }
+  .section-label {
+    font-size: clamp(10px, 1vw, 12px); letter-spacing: 0.32em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 20px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .section-label::before { content: ''; width: 28px; height: 1px; background: var(--gold); }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(42px, 4.5vw, 68px); font-weight: 300;
+    line-height: 1.06; letter-spacing: -0.01em; color: var(--dark);
+  }
+  .section-title em { font-style: italic; color: var(--gold); }
+
+  .reveal {
+    opacity: 0; transform: translateY(36px);
+    transition: opacity .9s ease, transform .9s cubic-bezier(0.16,1,0.3,1);
+  }
+  .reveal.visible { opacity: 1; transform: none; }
+  .reveal-delay-1 { transition-delay: .1s; }
+  .reveal-delay-2 { transition-delay: .2s; }
+  .reveal-delay-3 { transition-delay: .3s; }
+  .reveal-delay-4 { transition-delay: .4s; }
+
+  /* ── About ── */
+  #about { background: var(--bg); }
+  .about-grid {
+    display: grid; grid-template-columns: 5fr 7fr;
+    gap: clamp(48px, 6vw, 96px); align-items: center; margin-top: 64px;
+  }
+  .about-photo {
+    aspect-ratio: 4/5; background: var(--bg2);
+    border: 1px solid var(--border); position: relative; overflow: hidden;
+  }
+  .about-photo::before {
+    content: ''; position: absolute; bottom: -20px; right: -20px;
+    width: 50%; height: 50%; border: 1px solid rgba(160,120,58,0.2);
+    z-index: 0;
+  }
+  .photo-placeholder {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 12px;
+    color: var(--muted2); font-size: 12px; letter-spacing: 0.12em;
+    position: relative; z-index: 1;
+  }
+  .photo-placeholder svg { width: 44px; height: 44px; opacity: 0.35; }
+
+  .about-text p { font-size: clamp(15px, 1.3vw, 18px); line-height: 1.9; color: var(--muted); margin-bottom: 22px; }
+  .about-text p strong { color: var(--dark); font-weight: 400; }
+  .about-stats {
+    display: flex; gap: clamp(32px, 4vw, 52px); margin-top: 48px;
+    padding-top: 40px; border-top: 1px solid var(--border);
+  }
+  .stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(44px, 4vw, 62px); font-weight: 300; color: var(--dark);
+    line-height: 1; display: block;
+  }
+  .stat-label { font-size: clamp(10px, 1vw, 12px); letter-spacing: 0.15em; color: var(--muted2); text-transform: uppercase; margin-top: 6px; }
+
+  /* ── Skills ── */
+  #skills { background: var(--bg2); }
+  .skills-grid {
+    display: grid; grid-template-columns: repeat(3,1fr);
+    gap: 1px; margin-top: 72px; background: var(--border);
+  }
+  .skill-card {
+    padding: clamp(32px, 3vw, 52px) clamp(24px, 2.5vw, 44px);
+    background: var(--bg); position: relative; overflow: hidden; cursor: none;
+    transition: background .3s;
+  }
+  .skill-card:hover { background: var(--bg2); }
+  .skill-card::after {
+    content: ''; position: absolute; bottom: 0; left: 0;
+    width: 0; height: 2px; background: var(--gold);
+    transition: width .5s ease;
+  }
+  .skill-card:hover::after { width: 100%; }
+  .skill-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(12px, 1.1vw, 14px); color: var(--gold); letter-spacing: 0.2em; margin-bottom: 24px; display: block;
+  }
+  .skill-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(20px, 2vw, 28px); font-weight: 400; margin-bottom: 12px; color: var(--dark);
+  }
+  .skill-desc { font-size: clamp(13px, 1.1vw, 15px); line-height: 1.8; color: var(--muted); }
+  .skill-tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 20px; }
+  .tag {
+    font-size: clamp(9px, 0.9vw, 11px); letter-spacing: 0.12em; padding: 4px 10px;
+    border: 1px solid var(--border); color: var(--muted);
+    text-transform: uppercase; background: var(--bg2);
+  }
+
+  /* ── Works ── */
+  #works { background: var(--bg); }
+  .works-filter {
+    display: flex; gap: 36px; margin-top: 60px; margin-bottom: 52px;
+    border-bottom: 1px solid var(--border); padding-bottom: 22px;
+  }
+  .filter-btn {
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--muted2); background: none; border: none; cursor: none;
+    position: relative; transition: color .3s; padding-bottom: 4px;
+  }
+  .filter-btn::after {
+    content: ''; position: absolute; bottom: -23px; left: 0;
+    width: 0; height: 2px; background: var(--dark); transition: width .3s;
+  }
+  .filter-btn.active { color: var(--dark); }
+  .filter-btn.active::after { width: 100%; }
+  .filter-btn:hover { color: var(--dark); }
+
+  .works-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1px; background: var(--border); }
+  .work-card {
+    aspect-ratio: 4/3; background: var(--bg2);
+    position: relative; overflow: hidden; cursor: none;
+  }
+
+  .work-thumb {
+    position: absolute; inset: 0; overflow: hidden;
+    transition: transform .7s cubic-bezier(0.16,1,0.3,1);
+  }
+  .work-thumb img, .work-thumb iframe {
+    width: 100%; height: 100%; display: block;
+  }
+  .work-thumb img { object-fit: cover; object-position: center; }
+  .work-card:hover .work-thumb { transform: scale(1.04); }
+  .work-bg { position: absolute; inset: 0; }
+  .work-card:nth-child(1) .work-bg { background: linear-gradient(135deg,#ede8df 0%,#e4ddd2 100%); }
+  .work-card:nth-child(2) .work-bg { background: linear-gradient(135deg,#e9e6e0 0%,#dedad2 100%); }
+  .work-card:nth-child(3) .work-bg { background: linear-gradient(135deg,#edeae3 0%,#e2dfd8 100%); }
+  .work-card:nth-child(4) .work-bg { background: linear-gradient(135deg,#e6e2da 0%,#dbd7cf 100%); }
+  .work-card:nth-child(5) .work-bg { background: linear-gradient(135deg,#eae7e0 0%,#e0dcd4 100%); }
+
+  .work-thumb-label {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 52px; font-weight: 300;
+    color: rgba(22,20,15,0.07); letter-spacing: 0.06em;
+    user-select: none; pointer-events: none;
+  }
+  .work-card:first-child .work-thumb-label { font-size: 96px; }
+
+  .work-overlay {
+    position: absolute; inset: 0; z-index: 2;
+    background: rgba(250,249,246,0.9);
+    display: flex; flex-direction: column;
+    justify-content: flex-end; padding: 40px;
+    opacity: 0; transition: opacity .4s;
+  }
+  .work-card:hover .work-overlay { opacity: 1; }
+  .work-category { font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+  .work-title-ov { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 300; color: var(--dark); }
+
+  .work-info-bar {
+    position: absolute; bottom: 0; left: 0; right: 0; z-index: 3;
+    padding: 18px 30px;
+    display: flex; justify-content: space-between; align-items: flex-end;
+    background: linear-gradient(to top, rgba(250,249,246,.95) 0%, transparent 100%);
+  }
+  .work-info-cat { font-size: clamp(9px, 0.8vw, 11px); letter-spacing: 0.22em; color: var(--gold); text-transform: uppercase; margin-bottom: 4px; }
+  .work-info-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(16px, 1.4vw, 22px); font-weight: 300; color: var(--dark); }
+  .work-arrow {
+    width: 38px; height: 38px;
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted); font-size: 16px; background: var(--bg);
+    transition: border-color .3s, background .3s, color .3s;
+  }
+  .work-card:hover .work-arrow { border-color: var(--dark); background: var(--dark); color: #fff; }
+
+  /* ── Links ── */
+  #links { background: var(--bg2); }
+  .links-grid {
+    display: grid; grid-template-columns: repeat(4,1fr);
+    gap: 1px; margin-top: 72px; background: var(--border);
+  }
+  .link-card {
+    padding: 48px 36px; background: var(--bg);
+    text-decoration: none; display: flex; flex-direction: column;
+    gap: 18px; position: relative; overflow: hidden; cursor: none;
+    transition: background .3s;
+  }
+  .link-card:hover { background: var(--bg2); }
+  .link-card::before {
+    content: ''; position: absolute; top: 0; left: 0;
+    width: 2px; height: 0; background: var(--gold);
+    transition: height .45s ease;
+  }
+  .link-card:hover::before { height: 100%; }
+  .link-icon { font-size: clamp(20px, 1.8vw, 26px); color: var(--gold); }
+  .link-platform { font-size: clamp(9px, 1vw, 11px); letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); }
+  .link-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(18px, 1.6vw, 24px); font-weight: 300; color: var(--dark); line-height: 1.25;
+  }
+  .link-desc { font-size: clamp(13px, 1.1vw, 15px); color: var(--muted); line-height: 1.65; }
+  .link-arrow {
+    margin-top: auto; font-size: 17px; color: var(--muted2);
+    transition: transform .3s, color .3s;
+  }
+  .link-card:hover .link-arrow { transform: translate(4px,-4px); color: var(--gold); }
+
+  /* ── Contact ── */
+  #contact {
+    background: var(--dark); color: #faf9f6;
+    text-align: center; padding: 130px 64px;
+    position: relative; overflow: hidden;
+  }
+  #contact::before {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      -45deg, transparent, transparent 60px,
+      rgba(255,255,255,0.015) 60px, rgba(255,255,255,0.015) 61px
+    );
+  }
+  .contact-inner { position: relative; z-index: 1; }
+  .contact-label { font-size: clamp(9px, 0.9vw, 11px); letter-spacing: 0.32em; text-transform: uppercase; color: var(--gold2); margin-bottom: 28px; display: block; }
+  .contact-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(52px, 6vw, 92px); font-weight: 300;
+    line-height: 1; letter-spacing: -0.02em; color: #faf9f6;
+  }
+  .contact-title em { font-style: italic; color: var(--gold2); }
+  .contact-sub { font-size: clamp(13px, 1.1vw, 16px); color: rgba(250,249,246,.55); margin-top: 24px; }
+  .contact-email {
+    display: inline-block; margin-top: 52px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(18px, 1.5vw, 24px); color: #faf9f6; text-decoration: none;
+    border-bottom: 1px solid rgba(250,249,246,0.25); padding-bottom: 4px;
+    letter-spacing: 0.06em; transition: color .3s, border-color .3s;
+  }
+  .contact-email:hover { color: var(--gold2); border-color: var(--gold2); }
+
+  footer {
+    background: var(--dark2); border-top: 1px solid rgba(255,255,255,0.06);
+    padding: 36px var(--pad);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .footer-copy { font-size: 11px; color: rgba(250,249,246,.3); letter-spacing: 0.1em; }
+  .footer-logo { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 300; color: rgba(250,249,246,.5); }
+
+  /* keyframes */
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+  @keyframes slideUp { from{transform:translateY(110%)} to{transform:none} }
+
+  /* responsive */
+  @media (max-width:1024px){
+    .about-grid{grid-template-columns:1fr;gap:48px}
+    .skills-grid{grid-template-columns:repeat(2,1fr)}
+    .links-grid{grid-template-columns:repeat(2,1fr)}
+    .works-grid{grid-template-columns:1fr}
+    .work-card:first-child{grid-column:span 1;aspect-ratio:4/3}
+  }
+  @media (max-width:640px){
+    .hero-title{font-size:52px}
+    .skills-grid,.links-grid{grid-template-columns:1fr}
+    .about-stats{gap:24px}
+    .works-filter{gap:16px;flex-wrap:wrap}
+    .hero-geo{display:none}
+    .hero-content{max-width:100%}
+    .nav-links{gap:24px}
+  }
+  @media (min-width:1440px){
+    .skill-card{padding:52px 44px}
+    .link-card{padding:52px 40px}
+    .about-grid{grid-template-columns:4fr 6fr}
+  }
+</style>
+</head>
+<body>
+
+<div id="cursor">
+  <div class="ring" id="ring"></div>
+  <div class="dot"  id="dot"></div>
+</div>
+
+<!-- Nav -->
+<nav id="nav">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">祠堂じゅまる</a>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#works">Works</a></li>
+      <li><a href="#links">Links</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section id="hero">
+  <div class="hero-geo"></div>
+  <div class="hero-vline"></div>
+  <div class="hero-content">
+    <div class="hero-label">Writer &amp; Content Creator</div>
+    <h1 class="hero-title">
+      <span class="line"><span>言葉で</span></span>
+      <span class="line"><span>世界を</span></span>
+      <span class="line"><span>動かす。</span></span>
+    </h1>
+    <p class="hero-desc">
+      AIと人間の創造性が交差する場所で、<br>
+      読者の心に届くコンテンツを生み出しています。<br>
+      ブログ・SNS・ライティングを通じて価値を届ける。
+    </p>
+    <div class="hero-cta">
+      <a href="#works" class="btn-primary">Works を見る</a>
+      <a href="#contact" class="btn-outline">お問い合わせ</a>
+    </div>
+  </div>
+  <div class="scroll-hint">Scroll</div>
+</section>
+
+<!-- About -->
+<section id="about">
+  <div class="reveal"><div class="section-label">About</div></div>
+  <div class="reveal reveal-delay-1"><h2 class="section-title">ライターとして、<br><em>人と言葉を繋ぐ。</em></h2></div>
+  <div class="about-grid">
+    <div class="about-photo reveal reveal-delay-2">
+      <img src="about-image.png" alt="アートイメージ"
+        style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;">
+    </div>
+    <div class="about-text reveal reveal-delay-3">
+      <p><strong>はじめまして、祠堂じゅまるです。</strong>ライター・ブロガーとして活動しています。</p>
+      <p>AIと創作、テクノロジーと生活の間にある面白さを発信することが好きです。「機嫌よくゆるく」というテーマのもと、読者の日常に小さな気づきを届けられるような言葉を紡いでいます。</p>
+      <p>ブログ、SNS運用、Webライティングを中心に、コンテンツの企画から執筆・公開まで一貫して対応しています。</p>
+      <div class="about-stats">
+        <div class="stat-item">
+          <span class="stat-num counter" data-target="200">0</span>
+          <span class="stat-label">記事数 +</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num counter" data-target="50">0</span>
+          <span class="stat-label">月間 K PV</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num counter" data-target="3">0</span>
+          <span class="stat-label">活動年数 +</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Skills -->
+<section id="skills">
+  <div class="reveal"><div class="section-label">Skills &amp; Expertise</div></div>
+  <div class="reveal reveal-delay-1"><h2 class="section-title">得意とする<br><em>専門領域。</em></h2></div>
+  <div class="skills-grid">
+    <div class="skill-card reveal reveal-delay-1">
+      <span class="skill-num">01</span>
+      <div class="skill-name">Webライティング</div>
+      <div class="skill-desc">SEOを意識しながら読者に刺さる文章を執筆。CrowdWorksでのYouTubeスクリプト制作を含む多様なフォーマットに対応。</div>
+      <div class="skill-tags"><span class="tag">SEO記事</span><span class="tag">スクリプト</span><span class="tag">コピー</span></div>
+    </div>
+    <div class="skill-card reveal reveal-delay-2">
+      <span class="skill-num">02</span>
+      <div class="skill-name">コンテンツ自動化</div>
+      <div class="skill-desc">Gemini API・GitHub Actions・Playwrightを組み合わせた自動投稿システムを構築。AIと人間の協働で効率的な制作を実現。</div>
+      <div class="skill-tags"><span class="tag">AI活用</span><span class="tag">自動化</span><span class="tag">GitHub</span></div>
+    </div>
+    <div class="skill-card reveal reveal-delay-3">
+      <span class="skill-num">03</span>
+      <div class="skill-name">SNS運用</div>
+      <div class="skill-desc">X・note.comでの定期発信。ペルソナに合ったトーン設計とデータドリブンなコンテンツ改善が得意。</div>
+      <div class="skill-tags"><span class="tag">X / Twitter</span><span class="tag">note</span><span class="tag">分析</span></div>
+    </div>
+    <div class="skill-card reveal reveal-delay-1">
+      <span class="skill-num">04</span>
+      <div class="skill-name">ブログ運営</div>
+      <div class="skill-desc">GitHub Pagesを活用したAI・ライフスタイル系ブログを複数運営。企画から設計・デザイン・執筆まで一人で完結。</div>
+      <div class="skill-tags"><span class="tag">ブログ</span><span class="tag">WordPress</span><span class="tag">GitHub Pages</span></div>
+    </div>
+    <div class="skill-card reveal reveal-delay-2">
+      <span class="skill-num">05</span>
+      <div class="skill-name">プロンプトデザイン</div>
+      <div class="skill-desc">Gemini・ClaudeなどLLMから高品質なコンテンツを生成させるプロンプト設計。AIを創造性の拡張ツールとして活用。</div>
+      <div class="skill-tags"><span class="tag">Gemini</span><span class="tag">Claude</span><span class="tag">LLM</span></div>
+    </div>
+    <div class="skill-card reveal reveal-delay-3">
+      <span class="skill-num">06</span>
+      <div class="skill-name">ライフスタイル発信</div>
+      <div class="skill-desc">ミニマリズム・読書・瞑想・副業など「機嫌よくゆるく生きる」をテーマにした等身大の発信で共感を生む。</div>
+      <div class="skill-tags"><span class="tag">ミニマリスト</span><span class="tag">副業</span><span class="tag">読書</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- Works -->
+<section id="works">
+  <div class="reveal"><div class="section-label">Selected Works</div></div>
+  <div class="reveal reveal-delay-1"><h2 class="section-title">これまでの<br><em>制作物。</em></h2></div>
+  <div class="works-filter reveal reveal-delay-2">
+    <button class="filter-btn active">All</button>
+    <button class="filter-btn">ブログ</button>
+    <button class="filter-btn">SNS</button>
+    <button class="filter-btn">ライティング</button>
+  </div>
+  <div class="works-grid">
+    <a href="https://rayphoneai.github.io/ray/" target="_blank" class="work-card reveal" style="text-decoration:none;">
+      <div class="work-thumb">
+        <img src="ray-image.png" alt="RayPhoneAI AIブログメディア">
+      </div>
+      <div class="work-info-bar">
+        <div><div class="work-info-cat">AI Blog</div><div class="work-info-title">RayPhoneAI — AIブログメディア</div></div>
+        <div class="work-arrow">→</div>
+      </div>
+    </a>
+    <a href="https://note.com/jyumarucom" target="_blank" class="work-card reveal reveal-delay-1" style="text-decoration:none;">
+      <div class="work-thumb">
+        <img src="note-image.png" alt="note クリエイターページ">
+      </div>
+      <div class="work-info-bar">
+        <div><div class="work-info-cat">ライフスタイル</div><div class="work-info-title">祠堂じゅまる — note連載</div></div>
+        <div class="work-arrow">→</div>
+      </div>
+    </a>
+    <a href="https://x.com/rayphone_com" target="_blank" class="work-card reveal reveal-delay-2" style="text-decoration:none;">
+      <div class="work-thumb">
+        <img src="x-image.png" alt="@rayphone_com X account">
+      </div>
+      <div class="work-info-bar">
+        <div><div class="work-info-cat">SNS運用</div><div class="work-info-title">@rayphone_com — X自動投稿</div></div>
+        <div class="work-arrow">→</div>
+      </div>
+    </a>
+    <div class="work-card reveal reveal-delay-1">
+      <div class="work-thumb">
+        <img src="yt-image.png" alt="YouTube台本制作">
+      </div>
+      <div class="work-info-bar">
+        <div><div class="work-info-cat">ライティング</div><div class="work-info-title">YouTube台本制作</div></div>
+        <div class="work-arrow">→</div>
+      </div>
+    </div>
+    <a href="https://rayphoneai.github.io/ray/demo/#" target="_blank" class="work-card reveal reveal-delay-2" style="text-decoration:none;">
+      <div class="work-thumb">
+        <img src="wp-image.png" alt="RayPhoneAI WordPressテーマ">
+      </div>
+      <div class="work-info-bar">
+        <div><div class="work-info-cat">テーマ開発</div><div class="work-info-title">RayPhoneAI WordPressテーマ</div></div>
+        <div class="work-arrow">→</div>
+      </div>
+    </a>
+    <div class="work-card reveal reveal-delay-1">
+      <div class="work-thumb">
+        <img src="kindle-image.png" alt="Kindle出版">
+      </div>
+      <div class="work-info-bar">
+        <div><div class="work-info-cat">ライティング</div><div class="work-info-title">Kindle出版</div></div>
+        <div class="work-arrow">→</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Links -->
+<section id="links">
+  <div class="reveal"><div class="section-label">Connect</div></div>
+  <div class="reveal reveal-delay-1"><h2 class="section-title">各プラットフォームで<br><em>発信中。</em></h2></div>
+  <div class="links-grid">
+    <a href="https://rayphoneai.github.io/ray/" class="link-card reveal reveal-delay-1" target="_blank">
+      <div class="link-icon">✦</div>
+      <div class="link-platform">Blog</div>
+      <div class="link-name">Rayphone<br>AI Blog</div>
+      <div class="link-desc">AIとテクノロジーを中心とした日本語ブログ</div>
+      <div class="link-arrow">↗</div>
+    </a>
+    <a href="https://note.com/jyumarucom" class="link-card reveal reveal-delay-2" target="_blank">
+      <div class="link-icon">◈</div>
+      <div class="link-platform">note.com</div>
+      <div class="link-name">祠堂<br>じゅまる</div>
+      <div class="link-desc">ミニマリズム・読書・生き方を綴るライフスタイルメディア</div>
+      <div class="link-arrow">↗</div>
+    </a>
+    <a href="https://x.com/rayphone_com" class="link-card reveal reveal-delay-3" target="_blank">
+      <div class="link-icon">◇</div>
+      <div class="link-platform">X / Twitter</div>
+      <div class="link-name">@rayphone<br>_com</div>
+      <div class="link-desc">AI・テクノロジー・ガジェット情報を毎日発信</div>
+      <div class="link-arrow">↗</div>
+    </a>
+    <a href="https://github.com/jyumaru" class="link-card reveal reveal-delay-4" target="_blank">
+      <div class="link-icon">⬡</div>
+      <div class="link-platform">GitHub</div>
+      <div class="link-name">コンテンツ<br>自動化</div>
+      <div class="link-desc">オープンソースの自動化プロジェクトを公開中</div>
+      <div class="link-arrow">↗</div>
+    </a>
+  </div>
+</section>
+
+<!-- Contact -->
+<section id="contact">
+  <div class="contact-inner">
+    <div class="reveal"><span class="contact-label">Contact</span></div>
+    <div class="reveal reveal-delay-1">
+      <h2 class="contact-title">Let's work<br><em>together.</em></h2>
+      <p class="contact-sub">お仕事のご依頼・ご相談はお気軽にどうぞ。</p>
+      <a href="mailto:your@email.com" class="contact-email">your@email.com</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-copy">© 2025 祠堂じゅまる. All rights reserved.</div>
+  <div class="footer-logo">祠堂じゅまる</div>
+</footer>
+
+<script>
+  // カーソル
+  const dot=document.getElementById('dot'), ring=document.getElementById('ring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{
+    mx=e.clientX; my=e.clientY;
+    dot.style.left=mx+'px'; dot.style.top=my+'px';
+  });
+  (function loop(){
+    rx+=(mx-rx)*.12; ry+=(my-ry)*.12;
+    ring.style.left=rx+'px'; ring.style.top=ry+'px';
+    requestAnimationFrame(loop);
+  })();
+  document.querySelectorAll('a,button,.work-card,.skill-card,.link-card').forEach(el=>{
+    el.addEventListener('mouseenter',()=>document.body.classList.add('hovering'));
+    el.addEventListener('mouseleave',()=>document.body.classList.remove('hovering'));
+  });
+
+  // Nav scroll
+  window.addEventListener('scroll',()=>{
+    document.getElementById('nav').classList.toggle('scrolled',scrollY>60);
+  });
+
+  // Scroll reveal
+  const obs = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
+  },{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+  // Counter
+  const cobs = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(!e.isIntersecting) return;
+      const el=e.target, tgt=+el.dataset.target;
+      let n=0; const step=tgt/60;
+      const iv=setInterval(()=>{
+        n=Math.min(n+step,tgt);
+        el.textContent=Math.floor(n);
+        if(n>=tgt){el.textContent=tgt;clearInterval(iv);}
+      },16);
+      cobs.unobserve(el);
+    });
+  },{threshold:.5});
+  document.querySelectorAll('.counter').forEach(el=>cobs.observe(el));
+
+  // Filter
+  document.querySelectorAll('.filter-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // Magnetic buttons
+  document.querySelectorAll('.btn-primary,.btn-outline').forEach(btn=>{
+    btn.addEventListener('mousemove',e=>{
+      const r=btn.getBoundingClientRect();
+      btn.style.transform=`translate(${(e.clientX-r.left-r.width/2)*.25}px,${(e.clientY-r.top-r.height/2)*.25}px)`;
+    });
+    btn.addEventListener('mouseleave',()=>btn.style.transform='');
+  });
+</script>
+</body>
+</html>
