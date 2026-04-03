@@ -243,7 +243,7 @@ input:checked+.sw2-slider::before{transform:translateX(16px);}
             
             <div class="ff full"><label class="fl">note アカウントURL</label><input class="fi" id="cfg-note-url" placeholder="https://note.com/rayphone"><div class="fhint">記事の誘導先・ブログ本文CTAとして使用されます</div></div>
             <div class="ff full"><label class="fl">noteプロンプト集URL（購入ボタン用）</label><input class="fi" id="cfg-note-shop-url" placeholder="https://note.com/rayphone/n/nf6e5688f3939"><div class="fhint">「noteで購入」ボタンのリンク先URL</div></div>
-            <div class="ff full"><label class="fl">X（Twitter）URL</label><input class="fi" id="cfg-x-url" placeholder="https://x.com/rayphone"><div class="fhint">プロフィールページのURL</div></div>
+            <div class="ff full"><label class="fl">X（Twitter）URL</label><input class="fi" id="cfg-x-url" placeholder="https://x.com/rayphone_com"><div class="fhint">プロフィールページのURL</div></div>
             <div class="ff full" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--bd);"><label class="fl" style="color:var(--or);font-weight:700;">X（Twitter）自動投稿設定</label><div class="fhint">Playwrightで自動投稿します。設定後に.envファイルにも同じ値を追記してください。</div></div>
             <div class="ff"><label class="fl">Xユーザー名</label><input class="fi" id="cfg-x-user" placeholder="rayphone（@不要）"></div>
             <div class="ff"><label class="fl">Xパスワード</label><input class="fi" type="password" id="cfg-x-pass" placeholder="パスワード"></div>
@@ -1032,8 +1032,8 @@ function checkApiWarn(){var el=document.getElementById('art-api-warn');if(!el)re
   if(cfg.blogUrl)document.getElementById('cfg-blog-url').value=cfg.blogUrl;
   if(cfg.noteUrl)document.getElementById('cfg-note-url').value=cfg.noteUrl;
   if(cfg.noteShopUrl)document.getElementById('cfg-note-shop-url').value=cfg.noteShopUrl;
-  if(cfg.xUrl)document.getElementById('cfg-x-url').value=cfg.xUrl;
-  if(cfg.xUser)document.getElementById('cfg-x-user').value=cfg.xUser;
+  document.getElementById('cfg-x-url').value=cfg.xUrl||'https://x.com/rayphone_com';
+  document.getElementById('cfg-x-user').value=cfg.xUser||'rayphone_com';
   if(cfg.xPass)document.getElementById('cfg-x-pass').value=cfg.xPass;
   if(cfg.xAuto)document.getElementById('cfg-x-auto').checked=cfg.xAuto;
   if(cfg.ghToken)document.getElementById('cfg-gh-token').value=cfg.ghToken;

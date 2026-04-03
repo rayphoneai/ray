@@ -435,8 +435,8 @@ function toggleMenu(){
       <div>
         <div class="footer-col-title">SNS・リンク</div>
         <div class="footer-links">
-          <a href="#" class="footer-link">X（@rayphone_prompt）</a>
-          <a href="#" class="footer-link">note</a>
+          <a href="https://x.com/rayphone_com" id="footer-x-link" class="footer-link" target="_blank">X(@rayphone_com)</a>
+          <a href="#" id="footer-note-link" class="footer-link" target="_blank">note</a>
           <a href="#" class="footer-link">プロフィール</a>
           <a href="#" class="footer-link">お問い合わせ</a>
         </div>
@@ -626,9 +626,17 @@ function makeEyecatch(art){
 
 // ===== RayPhoneAI ブログエンジン（グローバルスコープ・クリーン版）=====
 
-// ---------- グローバル設定 ----------
-var _cfg = {};
-try { _cfg = JSON.parse(localStorage.getItem('rp_cfg') || '{}'); } catch(e) {}
+// ---------- サイト設定（ハードコード・localStorage不使用）----------
+var SITE = {
+  author:   'Rayphone｜プロンプト設計士',
+  role:     'プロンプト設計士',
+  bio:      '商品開発15年×Claude副業月収15万のプロンプト設計士。現場で本当に使えるプロンプト集をnoteで公開中。',
+  avatar:   'R',
+  noteUrl:  'https://note.com/rayphone',
+  xUrl:     'https://x.com/rayphone_com',
+  xHandle:  '@rayphone_com',
+  announce: '',
+};
 var _arts = [];
 var _allArts = []; // 全記事（フィルター前）
 
@@ -755,13 +763,13 @@ function renderArts(arts, isFilter) {
   if (statArt) statArt.textContent = _arts.length;
 
   // お知らせバー
-  if (_cfg.announce !== undefined) {
+  if (SITE.announce !== undefined) {
     var bar = document.querySelector('.orange-bar-text');
     var bw  = document.querySelector('.orange-bar');
-    if (_cfg.announce === '') {
+    if (SITE.announce === '') {
       if (bw) bw.style.display = 'none';
-    } else if (_cfg.announce && bar) {
-      bar.textContent = _cfg.announce;
+    } else if (SITE.announce && bar) {
+      bar.textContent = SITE.announce;
     }
   }
 
@@ -815,9 +823,9 @@ function showPage(art) {
     el.innerHTML = body;
   }
   var nl = document.getElementById('ap-note-link');
-  if (nl) nl.href = _cfg.noteShopUrl || _cfg.noteUrl || 'https://note.com/rayphone';
+  if (nl) nl.href = SITE.noteUrl || 'https://note.com/rayphone';
   var noteDiv = document.querySelector('[onclick*="noteShopUrl"]');
-  if (noteDiv) noteDiv.onclick = function() { window.open(_cfg.noteShopUrl || _cfg.noteUrl || 'https://note.com/rayphone', '_blank'); };
+  if (noteDiv) noteDiv.onclick = function() { window.open(SITE.noteUrl || 'https://note.com/rayphone', '_blank'); };
   document.title = (art.title || '記事') + ' | RayPhoneAI';
   var pb = document.getElementById('page-body');
   var ap = document.getElementById('art-page');
@@ -853,22 +861,34 @@ window.addEventListener('popstate', function(e) {
 // ---------- プロフィール・お知らせ反映 ----------
 (function() {
   var el;
-  el = document.getElementById('blog-author'); if(el && _cfg.author) el.textContent = _cfg.author;
-  el = document.getElementById('blog-role');   if(el && _cfg.role)   el.textContent = _cfg.role;
-  el = document.getElementById('blog-bio');    if(el && _cfg.bio)    el.textContent = _cfg.bio;
-  el = document.getElementById('blog-avatar'); if(el && _cfg.avatar) el.textContent = _cfg.avatar;
-  if (_cfg.announce !== undefined) {
+  el = document.getElementById('blog-author'); if(el && SITE.author) el.textContent = SITE.author;
+  el = document.getElementById('blog-role');   if(el && SITE.role)   el.textContent = SITE.role;
+  el = document.getElementById('blog-bio');    if(el && SITE.bio)    el.textContent = SITE.bio;
+  el = document.getElementById('blog-avatar'); if(el && SITE.avatar) el.textContent = SITE.avatar;
+  if (SITE.announce !== undefined) {
     var bar = document.querySelector('.orange-bar-text');
     var bw  = document.querySelector('.orange-bar');
-    if (_cfg.announce === '') {
+    if (SITE.announce === '') {
       if (bw) bw.style.display = 'none';
-    } else if (_cfg.announce && bar) {
-      bar.textContent = _cfg.announce;
+    } else if (SITE.announce && bar) {
+      bar.textContent = SITE.announce;
     }
   }
-  var noteUrl = _cfg.noteUrl || 'https://note.com/rayphone';
+  var noteUrl = SITE.noteUrl;
+  var xUrl = SITE.xUrl;
+
+  // footer note link
+  var fnl = document.getElementById('footer-note-link');
+  if (fnl) fnl.href = noteUrl;
+  // footer X link
+  var fxl = document.getElementById('footer-x-link');
+  if (fxl) {
+    fxl.href = xUrl;
+    fxl.textContent = 'X(' + SITE.xHandle + ')';
+  }
+  // その他 href="#" なnoteリンク
   document.querySelectorAll('a[href="#"]').forEach(function(a) {
-    if(a.textContent.includes('note')) a.href = noteUrl;
+    if (a.textContent.includes('note')) a.href = noteUrl;
   });
 })();
 
