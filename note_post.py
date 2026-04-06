@@ -657,15 +657,44 @@ def post_x_with_note_link(title, cat, note_url, blog_url):
             page.goto("https://x.com/home", wait_until="domcontentloaded", timeout=60000)
             _time.sleep(4)
 
+            # ログイン確認
+            current_url = page.url
+            log(f"X: ページURL={current_url}")
+            if "/login" in current_url or "twitter.com/login" in current_url:
+                log("⚠ X: クッキー無効→ログインページにリダイレクト。X_COOKIES_B64を更新してください")
+                page.screenshot(path="debug_x_login.png")
+                browser.close()
+                return
+
             # ツイート入力欄
-            page.wait_for_selector('[data-testid="tweetTextarea_0"]', timeout=20000)
+            try:
+                page.wait_for_selector('[data-testid="tweetTextarea_0"]', timeout=20000)
+            except Exception:
+                log("⚠ X: ツイート入力欄が見つかりません")
+                page.screenshot(path="debug_x_noinput.png")
+                browser.close()
+                return
+
             page.click('[data-testid="tweetTextarea_0"]')
             page.keyboard.type(tweet)
+            log(f"X: ツイート入力完了({len(tweet)}字)")
             _time.sleep(1)
 
             # 投稿ボタン
-            page.click('[data-testid="tweetButtonInline"]')
-            _time.sleep(3)
+            try:
+                btn = page.locator('[data-testid="tweetButtonInline"]').first
+                btn.wait_for(state="visible", timeout=5000)
+                btn.click()
+                log("X: 投稿ボタンクリック完了")
+            except Exception as btn_err:
+                log(f"⚠ X: 投稿ボタンが見つかりません: {btn_err}")
+                page.screenshot(path="debug_x_nobtn.png")
+                browser.close()
+                return
+
+            _time.sleep(4)
+            # 投稿後のURLを確認
+            log(f"X: 投稿後URL={page.url}")
             browser.close()
         log(f"✓ X投稿完了: {short_title}")
     except Exception as e:
