@@ -651,14 +651,14 @@ def post_x_with_note_link(title, cat, note_url, blog_url):
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True, args=["--no-sandbox"])
             ctx = browser.new_context()
-            # cookiesをセット
             ctx.add_cookies(cookies)
             page = ctx.new_page()
-            page.goto("https://x.com/home", wait_until="networkidle", timeout=30000)
-            _time.sleep(2)
+            # networkidleではなくdomcontentloadedで待機（X.comは非同期が多くタイムアウトしやすい）
+            page.goto("https://x.com/home", wait_until="domcontentloaded", timeout=60000)
+            _time.sleep(4)
 
             # ツイート入力欄
-            page.wait_for_selector('[data-testid="tweetTextarea_0"]', timeout=15000)
+            page.wait_for_selector('[data-testid="tweetTextarea_0"]', timeout=20000)
             page.click('[data-testid="tweetTextarea_0"]')
             page.keyboard.type(tweet)
             _time.sleep(1)
