@@ -647,6 +647,13 @@ def post_x_with_note_link(title, cat, note_url, blog_url):
         cookies_json = _b64.b64decode(X_COOKIES_B64).decode("utf-8")
         cookies = _json.loads(cookies_json)
 
+        # sameSiteの値をPlaywright準拠に正規化
+        valid_same_site = {"Strict", "Lax", "None"}
+        for ck in cookies:
+            ss = ck.get("sameSite", "")
+            if ss not in valid_same_site:
+                ck["sameSite"] = "None"
+
         from playwright.sync_api import sync_playwright
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True, args=["--no-sandbox"])
