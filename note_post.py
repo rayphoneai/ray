@@ -624,6 +624,54 @@ with sync_playwright() as pw:
 
 # ── メイン処理 ────────────────────────────────────────────────
 
+# ── X（@rayphone_com）にnoteリンク付きで投稿 ─────────────────
+def post_x_with_note_link(title, cat, note_url, blog_url):
+    """note投稿完了後、XにnoteリンクつきのCTA投稿をする"""
+    import base64 as _b64, json as _json, time as _time
+
+    log("X投稿中...")
+    try:
+        # ツイート本文を生成（140字以内に収める）
+        short_title = title[:24] + "..." if len(title) > 24 else title
+        tweet_lines = [
+            f"【新着note】{short_title}",
+            "",
+            f"#{cat.replace(' ', '').replace('xAI','AI活用')} #Claude活用 #AI副業",
+            "",
+            f"▼ noteで読む",
+            note_url,
+        ]
+        tweet = "\n".join(tweet_lines)
+
+        # Cookie認証でX GraphQL API投稿
+        cookies_json = _b64.b64decode(X_COOKIES_B64).decode("utf-8")
+        cookies = _json.loads(cookies_json)
+
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True, args=["--no-sandbox"])
+            ctx = browser.new_context()
+            # cookiesをセット
+            ctx.add_cookies(cookies)
+            page = ctx.new_page()
+            page.goto("https://x.com/home", wait_until="networkidle", timeout=30000)
+            _time.sleep(2)
+
+            # ツイート入力欄
+            page.wait_for_selector('[data-testid="tweetTextarea_0"]', timeout=15000)
+            page.click('[data-testid="tweetTextarea_0"]')
+            page.keyboard.type(tweet)
+            _time.sleep(1)
+
+            # 投稿ボタン
+            page.click('[data-testid="tweetButtonInline"]')
+            _time.sleep(3)
+            browser.close()
+        log(f"✓ X投稿完了: {short_title}")
+    except Exception as e:
+        log(f"⚠ X投稿失敗（続行）: {e}")
+
+
 # ── note専用メイン ─────────────────────────────────────────
 def main_note():
     """GitHubの最新記事をnoteに自動投稿する"""
@@ -718,7 +766,14 @@ def main_note():
     # note投稿
     note_result = post_to_note(f"【深掘り】{title}", note_body, svg, eyecatch_png=eyecatch_png)
     if note_result["ok"]:
-        log(f"✓ note投稿完了: {note_result.get('url','')}")
+        note_url_posted = note_result.get('url', NOTE_URL)
+        log(f"✓ note投稿完了: {note_url_posted}")
+
+        # X（@rayphone_com）にnoteリンク付きでツイート
+        if X_AUTO and X_COOKIES_B64:
+            post_x_with_note_link(title, cat, note_url_posted, art_url)
+        else:
+            log("X自動投稿はスキップ（X_AUTO=false または クッキー未設定）")
     else:
         log(f"✗ note投稿失敗: {note_result.get('message','')}")
 
