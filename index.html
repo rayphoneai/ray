@@ -268,6 +268,11 @@ footer{background:var(--black);padding:48px 24px 24px;}
   .featured-row{margin-bottom:32px;}
 }
 
+/* ===== PAGINATION ===== */
+.page-btn{display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:40px;padding:0 12px;border:1.5px solid var(--border);border-radius:4px;font-size:13px;font-weight:500;color:var(--gray-dark);text-decoration:none;transition:all .2s;cursor:pointer;}
+.page-btn:hover{border-color:var(--orange);color:var(--orange);}
+.page-btn-active{background:var(--orange);border-color:var(--orange);color:#fff !important;}
+
 /* ===== SMALL MOBILE: 〜374px ===== */
 @media(max-width:374px){
   .hero-title{font-size:34px;}
@@ -363,6 +368,7 @@ function toggleMenu(){
       <div class="sec-title-line"></div>
     </div>
     <div class="card-grid" id="more-grid"></div>
+      <div id="more-pagination" style="display:flex;gap:8px;justify-content:center;margin:32px 0;flex-wrap:wrap;"></div>
 
   </div>
 
@@ -435,7 +441,7 @@ function toggleMenu(){
       <div>
         <div class="footer-col-title">SNS・リンク</div>
         <div class="footer-links">
-          <a href="https://x.com/rayphone_com" id="footer-x-link" class="footer-link" target="_blank">X(@rayphone_com)</a>
+          <a href="https://x.com/rayphoneai_com" id="footer-x-link" class="footer-link" target="_blank">X(@rayphoneai_com)</a>
           <a href="#" id="footer-note-link" class="footer-link" target="_blank">note</a>
           <a href="#" class="footer-link">プロフィール</a>
           <a href="#" class="footer-link">お問い合わせ</a>
@@ -633,12 +639,14 @@ var SITE = {
   bio:      '商品開発15年×Claude副業月収15万のプロンプト設計士。現場で本当に使えるプロンプト集をnoteで公開中。',
   avatar:   'R',
   noteUrl:  'https://note.com/rayphone',
-  xUrl:     'https://x.com/rayphone_com',
-  xHandle:  '@rayphone_com',
+  xUrl:     'https://x.com/rayphoneai_com',
+  xHandle:  '@rayphoneai_com',
   announce: '',
 };
 var _arts = [];
 var _allArts = []; // 全記事（フィルター前）
+var _currentPage = 1;
+var _PAGE_SIZE = 6; // MOREセクションの1ページあたりの件数
 
 // ---------- カード生成 ----------
 function makeCard(art, size, isFirst) {
@@ -706,17 +714,8 @@ function renderArts(arts, isFilter) {
     _arts.slice(2, 5).forEach(function(a) { lr.appendChild(makeCard(a, 'feat', false)); });
   }
 
-  var mg = document.getElementById('more-grid');
-  var ms = document.getElementById('more-sec');
-  if (mg) {
-    mg.innerHTML = '';
-    if (_arts.length > 5) {
-      if (ms) ms.style.display = 'flex';
-      _arts.slice(5).forEach(function(a) { mg.appendChild(makeCard(a, 'normal', false)); });
-    } else {
-      if (ms) ms.style.display = 'none';
-    }
-  }
+  _currentPage = 1;
+  renderMorePage();
 
   // サイドバー LATEST
   var sr = document.getElementById('sidebar-rank');
@@ -788,6 +787,60 @@ function renderArts(arts, isFilter) {
         showPage(target);
         try { history.replaceState({ artId: target.id }, target.title || '', location.pathname + '?id=' + target.id); } catch(e) {}
       }, 100);
+    }
+  }
+}
+
+
+function renderMorePage() {
+  var mg = document.getElementById('more-grid');
+  var ms = document.getElementById('more-sec');
+  var pn = document.getElementById('more-pagination');
+  var moreArts = _arts.slice(5); // FEATURED2件 + LATEST3件 の後
+  var total = moreArts.length;
+  var totalPages = Math.ceil(total / _PAGE_SIZE);
+
+  if (mg) {
+    mg.innerHTML = '';
+    if (total > 0) {
+      if (ms) ms.style.display = 'flex';
+      var start = (_currentPage - 1) * _PAGE_SIZE;
+      var end   = start + _PAGE_SIZE;
+      moreArts.slice(start, end).forEach(function(a) { mg.appendChild(makeCard(a, 'normal', false)); });
+    } else {
+      if (ms) ms.style.display = 'none';
+    }
+  }
+
+  // ページネーション描画
+  if (pn) {
+    pn.innerHTML = '';
+    if (totalPages <= 1) return;
+    // 前へ
+    if (_currentPage > 1) {
+      var prev = document.createElement('a');
+      prev.href = '#'; prev.className = 'page-btn';
+      prev.textContent = '← 前へ';
+      prev.onclick = function(e) { e.preventDefault(); _currentPage--; renderMorePage(); window.scrollTo({top:document.getElementById('more-sec').offsetTop - 80, behavior:'smooth'}); };
+      pn.appendChild(prev);
+    }
+    // ページ番号
+    for (var p = 1; p <= totalPages; p++) {
+      (function(page) {
+        var btn = document.createElement('a');
+        btn.href = '#'; btn.className = 'page-btn' + (page === _currentPage ? ' page-btn-active' : '');
+        btn.textContent = page;
+        btn.onclick = function(e) { e.preventDefault(); _currentPage = page; renderMorePage(); window.scrollTo({top:document.getElementById('more-sec').offsetTop - 80, behavior:'smooth'}); };
+        pn.appendChild(btn);
+      })(p);
+    }
+    // 次へ
+    if (_currentPage < totalPages) {
+      var next = document.createElement('a');
+      next.href = '#'; next.className = 'page-btn';
+      next.textContent = '次へ →';
+      next.onclick = function(e) { e.preventDefault(); _currentPage++; renderMorePage(); window.scrollTo({top:document.getElementById('more-sec').offsetTop - 80, behavior:'smooth'}); };
+      pn.appendChild(next);
     }
   }
 }
