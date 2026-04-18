@@ -641,7 +641,7 @@ var _arts = [];
 var _allArts = []; // 全記事（フィルター前）
 
 // ---------- カード生成 ----------
-function makeCard(art, size) {
+function makeCard(art, size, isFirst) {
   var card = document.createElement('div');
   card.className = size === 'feat' ? 'feat-card' : 'art-card';
   card.style.cursor = 'pointer';
@@ -678,7 +678,7 @@ function makeCard(art, size) {
       + '<div class="art-card-desc">' + (art.content || '').slice(0, 80) + '…</div>'
       + '<div class="art-card-footer">'
       + '<span class="art-card-date">' + (art.date || '') + '</span>'
-      + '<span class="art-card-tag" style="background:var(--orange);color:#fff;">NEW</span>'
+      + (isFirst ? '<span class="art-card-tag" style="background:var(--orange);color:#fff;">NEW</span>' : '')
       + '</div></div>';
   }
   card.onclick = (function(a) { return function() { openArt(a); }; })(art);
@@ -696,14 +696,14 @@ function renderArts(arts, isFilter) {
     if (!_arts.length) {
       fg.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:#aaa;">記事がまだありません</div>';
     } else {
-      _arts.slice(0, 2).forEach(function(a) { fg.appendChild(makeCard(a, 'normal')); });
+      _arts.slice(0, 2).forEach(function(a, i) { fg.appendChild(makeCard(a, 'normal', i === 0)); });
     }
   }
 
   var lr = document.getElementById('latest-row');
   if (lr) {
     lr.innerHTML = '';
-    _arts.slice(2, 5).forEach(function(a) { lr.appendChild(makeCard(a, 'feat')); });
+    _arts.slice(2, 5).forEach(function(a) { lr.appendChild(makeCard(a, 'feat', false)); });
   }
 
   var mg = document.getElementById('more-grid');
@@ -712,7 +712,7 @@ function renderArts(arts, isFilter) {
     mg.innerHTML = '';
     if (_arts.length > 5) {
       if (ms) ms.style.display = 'flex';
-      _arts.slice(5).forEach(function(a) { mg.appendChild(makeCard(a, 'normal')); });
+      _arts.slice(5).forEach(function(a) { mg.appendChild(makeCard(a, 'normal', false)); });
     } else {
       if (ms) ms.style.display = 'none';
     }
