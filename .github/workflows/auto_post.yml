@@ -3,8 +3,6 @@ name: ブログ自動投稿
 on:
   schedule:
     - cron: '0 23 * * *'   # 毎日 08:00 JST
-    - cron: '0 3 * * *'    # 毎日 12:00 JST
-    - cron: '0 12 * * *'   # 毎日 21:00 JST
   workflow_dispatch:        # 手動実行も可能
 
 jobs:
