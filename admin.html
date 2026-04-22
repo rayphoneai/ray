@@ -224,10 +224,11 @@ input:checked+.sw2-slider::before{transform:translateX(16px);}
 
 <div id="page-settings" class="page">
       <div class="panel">
-        <div class="ph"><div class="pt"><div class="pt-dot"></div>Gemini API設定</div></div>
+        <div class="ph"><div class="pt"><div class="pt-dot"></div>AI API設定</div></div>
         <div class="pb">
           <div class="alert as" id="set-saved">&#10003; 保存しました</div>
-          <div class="ff" style="max-width:480px;margin-bottom:14px;"><label class="fl">Gemini API Key <span>*</span></label><input class="fi" type="password" id="api-key" placeholder="AIza..."><div class="fhint">aistudio.google.com → Get API key で取得（無料）</div></div>
+          <div class="ff" style="max-width:480px;margin-bottom:14px;"><label class="fl">Claude API Key <span style="color:var(--or)">*</span> <span style="font-size:11px;color:#888;font-weight:400;">（記事生成用）</span></label><input class="fi" type="password" id="claude-key" placeholder="sk-ant-..."><div class="fhint">console.anthropic.com → Settings → API Keys で取得</div></div>
+          <div class="ff" style="max-width:480px;margin-bottom:14px;"><label class="fl">Gemini API Key <span style="font-size:11px;color:#888;font-weight:400;">（アイキャッチ画像用・任意）</span></label><input class="fi" type="password" id="api-key" placeholder="AIza..."><div class="fhint">aistudio.google.com → Get API key で取得（無料）</div></div>
           <button class="btn bp" id="set-save-btn">保存する</button>
         </div>
       </div>
@@ -316,7 +317,7 @@ input:checked+.sw2-slider::before{transform:translateX(16px);}
 <div id="toast"></div>
 
 <script>
-var K={apiKey:localStorage.getItem('rp_key')||'',arts:[],catIdx:parseInt(localStorage.getItem('rp_catidx')||'0'),curSVG:'',lastArt:'',prevId:null,edId:null};
+var K={apiKey:localStorage.getItem('rp_key')||'',claudeKey:localStorage.getItem('rp_claude_key')||'',arts:[],catIdx:parseInt(localStorage.getItem('rp_catidx')||'0'),curSVG:'',lastArt:'',prevId:null,edId:null};
 var CATEGORIES=['Claude活用Tips','士業向けAI活用','商品開発xAI','副業xAI','プロンプト集解説'];
 function updateCurCatLabel(){
   var cats=getSelCats();
@@ -452,24 +453,47 @@ function syncWithGitHub(){
 
 
 function claudeCall(p,mt,cb,_r){
-  if(!K.apiKey){alert('設定ページでAPIキーを入力してください');go('settings');cb(new Error('nokey'),null);return;}
-  alog('Gemini API呼び出し中...');
-  var url='https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key='+K.apiKey;
+  if(!K.claudeKey){alert('設定ページでClaude API Keyを入力してください');go('settings');cb(new Error('noclaudekey'),null);return;}
+  alog('Claude API呼び出し中...');
+  var url='https://api.anthropic.com/v1/messages';
+  var sys='あなたは日本語ブログ記事のプロフェッショナルライターです。以下を厳守してください:\n'
+    +'・「はい」「承知しました」などの前置き・承諾文は絶対に出力しない\n'
+    +'・# ## ### などのマークダウン見出しを出力しない（見出しは ■ を使う）\n'
+    +'・**太字** *斜体* ``` などのマークダウン装飾を一切使わない\n'
+    +'・箇条書きは - * ではなく「・」を使う\n'
+    +'・指定された本文のみを出力する（メタ的な説明・補足を書かない）';
   var r=new XMLHttpRequest();
   r.open('POST',url,true);
   r.setRequestHeader('Content-Type','application/json');
-  r.timeout=120000;
+  r.setRequestHeader('x-api-key',K.claudeKey);
+  r.setRequestHeader('anthropic-version','2023-06-01');
+  r.setRequestHeader('anthropic-dangerous-direct-browser-access','true');
+  r.timeout=180000;
   r.onload=function(){
     try{
       var d=JSON.parse(r.responseText);
-      if(r.status!==200){var msg=(d.error&&d.error.message)||('HTTP '+r.status);alog('エラー: '+msg);toast('✗ '+msg);cb(new Error(msg),null);return;}
-      var t=d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts&&d.candidates[0].content.parts[0]&&d.candidates[0].content.parts[0].text||'';
+      if(r.status!==200){
+        var msg=(d.error&&(d.error.message||d.error.type))||('HTTP '+r.status);
+        alog('エラー: '+msg);toast('✗ '+msg);cb(new Error(msg),null);return;
+      }
+      var t='';
+      if(d.content&&d.content.length){
+        for(var i=0;i<d.content.length;i++){
+          if(d.content[i].type==='text'&&d.content[i].text)t+=d.content[i].text;
+        }
+      }
       alog('完了 '+t.length+'字');cb(null,t);
     }catch(e){alog('解析エラー: '+e.message);cb(e,null);}
   };
   r.onerror=function(){alog('通信エラー');cb(new Error('通信エラー'),null);};
   r.ontimeout=function(){alog('タイムアウト');cb(new Error('タイムアウト'),null);};
-  r.send(JSON.stringify({contents:[{parts:[{text:p}]}],generationConfig:{maxOutputTokens:mt,temperature:0.8}}));
+  r.send(JSON.stringify({
+    model:(localStorage.getItem('rp_claude_model')||'claude-sonnet-4-5'),
+    max_tokens:Math.max(mt,1024),
+    temperature:0.8,
+    system:sys,
+    messages:[{role:'user',content:p}]
+  }));
 }
 
 function go(id){document.querySelectorAll('.page').forEach(function(p){p.classList.toggle('on',p.id==='page-'+id);});document.querySelectorAll('.ni').forEach(function(n){n.classList.toggle('on',n.id==='nav-'+id);});document.getElementById('tb-title').textContent=PT[id]||id;}
@@ -845,7 +869,7 @@ function genEC(title, cat, done) {
 
 
 function runFullAuto(targetCat){
-  if(!K.apiKey){go('settings');return;}
+  if(!K.claudeKey){go('settings');return;}
   var cats=getSelCats();if(!cats.length){alert('カテゴリを選択してください');return;}
   var cat=targetCat||cats[K.catIdx%cats.length];
   K.catIdx=(K.catIdx+1)%cats.length;localStorage.setItem('rp_catidx',K.catIdx.toString());updateCurCatLabel();
@@ -977,7 +1001,15 @@ function saveEditor(){
   saveArts();pushToGitHub(K.arts);renderArticles();closeEditor();
   toast('✓ 記事を保存しGitHubに反映しました');
 }
-function saveKey(){var k=document.getElementById('api-key').value.trim();if(!k){alert('APIキーを入力してください');return;}K.apiKey=k;localStorage.setItem('rp_key',k);var el=document.getElementById('set-saved');el.classList.add('show');setTimeout(function(){el.classList.remove('show');},3000);checkApiWarn();}
+function saveKey(){
+  var gk=document.getElementById('api-key').value.trim();
+  var ck=document.getElementById('claude-key').value.trim();
+  if(!ck){alert('Claude API Keyは必須です（記事生成に使用します）');return;}
+  K.apiKey=gk;localStorage.setItem('rp_key',gk);
+  K.claudeKey=ck;localStorage.setItem('rp_claude_key',ck);
+  var el=document.getElementById('set-saved');el.classList.add('show');setTimeout(function(){el.classList.remove('show');},3000);
+  checkApiWarn();
+}
 function changeAdminPw(){
   var np = document.getElementById('cfg-pw-new').value;
   var cp = document.getElementById('cfg-pw-confirm').value;
@@ -1018,10 +1050,11 @@ function changeAdminPw(){
 }
 
 function saveCfg(){localStorage.setItem('rp_cfg',JSON.stringify({author:document.getElementById('cfg-author').value,role:(document.getElementById('cfg-role')||{}).value||'',avatar:(document.getElementById('cfg-avatar')||{}).value||'',bio:document.getElementById('cfg-bio').value,announce:(document.getElementById('cfg-announce')||{}).value||'',blogUrl:document.getElementById('cfg-blog-url').value,noteUrl:document.getElementById('cfg-note-url').value,noteShopUrl:document.getElementById('cfg-note-shop-url').value,xUrl:document.getElementById('cfg-x-url').value,xUser:document.getElementById('cfg-x-user').value,xPass:document.getElementById('cfg-x-pass').value,xAuto:document.getElementById('cfg-x-auto').checked,ghToken:document.getElementById('cfg-gh-token').value,ghUser:document.getElementById('cfg-gh-user').value,ghRepo:document.getElementById('cfg-gh-repo').value}));toast('設定を保存しました');}
-function checkApiWarn(){var el=document.getElementById('art-api-warn');if(!el)return;if(!K.apiKey){el.textContent='APIキーが未設定です。設定ページで入力してください。';el.classList.add('show');}else{el.classList.remove('show');}}
+function checkApiWarn(){var el=document.getElementById('art-api-warn');if(!el)return;if(!K.claudeKey){el.textContent='Claude APIキーが未設定です。設定ページで入力してください。';el.classList.add('show');}else{el.classList.remove('show');}}
 
 (function init(){
   if(K.apiKey)document.getElementById('api-key').value=K.apiKey;
+  if(K.claudeKey)document.getElementById('claude-key').value=K.claudeKey;
   var cfg=getCfg();
   if(cfg.author)document.getElementById('cfg-author').value=cfg.author;
   var _ca=document.getElementById('cfg-announce');if(_ca&&cfg.announce!==undefined)_ca.value=cfg.announce||'';
