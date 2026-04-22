@@ -1,7 +1,9 @@
 name: note自動投稿
 
 on:
-  workflow_dispatch:   # 管理画面「noteに投稿」ボタンから手動トリガー
+  schedule:
+    - cron: '0 3 * * *'   # 毎日 12:00 JST（UTC 03:00）
+  workflow_dispatch:      # 管理画面「noteに投稿」ボタンからの手動トリガーも維持
 
 jobs:
   note-post:
