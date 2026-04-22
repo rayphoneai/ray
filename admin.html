@@ -244,11 +244,6 @@ input:checked+.sw2-slider::before{transform:translateX(16px);}
             
             <div class="ff full"><label class="fl">note アカウントURL</label><input class="fi" id="cfg-note-url" placeholder="https://note.com/rayphone"><div class="fhint">記事の誘導先・ブログ本文CTAとして使用されます</div></div>
             <div class="ff full"><label class="fl">noteプロンプト集URL（購入ボタン用）</label><input class="fi" id="cfg-note-shop-url" placeholder="https://note.com/rayphone/n/nf6e5688f3939"><div class="fhint">「noteで購入」ボタンのリンク先URL</div></div>
-            <div class="ff full"><label class="fl">X（Twitter）URL</label><input class="fi" id="cfg-x-url" placeholder="https://x.com/rayphone_com"><div class="fhint">プロフィールページのURL</div></div>
-            <div class="ff full" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--bd);"><label class="fl" style="color:var(--or);font-weight:700;">X（Twitter）自動投稿設定</label><div class="fhint">Playwrightで自動投稿します。設定後に.envファイルにも同じ値を追記してください。</div></div>
-            <div class="ff"><label class="fl">Xユーザー名</label><input class="fi" id="cfg-x-user" placeholder="rayphone（@不要）"></div>
-            <div class="ff"><label class="fl">Xパスワード</label><input class="fi" type="password" id="cfg-x-pass" placeholder="パスワード"></div>
-            <div class="ff full"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cfg-x-auto" style="width:16px;height:16px;accent-color:var(--or);"> <span style="font-size:13px;font-weight:500;">記事生成と同時にXへ自動投稿する</span></label></div>
             <div class="ff full"><label class="fl">ブログURL</label><input class="fi" id="cfg-blog-url" placeholder="https://rayphone.github.io/rayphoneai/"><div class="fhint">note本文中のブログリンクとして使用されます</div></div>
             <div class="ff full" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--bd);"><label class="fl" style="color:var(--or);font-weight:700;">GitHub連携設定</label></div>
             <div class="ff full"><label class="fl">GitHub Token</label><input class="fi" type="password" id="cfg-gh-token" placeholder="ghp_..."><div class="fhint">Settings → Developer settings → Personal access tokens（repo権限）</div></div>
@@ -876,7 +871,6 @@ function runFullAuto(targetCat){
   var cfg=getCfg();
   var noteUrl=cfg.noteUrl||'https://note.com/rayphone';
   var blogUrl=cfg.blogUrl||'https://rayphone.github.io/rayphoneai/';
-  var xUrl=cfg.xUrl||'';
   go('dash');
   document.getElementById('art-gp').classList.add('show');document.getElementById('art-ld').classList.add('show');
   document.getElementById('art-log').textContent='';document.getElementById('art-log').classList.add('show');
@@ -1049,7 +1043,7 @@ function changeAdminPw(){
   toast('パスワードを変更しました');
 }
 
-function saveCfg(){localStorage.setItem('rp_cfg',JSON.stringify({author:document.getElementById('cfg-author').value,role:(document.getElementById('cfg-role')||{}).value||'',avatar:(document.getElementById('cfg-avatar')||{}).value||'',bio:document.getElementById('cfg-bio').value,announce:(document.getElementById('cfg-announce')||{}).value||'',blogUrl:document.getElementById('cfg-blog-url').value,noteUrl:document.getElementById('cfg-note-url').value,noteShopUrl:document.getElementById('cfg-note-shop-url').value,xUrl:document.getElementById('cfg-x-url').value,xUser:document.getElementById('cfg-x-user').value,xPass:document.getElementById('cfg-x-pass').value,xAuto:document.getElementById('cfg-x-auto').checked,ghToken:document.getElementById('cfg-gh-token').value,ghUser:document.getElementById('cfg-gh-user').value,ghRepo:document.getElementById('cfg-gh-repo').value}));toast('設定を保存しました');}
+function saveCfg(){localStorage.setItem('rp_cfg',JSON.stringify({author:document.getElementById('cfg-author').value,role:(document.getElementById('cfg-role')||{}).value||'',avatar:(document.getElementById('cfg-avatar')||{}).value||'',bio:document.getElementById('cfg-bio').value,announce:(document.getElementById('cfg-announce')||{}).value||'',blogUrl:document.getElementById('cfg-blog-url').value,noteUrl:document.getElementById('cfg-note-url').value,noteShopUrl:document.getElementById('cfg-note-shop-url').value,ghToken:document.getElementById('cfg-gh-token').value,ghUser:document.getElementById('cfg-gh-user').value,ghRepo:document.getElementById('cfg-gh-repo').value}));toast('設定を保存しました');}
 function checkApiWarn(){var el=document.getElementById('art-api-warn');if(!el)return;if(!K.claudeKey){el.textContent='Claude APIキーが未設定です。設定ページで入力してください。';el.classList.add('show');}else{el.classList.remove('show');}}
 
 (function init(){
@@ -1065,10 +1059,6 @@ function checkApiWarn(){var el=document.getElementById('art-api-warn');if(!el)re
   if(cfg.blogUrl)document.getElementById('cfg-blog-url').value=cfg.blogUrl;
   if(cfg.noteUrl)document.getElementById('cfg-note-url').value=cfg.noteUrl;
   if(cfg.noteShopUrl)document.getElementById('cfg-note-shop-url').value=cfg.noteShopUrl;
-  document.getElementById('cfg-x-url').value=cfg.xUrl||'https://x.com/rayphone_com';
-  document.getElementById('cfg-x-user').value=cfg.xUser||'rayphone_com';
-  if(cfg.xPass)document.getElementById('cfg-x-pass').value=cfg.xPass;
-  if(cfg.xAuto)document.getElementById('cfg-x-auto').checked=cfg.xAuto;
   if(cfg.ghToken)document.getElementById('cfg-gh-token').value=cfg.ghToken;
   if(cfg.ghUser)document.getElementById('cfg-gh-user').value=cfg.ghUser;
   if(cfg.ghRepo)document.getElementById('cfg-gh-repo').value=cfg.ghRepo;
