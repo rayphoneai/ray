@@ -17,6 +17,8 @@ except Exception as e:
 # ── 環境変数 ────────────────────────────────────────────────
 print("環境変数を読み込み中...", flush=True)
 GEMINI_API_KEY   = os.getenv("GEMINI_API_KEY", "")
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+CLAUDE_MODEL     = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-5")
 NOTE_EMAIL       = os.getenv("NOTE_EMAIL", "")
 NOTE_PASSWORD    = os.getenv("NOTE_PASSWORD", "")
 BLOG_URL         = os.getenv("BLOG_URL", "https://rayphoneai.github.io/ray/").rstrip("/")
@@ -126,6 +128,57 @@ def strip_preamble(text):
             continue
         return "\n".join(lines[i:]).lstrip("---\n").strip()
     return text.strip()
+
+# ── Claude API ───────────────────────────────────────────────
+_CLAUDE_SYS = (
+    "あなたは日本語ブログ記事のプロフェッショナルライターです。以下を厳守してください:\n"
+    "・「はい」「承知しました」などの前置き・承諾文は絶対に出力しない\n"
+    "・# ## ### などのマークダウン見出しを出力しない（見出しは ■ を使う）\n"
+    "・**太字** *斜体* ``` などのマークダウン装飾を一切使わない\n"
+    "・箇条書きは - * ではなく「・」を使う\n"
+    "・指定された本文のみを出力する（メタ的な説明・補足を書かない）"
+)
+
+def claude(prompt, max_tokens=3500, temperature=0.8):
+    """Claude API で記事テキストを生成。gemini()と同じシグネチャで差し替え可能。"""
+    if not ANTHROPIC_API_KEY:
+        raise RuntimeError("ANTHROPIC_API_KEY 未設定")
+    url = "https://api.anthropic.com/v1/messages"
+    headers = {
+        "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+    }
+    body = {
+        "model": CLAUDE_MODEL,
+        "max_tokens": max(int(max_tokens), 1024),
+        "temperature": temperature,
+        "system": _CLAUDE_SYS,
+        "messages": [{"role": "user", "content": prompt}],
+    }
+    for attempt in range(3):
+        try:
+            r = requests.post(url, json=body, headers=headers, timeout=180)
+            if r.status_code in (429, 500, 502, 503, 504) and attempt < 2:
+                wait = (attempt + 1) * 10
+                log(f"Claude API {r.status_code} → {wait}秒後にリトライ({attempt+1}/3)...")
+                time.sleep(wait)
+                continue
+            r.raise_for_status()
+            data = r.json()
+            text = ""
+            for block in data.get("content", []):
+                if block.get("type") == "text":
+                    text += block.get("text", "")
+            return strip_preamble(text.strip())
+        except requests.exceptions.HTTPError as e:
+            if attempt < 2:
+                wait = (attempt + 1) * 10
+                log(f"Claude HTTPエラー: {e} → {wait}秒後にリトライ({attempt+1}/3)...")
+                time.sleep(wait)
+            else:
+                raise
+    raise RuntimeError("Claude API 呼び出しが3回失敗")
 
 # ── GitHub articles.json プッシュ ────────────────────────────
 def push_articles(arts):
@@ -743,8 +796,8 @@ def main_note():
     log(f"投稿対象: {title}")
     log(f"ブログ本文: {len(content)}字")
 
-    # ブログ全文を使ってnote深掘り版を生成
-    note_body = strip_preamble(gemini(f"""あなたはRayphone（プロンプト設計士・商品開発15年・Claude副業月収15万達成）です。
+    # ブログ全文を使ってnote深掘り版を生成（Claude）
+    note_body = claude(f"""あなたはRayphone（プロンプト設計士・商品開発15年・Claude副業月収15万達成）です。
 下記のブログ記事を元に、noteで深掘り解説する記事（約2000字）を書いてください。
 
 【ブログタイトル】{title}
@@ -763,20 +816,22 @@ def main_note():
 {art_url}
 
 【禁止】# * ** アスタリスク・マークダウン記号一切禁止。タイトルにも本文にも * は使わないこと。見出しは■。箇条書きは「・」。前置き・承諾文禁止。
-ブログと同じ情報を繰り返すのではなく、必ず「ブログの続き・深掘り」として書くこと。""", 3500))
+ブログと同じ情報を繰り返すのではなく、必ず「ブログの続き・深掘り」として書くこと。""", max_tokens=3500)
 
     if art_url not in note_body:
         note_body += f"\n\n▼ ブログ記事はこちら\n{art_url}\n"
 
     # 記事に合ったハッシュタグを5個生成（本文も渡して精度を上げる）
-    hashtag_text = strip_preamble(gemini(
+    hashtag_text = claude(
         f"以下のnote記事に合うハッシュタグを5個生成してください。\n"
         f"タイトル：{title}\nカテゴリ：{cat}\n"
         f"本文抜粋：{note_body[:300]}\n\n"
         f"【出力形式】#タグ1 #タグ2 #タグ3 #タグ4 #タグ5\n"
         f"【ルール】#をつける。日本語OK。記事内容に直結した具体的なタグ。"
-        f"スペース区切りで1行のみ出力。前置き・説明文禁止。", 80
-    ))
+        f"スペース区切りで1行のみ出力。前置き・説明文禁止。",
+        max_tokens=1024,
+        temperature=0.5,
+    )
     tags = re.findall(r'#\S+', hashtag_text)[:5]
     if len(tags) >= 3:
         note_body += "\n\n" + " ".join(tags)
