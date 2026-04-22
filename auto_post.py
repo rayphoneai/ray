@@ -24,6 +24,8 @@ print(f"Python: {sys.version}")
 ADMIN_URL      = os.getenv("ADMIN_URL", "")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "rayphone2025")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+CLAUDE_MODEL   = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-5")
 GH_TOKEN       = os.getenv("GH_TOKEN", "")
 GH_USER        = os.getenv("GH_USER", "")
 GH_REPO        = os.getenv("GH_REPO", "")
@@ -47,9 +49,11 @@ def main():
     if not ADMIN_URL:
         log("✗ ADMIN_URL または GH_USER/GH_REPO が未設定です")
         sys.exit(1)
-    if not GEMINI_API_KEY:
-        log("✗ GEMINI_API_KEY が未設定です")
+    if not ANTHROPIC_API_KEY:
+        log("✗ ANTHROPIC_API_KEY が未設定です（記事生成に必須）")
         sys.exit(1)
+    if not GEMINI_API_KEY:
+        log("⚠ GEMINI_API_KEY 未設定（アイキャッチ画像生成に使用・admin.html側はSVGのため動作は可）")
 
     from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
 
@@ -78,6 +82,8 @@ def main():
         log("APIキーとGitHub設定をlocalStorageにセット中...")
         cfg_js = f"""() => {{
             localStorage.setItem('rp_key', '{GEMINI_API_KEY}');
+            localStorage.setItem('rp_claude_key', '{ANTHROPIC_API_KEY}');
+            localStorage.setItem('rp_claude_model', '{CLAUDE_MODEL}');
             localStorage.setItem('rp_admin_auth', '{ADMIN_PASSWORD}');
             var cfg = {{}};
             try {{ cfg = JSON.parse(localStorage.getItem('rp_cfg') || '{{}}'); }} catch(e) {{}}
