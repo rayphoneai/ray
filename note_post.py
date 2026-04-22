@@ -28,8 +28,6 @@ NOTE_COOKIES_B64 = os.getenv("NOTE_COOKIES_B64", "")
 GH_TOKEN         = os.getenv("GH_TOKEN", "")
 GH_USER          = os.getenv("GH_USER", "rayphoneai")
 GH_REPO          = os.getenv("GH_REPO", "ray")
-X_COOKIES_B64    = os.getenv("X_COOKIES_B64", "")
-X_AUTO           = os.getenv("X_AUTO", "false").lower() == "true"
 HEADLESS         = os.getenv("HEADLESS", "true").lower() == "true"
 # アイキャッチ生成モデル
 # svg                       : SVG生成（無料・デフォルト）
@@ -677,90 +675,6 @@ with sync_playwright() as pw:
 
 # ── メイン処理 ────────────────────────────────────────────────
 
-# ── X（@rayphone_com）にnoteリンク付きで投稿 ─────────────────
-def post_x_with_note_link(title, cat, note_url, blog_url):
-    """note投稿完了後、XにnoteリンクつきのCTA投稿をする"""
-    import base64 as _b64, json as _json, time as _time
-
-    log("X投稿中...")
-    try:
-        # ツイート本文を生成（140字以内に収める）
-        short_title = title[:24] + "..." if len(title) > 24 else title
-        tweet_lines = [
-            f"【新着note】{short_title}",
-            "",
-            f"#{cat.replace(' ', '').replace('xAI','AI活用')} #Claude活用 #AI副業",
-            "",
-            f"▼ noteで読む",
-            note_url,
-        ]
-        tweet = "\n".join(tweet_lines)
-
-        # Cookie認証でX GraphQL API投稿
-        cookies_json = _b64.b64decode(X_COOKIES_B64).decode("utf-8")
-        cookies = _json.loads(cookies_json)
-
-        # sameSiteの値をPlaywright準拠に正規化
-        valid_same_site = {"Strict", "Lax", "None"}
-        for ck in cookies:
-            ss = ck.get("sameSite", "")
-            if ss not in valid_same_site:
-                ck["sameSite"] = "None"
-
-        from playwright.sync_api import sync_playwright
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True, args=["--no-sandbox"])
-            ctx = browser.new_context()
-            ctx.add_cookies(cookies)
-            page = ctx.new_page()
-            # networkidleではなくdomcontentloadedで待機（X.comは非同期が多くタイムアウトしやすい）
-            page.goto("https://x.com/home", wait_until="domcontentloaded", timeout=60000)
-            _time.sleep(4)
-
-            # ログイン確認
-            current_url = page.url
-            log(f"X: ページURL={current_url}")
-            if "/login" in current_url or "twitter.com/login" in current_url:
-                log("⚠ X: クッキー無効→ログインページにリダイレクト。X_COOKIES_B64を更新してください")
-                page.screenshot(path="debug_x_login.png")
-                browser.close()
-                return
-
-            # ツイート入力欄
-            try:
-                page.wait_for_selector('[data-testid="tweetTextarea_0"]', timeout=20000)
-            except Exception:
-                log("⚠ X: ツイート入力欄が見つかりません")
-                page.screenshot(path="debug_x_noinput.png")
-                browser.close()
-                return
-
-            page.click('[data-testid="tweetTextarea_0"]')
-            page.keyboard.type(tweet)
-            log(f"X: ツイート入力完了({len(tweet)}字)")
-            _time.sleep(1)
-
-            # 投稿ボタン
-            try:
-                btn = page.locator('[data-testid="tweetButtonInline"]').first
-                btn.wait_for(state="visible", timeout=5000)
-                btn.click()
-                log("X: 投稿ボタンクリック完了")
-            except Exception as btn_err:
-                log(f"⚠ X: 投稿ボタンが見つかりません: {btn_err}")
-                page.screenshot(path="debug_x_nobtn.png")
-                browser.close()
-                return
-
-            _time.sleep(4)
-            # 投稿後のURLを確認
-            log(f"X: 投稿後URL={page.url}")
-            browser.close()
-        log(f"✓ X投稿完了: {short_title}")
-    except Exception as e:
-        log(f"⚠ X投稿失敗（続行）: {e}")
-
-
 # ── note専用メイン ─────────────────────────────────────────
 def main_note():
     """GitHubの最新記事をnoteに自動投稿する"""
@@ -859,12 +773,6 @@ def main_note():
     if note_result["ok"]:
         note_url_posted = note_result.get('url', NOTE_URL)
         log(f"✓ note投稿完了: {note_url_posted}")
-
-        # X（@rayphone_com）にnoteリンク付きでツイート
-        if X_AUTO and X_COOKIES_B64:
-            post_x_with_note_link(title, cat, note_url_posted, art_url)
-        else:
-            log("X自動投稿はスキップ（X_AUTO=false または クッキー未設定）")
     else:
         log(f"✗ note投稿失敗: {note_result.get('message','')}")
 
