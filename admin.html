@@ -178,12 +178,12 @@ input:checked+.sw2-slider::before{transform:translateX(16px);}
           <div class="fg">
             <div class="ff full">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><label class="fl">タイトル <span>*</span></label><button class="btn bg2 bsm" id="art-autofill-btn">自動入力</button></div>
-              <input class="fi" id="art-title" placeholder="例: Claudeで節税提案書を3分で作る方法">
+              <input class="fi" id="art-title" placeholder="例: Claudeで副業ブログを30分で書く方法">
             </div>
-            <div class="ff"><label class="fl">カテゴリ</label><select class="fi" id="art-cat"><option>Claude活用Tips</option><option>士業向けAI活用</option><option>商品開発xAI</option><option>副業xAI</option><option>プロンプト集解説</option></select></div>
+            <div class="ff"><label class="fl">カテゴリ</label><select class="fi" id="art-cat"><option>副業xAI</option><option>Claude活用Tips</option><option>商品開発xAI</option><option>プロンプト集解説</option></select></div>
             <div class="ff"><label class="fl">文字数</label><select class="fi" id="art-len"><option value="2000">約2,000字</option><option value="3000" selected>約3,000字</option></select></div>
-            <div class="ff"><label class="fl">SEOキーワード</label><input class="fi" id="art-kw" placeholder="Claude 節税 税理士 時短"></div>
-            <div class="ff"><label class="fl">ターゲット</label><input class="fi" id="art-target" placeholder="AI初心者の税理士"></div>
+            <div class="ff"><label class="fl">SEOキーワード</label><input class="fi" id="art-kw" placeholder="Claude 副業 AI ライティング 時短"></div>
+            <div class="ff"><label class="fl">ターゲット</label><input class="fi" id="art-target" placeholder="AI副業に興味のある会社員"></div>
             <div class="ff full"><label class="fl">メモ・方向性</label><textarea class="fi" id="art-memo" placeholder="実体験ベースで。プロンプト例を必ず入れる。"></textarea></div>
           </div>
           <div class="brow">
@@ -300,7 +300,7 @@ input:checked+.sw2-slider::before{transform:translateX(16px);}
     <div class="modal-body">
       <div class="fg" style="margin-bottom:12px;">
         <div class="ff"><label class="fl">タイトル</label><input class="fi" id="ed-title"></div>
-        <div class="ff"><label class="fl">カテゴリ</label><select class="fi" id="ed-cat"><option>Claude活用Tips</option><option>士業向けAI活用</option><option>商品開発xAI</option><option>副業xAI</option><option>プロンプト集解説</option></select></div>
+        <div class="ff"><label class="fl">カテゴリ</label><select class="fi" id="ed-cat"><option>副業xAI</option><option>Claude活用Tips</option><option>商品開発xAI</option><option>プロンプト集解説</option><option>士業向けAI活用</option></select></div>
         <div class="ff"><label class="fl">ステータス</label><select class="fi" id="ed-status"><option value="published">公開済み</option><option value="draft">下書き</option></select></div>
         <div class="ff"><label class="fl">日付</label><input class="fi" id="ed-date" placeholder="2024.01.01"></div>
       </div>
@@ -313,7 +313,9 @@ input:checked+.sw2-slider::before{transform:translateX(16px);}
 
 <script>
 var K={apiKey:localStorage.getItem('rp_key')||'',claudeKey:localStorage.getItem('rp_claude_key')||'',arts:[],catIdx:parseInt(localStorage.getItem('rp_catidx')||'0'),curSVG:'',lastArt:'',prevId:null,edId:null};
-var CATEGORIES=['Claude活用Tips','士業向けAI活用','商品開発xAI','副業xAI','プロンプト集解説'];
+// v2: 副業xAIを主軸に重み付け（士業向けは新規生成から削除、過去記事は維持）
+// 6日サイクル：副業xAI×3, Claude活用Tips×1, 商品開発xAI×1, プロンプト集解説×1
+var CATEGORIES=['副業xAI','Claude活用Tips','副業xAI','商品開発xAI','副業xAI','プロンプト集解説'];
 function updateCurCatLabel(){
   var cats=getSelCats();
   if(!cats.length) cats=CATEGORIES;
@@ -322,6 +324,7 @@ function updateCurCatLabel(){
   if(el) el.textContent=cur;
   var el2=document.getElementById('s-next-cat');if(el2)el2.textContent=cur;
 }
+// v2: 士業向けAI活用は過去記事の表示用に色定義は残す（既存記事の表示が崩れないよう）
 var CC={'Claude活用Tips':'#FFF0E3;#854F0B','士業向けAI活用':'#E1F5EE;#085041','商品開発xAI':'#EEEDFE;#3C3489','副業xAI':'#E6F1FB;#0C447C','プロンプト集解説':'#F1EFE8;#444441'};
 var PT={dash:'ダッシュボード',settings:'設定'};
 function renderQueue(){/* 削除済み - no-op */}
@@ -529,7 +532,7 @@ function generateArticle(){
   document.getElementById('art-log').textContent='';document.getElementById('art-log').classList.add('show');
   document.getElementById('art-lt').textContent='記事を執筆中...';
   document.getElementById('art-out').classList.remove('show');
-  var p='あなたはRayphone（プロンプト設計士・商品開発15年・Claude副業月収15万達成）のブログ「RayPhoneAI」専属ライターです。\n\nタイトル：'+title+'\nカテゴリ：'+cat+'\nターゲット：'+(tgt||'AI初心者のビジネスパーソン')+'\n文字数：約'+len+'字\nSEO：'+(kw||'Claude 活用 業務効率化')+'\n方向性：'+(memo||'実践的な内容で')+'\n\n【絶対禁止】# ## * ** 【】アスタリスク・マークダウン記号一切禁止。タイトルにも本文にも * は使わないこと。見出しは■のみ。箇条書きは「・」。URLはそのまま出力。\n\n■構成（スマホ最適化・改行多め）\nタイトル行（1行）\n\nはじめに（150字・1行ごとに改行）\n\n■（見出し）\n（本文400〜500字・2〜3文ごとに空行を入れる・Claudeプロンプト例を必ず1つ以上）\n（上記を3〜4セクション繰り返す）\n\n▼ noteで詳しく解説しています\n'+noteUrl+'\n\n■まとめ（200字・上記URLを本文中にそのまま記載）\n\n【必須】Rayphoneの一人称・体験談。各段落の後に必ず空行（\\n\\n）を入れる。【】禁止・見出し番号（1〜5等）禁止。合計'+len+'字前後。';
+  var p='あなたはRayphone（プロンプト設計士・商品開発15年・Claude副業月収15万達成）のブログ「RayPhoneAI」専属ライターです。\n\nタイトル：'+title+'\nカテゴリ：'+cat+'\nターゲット：'+(tgt||'AI副業に興味のある会社員')+'\n文字数：約'+len+'字\nSEO：'+(kw||'Claude 副業 AI 活用')+'\n方向性：'+(memo||'実践的な内容で')+'\n\n【絶対禁止】# ## * ** 【】アスタリスク・マークダウン記号一切禁止。タイトルにも本文にも * は使わないこと。見出しは■のみ。箇条書きは「・」。URLはそのまま出力。\n\n■構成（スマホ最適化・改行多め）\nタイトル行（1行）\n\nはじめに（150字・1行ごとに改行）\n\n■（見出し）\n（本文400〜500字・2〜3文ごとに空行を入れる・Claudeプロンプト例を必ず1つ以上）\n（上記を3〜4セクション繰り返す）\n\n▼ noteで詳しく解説しています\n'+noteUrl+'\n\n■まとめ（200字・上記URLを本文中にそのまま記載）\n\n【必須】Rayphoneの一人称・体験談。各段落の後に必ず空行（\\n\\n）を入れる。【】禁止・見出し番号（1〜5等）禁止。合計'+len+'字前後。';
   claudeCall(p,4000,function(err,text){
     document.getElementById('art-gen-btn').disabled=false;
     document.getElementById('art-gp').classList.remove('show');
@@ -876,7 +879,7 @@ function runFullAuto(targetCat){
   document.getElementById('art-log').textContent='';document.getElementById('art-log').classList.add('show');
   document.getElementById('art-lt').textContent='[1/5] '+cat+' の記事企画を生成中...';
   claudeCall('RayPhoneAI「'+cat+'」カテゴリ記事企画。JSONのみ出力:\n{"title":"タイトル（25〜40字）","keywords":"KW1 KW2 KW3","target":"ターゲット","hook":"方向性（2〜3文）","catch":"キャッチコピー（15字以内）"}',400,function(err,metaText){
-    var meta={title:cat+'の実践ガイド',keywords:'Claude 活用 業務効率化',target:'AI初心者',hook:'実践的な内容で',catch:'現場で即使える'};
+    var meta={title:cat+'の実践ガイド',keywords:'Claude 副業 AI 活用',target:'AI副業に興味のある会社員',hook:'実践的な内容で',catch:'現場で即使える'};
     if(!err&&metaText){try{Object.assign(meta,JSON.parse(metaText.replace(/```json|```/g,'').trim()));}catch(e){}}
     document.getElementById('art-title').value=meta.title;document.getElementById('art-cat').value=cat;
     document.getElementById('art-kw').value=meta.keywords;document.getElementById('art-target').value=meta.target;document.getElementById('art-memo').value=meta.hook;
@@ -965,7 +968,7 @@ function openEditor(id){
   if(!art)return;
   K.edId=id;
   document.getElementById('ed-title').value=art.title||'';
-  document.getElementById('ed-cat').value=art.cat||'Claude活用Tips';
+  document.getElementById('ed-cat').value=art.cat||'副業xAI';
   document.getElementById('ed-body').value=art.content||'';
   var st=document.getElementById('ed-status');if(st)st.value=art.status||'published';
   var dt=document.getElementById('ed-date');if(dt)dt.value=art.date||'';
