@@ -1,5 +1,11 @@
 """
-auto_post.py — RayPhoneAI GitHub Actions 自動投稿スクリプト
+note_post.py — RayPhoneAI note自動投稿スクリプト（v2 改善版）
+
+【v2 改善ポイント】
+1. タイトルから「【深掘り】」を完全削除（SEO・クリック率UP）
+2. Claude プロンプトから「深掘り」連呼を削除（より実践的な記事に）
+3. 構成セクション名を「実例・応用」「実践的に解説」に変更
+4. ブログとの差別化は「実例・応用」「実践アクション」で担保
 """
 import sys
 print("=== auto_post.py 起動 ===", flush=True)
@@ -710,9 +716,9 @@ def main_note():
     log(f"投稿対象: {title}")
     log(f"ブログ本文: {len(content)}字")
 
-    # ブログ全文を使ってnote深掘り版を生成（Claude）
+    # ブログ全文を使ってnote実践版を生成（Claude）
     note_body = claude(f"""あなたはRayphone（プロンプト設計士・商品開発15年・Claude副業月収15万達成）です。
-下記のブログ記事を元に、noteで深掘り解説する記事（約2000字）を書いてください。
+下記のブログ記事を元に、noteで実践的に解説する記事（約2000字）を書いてください。
 
 【ブログタイトル】{title}
 【カテゴリ】{cat}
@@ -722,7 +728,7 @@ def main_note():
 
 ■構成
 ■はじめに（200字）―ブログの要点をnote読者向けに噛み砕く
-■ブログでは語れなかった深掘り（800字）―実体験・失敗談・応用例を追加
+■ブログでは語れなかった実例・応用（800字）―実体験・失敗談・応用例を追加
 ■読者が今すぐ試せるアクション（400字）―具体的なプロンプト例を1つ以上
 ■Rayphoneからの一言（200字）―締め
 
@@ -730,7 +736,7 @@ def main_note():
 {art_url}
 
 【禁止】# * ** アスタリスク・マークダウン記号一切禁止。タイトルにも本文にも * は使わないこと。見出しは■。箇条書きは「・」。前置き・承諾文禁止。
-ブログと同じ情報を繰り返すのではなく、必ず「ブログの続き・深掘り」として書くこと。""", max_tokens=3500)
+ブログと同じ情報を繰り返すのではなく、必ず「ブログの続き・実例展開」として書くこと。""", max_tokens=3500)
 
     if art_url not in note_body:
         note_body += f"\n\n▼ ブログ記事はこちら\n{art_url}\n"
@@ -768,8 +774,8 @@ def main_note():
     else:
         log("アイキャッチ生成失敗 → SVGで代用")
 
-    # note投稿
-    note_result = post_to_note(f"【深掘り】{title}", note_body, svg, eyecatch_png=eyecatch_png)
+    # note投稿（v2: タイトルから「【深掘り】」を削除、ブログタイトルそのまま使用）
+    note_result = post_to_note(title, note_body, svg, eyecatch_png=eyecatch_png)
     if note_result["ok"]:
         note_url_posted = note_result.get('url', NOTE_URL)
         log(f"✓ note投稿完了: {note_url_posted}")
