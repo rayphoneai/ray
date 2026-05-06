@@ -1,20 +1,26 @@
 """
-note_post.py — RayPhoneAI note自動投稿スクリプト（v2.1 改善版）
+note_post.py — RayPhoneAI note自動投稿スクリプト（v3.0 Gemini対応版）
 
-【v2.1 変更点】
-1. CLAUDE_MODEL のデフォルトを claude-sonnet-4-6 に更新
-   （claude-sonnet-4-5 は現行APIで廃止されているため 400 Bad Request の原因）
-2. ハッシュタグ生成を Haiku（claude-haiku-4-5-20251001）に分離してコスト削減
-3. Claude APIエラー時にレスポンスボディをログ出力（デバッグ性向上）
+【v3.0 変更点（Gemini化）】
+1. claude() 関数の中身を Gemini API 呼び出しに完全置換
+   - URL: api.anthropic.com → generativelanguage.googleapis.com
+   - 認証: x-api-key ヘッダー → URL の ?key= パラメータ
+   - リクエスト形式: system + messages → system_instruction + contents + generationConfig
+   - レスポンス: content[].text → candidates[0].content.parts[].text
+2. デフォルトモデルを Gemini に変更
+   - 本文: claude-sonnet-4-6 → gemini-2.5-flash
+   - ハッシュタグ: claude-haiku-4-5 → gemini-2.5-flash-lite
+3. 関数名 claude() は呼び出し元との互換性のため維持（中身だけGemini）
+4. ANTHROPIC_API_KEY 不要（GEMINI_API_KEY のみで動作）
+5. リトライ・エラーログ・stripPreamble の仕組みは全て維持
 
-【v2 改善ポイント（継続）】
-- タイトルから「【深掘り】」を完全削除（SEO・クリック率UP）
-- Claude プロンプトから「深掘り」連呼を削除（より実践的な記事に）
-- 構成セクション名を「実例・応用」「実践的に解説」に変更
-- ブログとの差別化は「実例・応用」「実践アクション」で担保
+【v2.1 までの改善（継続）】
+- タイトルから「【深掘り】」を完全削除
+- 構成セクションを「実例・応用」「実践アクション」に
+- 503等の一時エラーで最大3回リトライ
 """
 import sys
-print("=== auto_post.py 起動 ===", flush=True)
+print("=== note_post.py 起動（Gemini版） ===", flush=True)
 print(f"Python: {sys.version}", flush=True)
 
 try:
@@ -29,11 +35,16 @@ except Exception as e:
 # ── 環境変数 ────────────────────────────────────────────────
 print("環境変数を読み込み中...", flush=True)
 GEMINI_API_KEY   = os.getenv("GEMINI_API_KEY", "")
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+
 # 本文生成用モデル（高品質）
-CLAUDE_MODEL     = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-6")
-# ハッシュタグなど軽い処理用モデル（高速・安価）
-CLAUDE_HASHTAG_MODEL = os.getenv("CLAUDE_HASHTAG_MODEL", "claude-haiku-4-5-20251001")
+GEMINI_MODEL          = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+# ハッシュタグなど軽い処理用モデル（高速・低コスト）
+GEMINI_HASHTAG_MODEL  = os.getenv("GEMINI_HASHTAG_MODEL", "gemini-2.5-flash-lite")
+
+# 後方互換用エイリアス（万一旧コードから参照されても落ちないように）
+CLAUDE_MODEL          = GEMINI_MODEL
+CLAUDE_HASHTAG_MODEL  = GEMINI_HASHTAG_MODEL
+
 NOTE_EMAIL       = os.getenv("NOTE_EMAIL", "")
 NOTE_PASSWORD    = os.getenv("NOTE_PASSWORD", "")
 BLOG_URL         = os.getenv("BLOG_URL", "https://rayphoneai.github.io/ray/").rstrip("/")
@@ -44,12 +55,13 @@ GH_TOKEN         = os.getenv("GH_TOKEN", "")
 GH_USER          = os.getenv("GH_USER", "rayphoneai")
 GH_REPO          = os.getenv("GH_REPO", "ray")
 HEADLESS         = os.getenv("HEADLESS", "true").lower() == "true"
+
 # アイキャッチ生成モデル
-# svg                       : SVG生成（無料・デフォルト）
-# gemini-2.5-flash-image    : Nano Banana（安定版・無料枠500枚/日）
+# svg                            : SVG生成（無料・デフォルト）
+# gemini-2.5-flash-image         : Nano Banana（安定版・無料枠あり）
 # gemini-3.1-flash-image-preview : Nano Banana 2（最新・高品質）
-# imagen-4.0-fast-generate-001   : Imagen 4 Fast（有料・最安$0.02/枚）
-# imagen-4.0-generate-001        : Imagen 4 Standard（有料・$0.04/枚）
+# imagen-4.0-fast-generate-001   : Imagen 4 Fast（有料・最安）
+# imagen-4.0-generate-001        : Imagen 4 Standard（有料）
 EYECATCH_MODEL   = os.getenv("EYECATCH_MODEL", "gemini-2.5-flash-image")
 
 
@@ -101,15 +113,15 @@ def save_cat_index(idx):
     except Exception:
         pass
 
-# ── Gemini API ───────────────────────────────────────────────
+# ── Gemini API（軽量呼び出し用・既存ヘルパ・残置） ──────────
 def gemini(prompt, max_tokens=4000):
+    """軽量タスク用の Gemini 呼び出しヘルパ（システムプロンプトなし版）"""
     url = (f"https://generativelanguage.googleapis.com/v1beta/models/"
-           f"gemini-2.5-flash-lite:generateContent?key={GEMINI_API_KEY}")
+           f"{GEMINI_HASHTAG_MODEL}:generateContent?key={GEMINI_API_KEY}")
     body = {
         "contents": [{"role": "user", "parts": [{"text": prompt}]}],
         "generationConfig": {"maxOutputTokens": max_tokens, "temperature": 0.9}
     }
-    # 503などの一時エラーに対してリトライ（最大3回）
     for attempt in range(3):
         try:
             r = requests.post(url, json=body, timeout=120)
@@ -132,6 +144,8 @@ def gemini(prompt, max_tokens=4000):
                 raise
 
 def strip_preamble(text):
+    if not text:
+        return ""
     lines = text.split("\n")
     for i, l in enumerate(lines[:5]):
         t = l.strip()
@@ -142,7 +156,11 @@ def strip_preamble(text):
         return "\n".join(lines[i:]).lstrip("---\n").strip()
     return text.strip()
 
-# ── Claude API ───────────────────────────────────────────────
+# =================================================================
+# claude(): Gemini API版（関数名は互換性維持のため claude のまま）
+# 旧: https://api.anthropic.com/v1/messages
+# 新: https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent
+# =================================================================
 _CLAUDE_SYS = (
     "あなたは日本語ブログ記事のプロフェッショナルライターです。以下を厳守してください:\n"
     "・「はい」「承知しました」などの前置き・承諾文は絶対に出力しない\n"
@@ -153,54 +171,61 @@ _CLAUDE_SYS = (
 )
 
 def claude(prompt, max_tokens=3500, temperature=0.8, model=None):
-    """Claude API で記事テキストを生成。model 引数で個別にモデルを指定可能。"""
-    if not ANTHROPIC_API_KEY:
-        raise RuntimeError("ANTHROPIC_API_KEY 未設定")
-    use_model = model or CLAUDE_MODEL
-    url = "https://api.anthropic.com/v1/messages"
-    headers = {
-        "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-    }
+    """Gemini API で記事テキストを生成。model 引数で個別にモデルを指定可能。
+    関数名は呼び出し元との互換性のため claude() のまま維持。中身は Gemini。"""
+    if not GEMINI_API_KEY:
+        raise RuntimeError("GEMINI_API_KEY 未設定")
+    use_model = model or GEMINI_MODEL
+    url = (f"https://generativelanguage.googleapis.com/v1beta/models/"
+           f"{use_model}:generateContent?key={GEMINI_API_KEY}")
+
     body = {
-        "model": use_model,
-        "max_tokens": max(int(max_tokens), 1024),
-        "temperature": temperature,
-        "system": _CLAUDE_SYS,
-        "messages": [{"role": "user", "content": prompt}],
+        "system_instruction": {"parts": [{"text": _CLAUDE_SYS}]},
+        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "maxOutputTokens": max(int(max_tokens), 1024),
+            "temperature": temperature,
+        },
     }
+
     last_err_body = ""
     for attempt in range(3):
         try:
-            r = requests.post(url, json=body, headers=headers, timeout=180)
+            r = requests.post(url, json=body, timeout=180)
             if r.status_code in (429, 500, 502, 503, 504) and attempt < 2:
                 wait = (attempt + 1) * 10
-                log(f"Claude API {r.status_code} ({use_model}) → {wait}秒後にリトライ({attempt+1}/3)...")
+                log(f"Gemini API {r.status_code} ({use_model}) → {wait}秒後にリトライ({attempt+1}/3)...")
                 time.sleep(wait)
                 continue
             # エラー時はレスポンスボディをログに出してから例外を投げる
             if not r.ok:
                 last_err_body = (r.text or "")[:500]
-                log(f"Claude APIエラー詳細: status={r.status_code} model={use_model} body={last_err_body}")
+                log(f"Gemini APIエラー詳細: status={r.status_code} model={use_model} body={last_err_body}")
             r.raise_for_status()
             data = r.json()
             text = ""
-            for block in data.get("content", []):
-                if block.get("type") == "text":
-                    text += block.get("text", "")
+            candidates = data.get("candidates", [])
+            if candidates:
+                cand = candidates[0]
+                parts = cand.get("content", {}).get("parts", [])
+                for part in parts:
+                    if "text" in part:
+                        text += part.get("text", "")
+                # セーフティブロック検知（テキスト空 & finishReason ≠ STOP）
+                finish_reason = cand.get("finishReason", "")
+                if not text and finish_reason and finish_reason != "STOP":
+                    raise RuntimeError(f"Gemini生成中断: {finish_reason}")
             return strip_preamble(text.strip())
         except requests.exceptions.HTTPError as e:
             if attempt < 2:
                 wait = (attempt + 1) * 10
-                log(f"Claude HTTPエラー: {e} → {wait}秒後にリトライ({attempt+1}/3)...")
+                log(f"Gemini HTTPエラー: {e} → {wait}秒後にリトライ({attempt+1}/3)...")
                 time.sleep(wait)
             else:
-                # 最終試行失敗時もボディを残す
                 if last_err_body:
-                    log(f"Claude API最終失敗 body={last_err_body}")
+                    log(f"Gemini API最終失敗 body={last_err_body}")
                 raise
-    raise RuntimeError("Claude API 呼び出しが3回失敗")
+    raise RuntimeError("Gemini API 呼び出しが3回失敗")
 
 # ── GitHub articles.json プッシュ ────────────────────────────
 def push_articles(arts):
@@ -222,7 +247,7 @@ def push_articles(arts):
     else:
         log(f"✗ GitHub更新失敗: {r.status_code} {r.text[:200]}")
 
-# ── SVG アイキャッチ生成 ─────────────────────────────────────
+# ── アイキャッチ画像生成（Gemini）────────────────────────────
 
 def generate_eyecatch_image(title: str, cat: str) -> bytes | None:
     """Gemini APIで画像を生成してPNGバイト列を返す。失敗時はNone。"""
@@ -697,15 +722,13 @@ with sync_playwright() as pw:
         return {"ok": False, "message": str(e)}
 
 
-# ── メイン処理 ────────────────────────────────────────────────
-
 # ── note専用メイン ─────────────────────────────────────────
 def main_note():
     """GitHubの最新記事をnoteに自動投稿する"""
     import requests as _req
 
-    log("=== note自動投稿開始 ===")
-    log(f"使用モデル: 本文={CLAUDE_MODEL} / ハッシュタグ={CLAUDE_HASHTAG_MODEL}")
+    log("=== note自動投稿開始（Gemini版） ===")
+    log(f"使用モデル: 本文={GEMINI_MODEL} / ハッシュタグ={GEMINI_HASHTAG_MODEL}")
 
     # GitHubから最新のarticles.jsonを取得
     arts = []
@@ -735,7 +758,7 @@ def main_note():
     log(f"投稿対象: {title}")
     log(f"ブログ本文: {len(content)}字")
 
-    # ブログ全文を使ってnote実践版を生成（Claude Sonnet）
+    # ブログ全文を使ってnote実践版を生成（Gemini Flash）
     note_body = claude(f"""あなたはRayphone(プロンプト設計士・商品開発15年・Claude副業月収15万達成)です。
 下記のブログ記事を元に、noteで実践的に解説する記事(約2000字)を書いてください。
 
@@ -760,7 +783,7 @@ def main_note():
     if art_url not in note_body:
         note_body += f"\n\n▼ ブログ記事はこちら\n{art_url}\n"
 
-    # 記事に合ったハッシュタグを5個生成（Haikuでコスト削減）
+    # 記事に合ったハッシュタグを5個生成（Gemini Flash Lite でコスト・速度最適化）
     hashtag_text = claude(
         f"以下のnote記事に合うハッシュタグを5個生成してください。\n"
         f"タイトル：{title}\nカテゴリ：{cat}\n"
@@ -770,7 +793,7 @@ def main_note():
         f"スペース区切りで1行のみ出力。前置き・説明文禁止。",
         max_tokens=1024,
         temperature=0.5,
-        model=CLAUDE_HASHTAG_MODEL,
+        model=GEMINI_HASHTAG_MODEL,
     )
     tags = re.findall(r'#\S+', hashtag_text)[:5]
     if len(tags) >= 3:
@@ -794,7 +817,7 @@ def main_note():
     else:
         log("アイキャッチ生成失敗 → SVGで代用")
 
-    # note投稿（v2: タイトルから「【深掘り】」を削除、ブログタイトルそのまま使用）
+    # note投稿
     note_result = post_to_note(title, note_body, svg, eyecatch_png=eyecatch_png)
     if note_result["ok"]:
         note_url_posted = note_result.get('url', NOTE_URL)
