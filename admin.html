@@ -486,7 +486,7 @@ function claudeCall(p,mt,cb,_r){
   r.onerror=function(){alog('通信エラー');cb(new Error('通信エラー'),null);};
   r.ontimeout=function(){alog('タイムアウト');cb(new Error('タイムアウト'),null);};
   r.send(JSON.stringify({
-    model:(localStorage.getItem('rp_claude_model')||'claude-sonnet-4-5'),
+    model:(localStorage.getItem('rp_claude_model')||'claude-sonnet-4-6'),
     max_tokens:Math.max(mt,1024),
     temperature:0.8,
     system:sys,
@@ -1019,31 +1019,6 @@ function changeAdminPw(){
   document.getElementById('cfg-pw-confirm').value = '';
   alert('パスワードを変更しました。新しいパスワードでログインしてください。');
   location.reload(); // ログイン画面に戻る
-}
-function changeAdminPw(){
-  var DEFAULT_PW = 'rayphone2025';
-  function getAdminPw(){ return localStorage.getItem('rp_admin_pw') || DEFAULT_PW; }
-  var cur = document.getElementById('cfg-pw-current').value;
-  var nw  = document.getElementById('cfg-pw-new').value;
-  var cnf = document.getElementById('cfg-pw-confirm').value;
-  var msg = document.getElementById('cfg-pw-msg');
-  function showMsg(text, ok){
-    msg.textContent = text;
-    msg.style.display = 'block';
-    msg.style.background = ok ? '#1a3a1a' : '#3a1a1a';
-    msg.style.color = ok ? '#4caf50' : '#e74c3c';
-  }
-  if(!cur || !nw || !cnf){ showMsg('すべて入力してください', false); return; }
-  if(cur !== getAdminPw()){ showMsg('現在のパスワードが違います', false); return; }
-  if(nw.length < 6){ showMsg('新しいパスワードは6文字以上にしてください', false); return; }
-  if(nw !== cnf){ showMsg('新しいパスワードが一致しません', false); return; }
-  localStorage.setItem('rp_admin_pw', nw);
-  localStorage.setItem('rp_admin_auth', nw);
-  document.getElementById('cfg-pw-current').value = '';
-  document.getElementById('cfg-pw-new').value = '';
-  document.getElementById('cfg-pw-confirm').value = '';
-  showMsg('✓ パスワードを変更しました', true);
-  toast('パスワードを変更しました');
 }
 
 function saveCfg(){localStorage.setItem('rp_cfg',JSON.stringify({author:document.getElementById('cfg-author').value,role:(document.getElementById('cfg-role')||{}).value||'',avatar:(document.getElementById('cfg-avatar')||{}).value||'',bio:document.getElementById('cfg-bio').value,announce:(document.getElementById('cfg-announce')||{}).value||'',blogUrl:document.getElementById('cfg-blog-url').value,noteUrl:document.getElementById('cfg-note-url').value,noteShopUrl:document.getElementById('cfg-note-shop-url').value,ghToken:document.getElementById('cfg-gh-token').value,ghUser:document.getElementById('cfg-gh-user').value,ghRepo:document.getElementById('cfg-gh-repo').value}));toast('設定を保存しました');}
