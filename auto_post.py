@@ -1,22 +1,26 @@
 """
-auto_post.py  ―  RayPhoneAI 自動投稿スクリプト（Playwright版）
-管理画面を Playwright でブラウザ操作し、ダッシュボードと全く同じフローで実行します。
+auto_post.py  ―  RayPhoneAI 自動投稿スクリプト（Playwright版・Gemini対応）
+
+⚠ 重要：このスクリプトは admin.html を操作するラッパーです。
+   実際の記事生成 API は admin.html 内の JavaScript が呼びます。
+   そのため、Gemini に完全に切り替えるには
+   admin.html 側の Claude API 呼び出しも Gemini API に書き換える必要があります。
+   このスクリプトは「Gemini API キーを localStorage に渡す」ところまでが責務です。
 
 フロー:
   1. 管理画面を開く
-  2. パスワードでログイン & API キーを localStorage にセット
+  2. パスワードでログイン & Gemini API キーを localStorage にセット
   3. 自動入力ボタンをクリック → タイトルが埋まるまで待機（最大60秒）
   4. 記事を生成するボタンをクリック → 生成完了まで待機（最大240秒）
   5. note に投稿ボタンをクリック → GitHub push + workflow dispatch 完了待機
   6. 完了
 
-前回までのバグ修正:
-  - autoFill 後の固定 time.sleep(5) を wait_for_function に置き換え
-    （タイトル空のまま次に進んで alert 連鎖で沈黙していた問題）
-  - 記事生成タイムアウトを 90 秒 → 240 秒に延長
-  - タイトル空なら即 abort（無意味な長時間待機を避ける）
-  - dialog / console.error / pageerror をログに出力
-  - タイトル空の時に出る alert を自動 accept（進行をブロックしないため）
+変更点（Claude版 → Gemini版）:
+  - ANTHROPIC_API_KEY / CLAUDE_MODEL 関連を削除
+  - GEMINI_API_KEY / GEMINI_MODEL を必須環境変数に
+  - localStorage に rp_gemini_key / rp_gemini_model をセット
+  - 旧 rp_claude_* キーは削除（混乱回避）
+  - rp_cfg.aiProvider = 'gemini' を追加（admin.html 側で分岐に使える）
 """
 
 import os
@@ -24,27 +28,27 @@ import sys
 import time
 from datetime import datetime
 
-print("=== auto_post.py 起動 ===")
+print("=== auto_post.py 起動（Gemini版） ===")
 print(f"Python: {sys.version}")
 
 # ── 環境変数 ─────────────────────────────────────────────────
-ADMIN_URL         = os.getenv("ADMIN_URL", "")
-ADMIN_PASSWORD    = os.getenv("ADMIN_PASSWORD", "rayphone2025")
-GEMINI_API_KEY    = os.getenv("GEMINI_API_KEY", "")
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-CLAUDE_MODEL      = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-5")
-GH_TOKEN          = os.getenv("GH_TOKEN", "")
-GH_USER           = os.getenv("GH_USER", "")
-GH_REPO           = os.getenv("GH_REPO", "")
-BLOG_URL          = os.getenv("BLOG_URL", "")
-NOTE_URL          = os.getenv("NOTE_URL", "")
-HEADLESS          = os.getenv("HEADLESS", "true").lower() != "false"
+ADMIN_URL      = os.getenv("ADMIN_URL", "")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "rayphone2025")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_MODEL   = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+GH_TOKEN       = os.getenv("GH_TOKEN", "")
+GH_USER        = os.getenv("GH_USER", "")
+GH_REPO        = os.getenv("GH_REPO", "")
+BLOG_URL       = os.getenv("BLOG_URL", "")
+NOTE_URL       = os.getenv("NOTE_URL", "")
+HEADLESS       = os.getenv("HEADLESS", "true").lower() != "false"
 
 # ADMIN_URL が未設定の場合は GH_USER/GH_REPO から推定
 if not ADMIN_URL and GH_USER and GH_REPO:
     ADMIN_URL = f"https://{GH_USER}.github.io/{GH_REPO}/admin.html"
 
 print(f"ADMIN_URL: {ADMIN_URL}")
+print(f"GEMINI_MODEL: {GEMINI_MODEL}")
 print(f"HEADLESS: {HEADLESS}")
 
 
@@ -70,11 +74,9 @@ def main():
     if not ADMIN_URL:
         log("✗ ADMIN_URL または GH_USER/GH_REPO が未設定です")
         sys.exit(1)
-    if not ANTHROPIC_API_KEY:
-        log("✗ ANTHROPIC_API_KEY が未設定です（記事生成に必須）")
-        sys.exit(1)
     if not GEMINI_API_KEY:
-        log("⚠ GEMINI_API_KEY 未設定（アイキャッチは admin.html 側で SVG 生成されるため動作は可）")
+        log("✗ GEMINI_API_KEY が未設定です（記事生成に必須）")
+        sys.exit(1)
 
     from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
 
@@ -96,6 +98,10 @@ def main():
             try:
                 if msg.type in ("error", "warning"):
                     log(f"[console.{msg.type}] {msg.text}")
+                    # クレジット切れ系のエラーを早期検知して fail-fast
+                    text = msg.text.lower()
+                    if "credit balance" in text or "quota" in text or "exceeded" in text:
+                        log("⚠ API クレジット/クォータ系エラーを検知")
             except Exception:
                 pass
 
@@ -123,19 +129,26 @@ def main():
             log("✓ 認証済み（スキップ）")
 
         # ── STEP 2b: API キーと GitHub 設定を localStorage にセット
-        log("API キーと GitHub 設定を localStorage にセット中...")
+        log("Gemini API キーと GitHub 設定を localStorage にセット中...")
         cfg_js = f"""() => {{
+            // Gemini API キー（admin.html 側で記事生成・画像生成に使用）
             localStorage.setItem('rp_key', '{GEMINI_API_KEY}');
-            localStorage.setItem('rp_claude_key', '{ANTHROPIC_API_KEY}');
-            localStorage.setItem('rp_claude_model', '{CLAUDE_MODEL}');
+            localStorage.setItem('rp_gemini_key', '{GEMINI_API_KEY}');
+            localStorage.setItem('rp_gemini_model', '{GEMINI_MODEL}');
             localStorage.setItem('rp_admin_auth', '{ADMIN_PASSWORD}');
+
+            // 旧 Claude キーは削除（混乱を避けるため）
+            localStorage.removeItem('rp_claude_key');
+            localStorage.removeItem('rp_claude_model');
+
             var cfg = {{}};
             try {{ cfg = JSON.parse(localStorage.getItem('rp_cfg') || '{{}}'); }} catch(e) {{}}
-            cfg.ghToken = '{GH_TOKEN}';
-            cfg.ghUser  = '{GH_USER}';
-            cfg.ghRepo  = '{GH_REPO}';
-            cfg.blogUrl = '{BLOG_URL}';
-            cfg.noteUrl = '{NOTE_URL}';
+            cfg.ghToken    = '{GH_TOKEN}';
+            cfg.ghUser     = '{GH_USER}';
+            cfg.ghRepo     = '{GH_REPO}';
+            cfg.blogUrl    = '{BLOG_URL}';
+            cfg.noteUrl    = '{NOTE_URL}';
+            cfg.aiProvider = 'gemini';  // admin.html 側で分岐に使う想定
             localStorage.setItem('rp_cfg', JSON.stringify(cfg));
         }}"""
         page.evaluate(cfg_js)
@@ -167,6 +180,8 @@ def main():
             log(f"✓ タイトル: {title_val}")
         except PWTimeout:
             log("✗ autoFill が60秒以内に完了しませんでした → 中断")
+            log("  （admin.html 側がまだ Claude API を呼んでいる可能性あり。")
+            log("   admin.html の API 呼び出し部分を Gemini に書き換える必要があります）")
             dump_art_log(page)
             browser.close()
             sys.exit(1)
