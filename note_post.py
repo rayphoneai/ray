@@ -1,11 +1,17 @@
 """
-note_post.py — RayPhoneAI note自動投稿スクリプト（v2 改善版）
+note_post.py — RayPhoneAI note自動投稿スクリプト（v2.1 改善版）
 
-【v2 改善ポイント】
-1. タイトルから「【深掘り】」を完全削除（SEO・クリック率UP）
-2. Claude プロンプトから「深掘り」連呼を削除（より実践的な記事に）
-3. 構成セクション名を「実例・応用」「実践的に解説」に変更
-4. ブログとの差別化は「実例・応用」「実践アクション」で担保
+【v2.1 変更点】
+1. CLAUDE_MODEL のデフォルトを claude-sonnet-4-6 に更新
+   （claude-sonnet-4-5 は現行APIで廃止されているため 400 Bad Request の原因）
+2. ハッシュタグ生成を Haiku（claude-haiku-4-5-20251001）に分離してコスト削減
+3. Claude APIエラー時にレスポンスボディをログ出力（デバッグ性向上）
+
+【v2 改善ポイント（継続）】
+- タイトルから「【深掘り】」を完全削除（SEO・クリック率UP）
+- Claude プロンプトから「深掘り」連呼を削除（より実践的な記事に）
+- 構成セクション名を「実例・応用」「実践的に解説」に変更
+- ブログとの差別化は「実例・応用」「実践アクション」で担保
 """
 import sys
 print("=== auto_post.py 起動 ===", flush=True)
@@ -24,7 +30,10 @@ except Exception as e:
 print("環境変数を読み込み中...", flush=True)
 GEMINI_API_KEY   = os.getenv("GEMINI_API_KEY", "")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-CLAUDE_MODEL     = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-5")
+# 本文生成用モデル（高品質）
+CLAUDE_MODEL     = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-6")
+# ハッシュタグなど軽い処理用モデル（高速・安価）
+CLAUDE_HASHTAG_MODEL = os.getenv("CLAUDE_HASHTAG_MODEL", "claude-haiku-4-5-20251001")
 NOTE_EMAIL       = os.getenv("NOTE_EMAIL", "")
 NOTE_PASSWORD    = os.getenv("NOTE_PASSWORD", "")
 BLOG_URL         = os.getenv("BLOG_URL", "https://rayphoneai.github.io/ray/").rstrip("/")
@@ -143,10 +152,11 @@ _CLAUDE_SYS = (
     "・指定された本文のみを出力する（メタ的な説明・補足を書かない）"
 )
 
-def claude(prompt, max_tokens=3500, temperature=0.8):
-    """Claude API で記事テキストを生成。gemini()と同じシグネチャで差し替え可能。"""
+def claude(prompt, max_tokens=3500, temperature=0.8, model=None):
+    """Claude API で記事テキストを生成。model 引数で個別にモデルを指定可能。"""
     if not ANTHROPIC_API_KEY:
         raise RuntimeError("ANTHROPIC_API_KEY 未設定")
+    use_model = model or CLAUDE_MODEL
     url = "https://api.anthropic.com/v1/messages"
     headers = {
         "Content-Type": "application/json",
@@ -154,20 +164,25 @@ def claude(prompt, max_tokens=3500, temperature=0.8):
         "anthropic-version": "2023-06-01",
     }
     body = {
-        "model": CLAUDE_MODEL,
+        "model": use_model,
         "max_tokens": max(int(max_tokens), 1024),
         "temperature": temperature,
         "system": _CLAUDE_SYS,
         "messages": [{"role": "user", "content": prompt}],
     }
+    last_err_body = ""
     for attempt in range(3):
         try:
             r = requests.post(url, json=body, headers=headers, timeout=180)
             if r.status_code in (429, 500, 502, 503, 504) and attempt < 2:
                 wait = (attempt + 1) * 10
-                log(f"Claude API {r.status_code} → {wait}秒後にリトライ({attempt+1}/3)...")
+                log(f"Claude API {r.status_code} ({use_model}) → {wait}秒後にリトライ({attempt+1}/3)...")
                 time.sleep(wait)
                 continue
+            # エラー時はレスポンスボディをログに出してから例外を投げる
+            if not r.ok:
+                last_err_body = (r.text or "")[:500]
+                log(f"Claude APIエラー詳細: status={r.status_code} model={use_model} body={last_err_body}")
             r.raise_for_status()
             data = r.json()
             text = ""
@@ -181,6 +196,9 @@ def claude(prompt, max_tokens=3500, temperature=0.8):
                 log(f"Claude HTTPエラー: {e} → {wait}秒後にリトライ({attempt+1}/3)...")
                 time.sleep(wait)
             else:
+                # 最終試行失敗時もボディを残す
+                if last_err_body:
+                    log(f"Claude API最終失敗 body={last_err_body}")
                 raise
     raise RuntimeError("Claude API 呼び出しが3回失敗")
 
@@ -687,6 +705,7 @@ def main_note():
     import requests as _req
 
     log("=== note自動投稿開始 ===")
+    log(f"使用モデル: 本文={CLAUDE_MODEL} / ハッシュタグ={CLAUDE_HASHTAG_MODEL}")
 
     # GitHubから最新のarticles.jsonを取得
     arts = []
@@ -716,23 +735,23 @@ def main_note():
     log(f"投稿対象: {title}")
     log(f"ブログ本文: {len(content)}字")
 
-    # ブログ全文を使ってnote実践版を生成（Claude）
-    note_body = claude(f"""あなたはRayphone（プロンプト設計士・商品開発15年・Claude副業月収15万達成）です。
-下記のブログ記事を元に、noteで実践的に解説する記事（約2000字）を書いてください。
+    # ブログ全文を使ってnote実践版を生成（Claude Sonnet）
+    note_body = claude(f"""あなたはRayphone(プロンプト設計士・商品開発15年・Claude副業月収15万達成)です。
+下記のブログ記事を元に、noteで実践的に解説する記事(約2000字)を書いてください。
 
 【ブログタイトル】{title}
 【カテゴリ】{cat}
 【ブログURL】{art_url}
-【ブログ本文（全文）】
+【ブログ本文(全文)】
 {content}
 
 ■構成
-■はじめに（200字）―ブログの要点をnote読者向けに噛み砕く
-■ブログでは語れなかった実例・応用（800字）―実体験・失敗談・応用例を追加
-■読者が今すぐ試せるアクション（400字）―具体的なプロンプト例を1つ以上
-■Rayphoneからの一言（200字）―締め
+■はじめに(200字)―ブログの要点をnote読者向けに噛み砕く
+■ブログでは語れなかった実例・応用(800字)―実体験・失敗談・応用例を追加
+■読者が今すぐ試せるアクション(400字)―具体的なプロンプト例を1つ以上
+■Rayphoneからの一言(200字)―締め
 
-▼ ブログ記事はこちら（必ず本文中にそのまま記載）
+▼ ブログ記事はこちら(必ず本文中にそのまま記載)
 {art_url}
 
 【禁止】# * ** アスタリスク・マークダウン記号一切禁止。タイトルにも本文にも * は使わないこと。見出しは■。箇条書きは「・」。前置き・承諾文禁止。
@@ -741,7 +760,7 @@ def main_note():
     if art_url not in note_body:
         note_body += f"\n\n▼ ブログ記事はこちら\n{art_url}\n"
 
-    # 記事に合ったハッシュタグを5個生成（本文も渡して精度を上げる）
+    # 記事に合ったハッシュタグを5個生成（Haikuでコスト削減）
     hashtag_text = claude(
         f"以下のnote記事に合うハッシュタグを5個生成してください。\n"
         f"タイトル：{title}\nカテゴリ：{cat}\n"
@@ -751,6 +770,7 @@ def main_note():
         f"スペース区切りで1行のみ出力。前置き・説明文禁止。",
         max_tokens=1024,
         temperature=0.5,
+        model=CLAUDE_HASHTAG_MODEL,
     )
     tags = re.findall(r'#\S+', hashtag_text)[:5]
     if len(tags) >= 3:
