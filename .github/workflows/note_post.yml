@@ -33,6 +33,7 @@ jobs:
           GH_USER:               ${{ secrets.GH_USER }}
           GH_REPO:               ${{ secrets.GH_REPO }}
           NOTE_COOKIES_B64:      ${{ secrets.NOTE_COOKIES_B64 }}
+          NOTE_INIT_MODE:        ${{ vars.NOTE_INIT_MODE || '' }}   # ← ★この1行を追加
           HEADLESS:              "true"
           PYTHONUNBUFFERED:      "1"
         run: python -u note_post.py
