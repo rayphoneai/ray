@@ -1,26 +1,21 @@
 """
-note_post.py — RayPhoneAI note自動投稿スクリプト（v3.0 Gemini対応版）
+note_post.py — RayPhoneAI note自動投稿スクリプト（v3.1 冪等性対応版）
 
-【v3.0 変更点（Gemini化）】
-1. claude() 関数の中身を Gemini API 呼び出しに完全置換
-   - URL: api.anthropic.com → generativelanguage.googleapis.com
-   - 認証: x-api-key ヘッダー → URL の ?key= パラメータ
-   - リクエスト形式: system + messages → system_instruction + contents + generationConfig
-   - レスポンス: content[].text → candidates[0].content.parts[].text
-2. デフォルトモデルを Gemini に変更
-   - 本文: claude-sonnet-4-6 → gemini-2.5-flash
-   - ハッシュタグ: claude-haiku-4-5 → gemini-2.5-flash-lite
-3. 関数名 claude() は呼び出し元との互換性のため維持（中身だけGemini）
-4. ANTHROPIC_API_KEY 不要（GEMINI_API_KEY のみで動作）
-5. リトライ・エラーログ・stripPreamble の仕組みは全て維持
+【v3.1 変更点】
+1. 投稿済みチェック追加（articles.json の note_posted_at フラグで管理）
+2. 当日二重投稿ガード追加(同じ日に複数回走っても1回しか投稿しない)
+3. 投稿成功後、自動的に articles.json を更新してGitHubに反映
+4. 初期化モード追加(NOTE_INIT_MODE 環境変数で制御)
+   - mark_latest : 最新記事のみ投稿済みマーク
+   - mark_all    : 全記事を投稿済みマーク
+   既存記事を「過去に投稿済み」として一括マークするための一回限りの処置用
 
-【v2.1 までの改善（継続）】
-- タイトルから「【深掘り】」を完全削除
-- 構成セクションを「実例・応用」「実践アクション」に
-- 503等の一時エラーで最大3回リトライ
+【v3.0 までの内容】
+- Gemini API 完全対応（claude_xx 引数の互換は維持）
+- アイキャッチ画像生成、Playwrightによるnote投稿は変更なし
 """
 import sys
-print("=== note_post.py 起動（Gemini版） ===", flush=True)
+print("=== note_post.py 起動（Gemini版 v3.1 冪等性対応） ===", flush=True)
 print(f"Python: {sys.version}", flush=True)
 
 try:
@@ -36,12 +31,8 @@ except Exception as e:
 print("環境変数を読み込み中...", flush=True)
 GEMINI_API_KEY   = os.getenv("GEMINI_API_KEY", "")
 
-# 本文生成用モデル（高品質）
 GEMINI_MODEL          = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-# ハッシュタグなど軽い処理用モデル（高速・低コスト）
 GEMINI_HASHTAG_MODEL  = os.getenv("GEMINI_HASHTAG_MODEL", "gemini-2.5-flash-lite")
-
-# 後方互換用エイリアス（万一旧コードから参照されても落ちないように）
 CLAUDE_MODEL          = GEMINI_MODEL
 CLAUDE_HASHTAG_MODEL  = GEMINI_HASHTAG_MODEL
 
@@ -56,13 +47,13 @@ GH_USER          = os.getenv("GH_USER", "rayphoneai")
 GH_REPO          = os.getenv("GH_REPO", "ray")
 HEADLESS         = os.getenv("HEADLESS", "true").lower() == "true"
 
-# アイキャッチ生成モデル
-# svg                            : SVG生成（無料・デフォルト）
-# gemini-2.5-flash-image         : Nano Banana（安定版・無料枠あり）
-# gemini-3.1-flash-image-preview : Nano Banana 2（最新・高品質）
-# imagen-4.0-fast-generate-001   : Imagen 4 Fast（有料・最安）
-# imagen-4.0-generate-001        : Imagen 4 Standard（有料）
 EYECATCH_MODEL   = os.getenv("EYECATCH_MODEL", "gemini-2.5-flash-image")
+
+# ★ v3.1 追加: 初期化モード
+# "" (デフォルト)    : 通常モード
+# "mark_latest"     : 最新記事のみ投稿済みフラグ付与して終了
+# "mark_all"        : 全記事を投稿済みフラグ付与して終了
+NOTE_INIT_MODE   = os.getenv("NOTE_INIT_MODE", "").strip().lower()
 
 
 CATEGORIES = [
@@ -113,9 +104,8 @@ def save_cat_index(idx):
     except Exception:
         pass
 
-# ── Gemini API（軽量呼び出し用・既存ヘルパ・残置） ──────────
+# ── Gemini API（軽量呼び出し用） ─────────────────────────────
 def gemini(prompt, max_tokens=4000):
-    """軽量タスク用の Gemini 呼び出しヘルパ（システムプロンプトなし版）"""
     url = (f"https://generativelanguage.googleapis.com/v1beta/models/"
            f"{GEMINI_HASHTAG_MODEL}:generateContent?key={GEMINI_API_KEY}")
     body = {
@@ -157,9 +147,7 @@ def strip_preamble(text):
     return text.strip()
 
 # =================================================================
-# claude(): Gemini API版（関数名は互換性維持のため claude のまま）
-# 旧: https://api.anthropic.com/v1/messages
-# 新: https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent
+# claude(): Gemini API版
 # =================================================================
 _CLAUDE_SYS = (
     "あなたは日本語ブログ記事のプロフェッショナルライターです。以下を厳守してください:\n"
@@ -171,8 +159,6 @@ _CLAUDE_SYS = (
 )
 
 def claude(prompt, max_tokens=3500, temperature=0.8, model=None):
-    """Gemini API で記事テキストを生成。model 引数で個別にモデルを指定可能。
-    関数名は呼び出し元との互換性のため claude() のまま維持。中身は Gemini。"""
     if not GEMINI_API_KEY:
         raise RuntimeError("GEMINI_API_KEY 未設定")
     use_model = model or GEMINI_MODEL
@@ -197,7 +183,6 @@ def claude(prompt, max_tokens=3500, temperature=0.8, model=None):
                 log(f"Gemini API {r.status_code} ({use_model}) → {wait}秒後にリトライ({attempt+1}/3)...")
                 time.sleep(wait)
                 continue
-            # エラー時はレスポンスボディをログに出してから例外を投げる
             if not r.ok:
                 last_err_body = (r.text or "")[:500]
                 log(f"Gemini APIエラー詳細: status={r.status_code} model={use_model} body={last_err_body}")
@@ -211,7 +196,6 @@ def claude(prompt, max_tokens=3500, temperature=0.8, model=None):
                 for part in parts:
                     if "text" in part:
                         text += part.get("text", "")
-                # セーフティブロック検知（テキスト空 & finishReason ≠ STOP）
                 finish_reason = cand.get("finishReason", "")
                 if not text and finish_reason and finish_reason != "STOP":
                     raise RuntimeError(f"Gemini生成中断: {finish_reason}")
@@ -231,31 +215,30 @@ def claude(prompt, max_tokens=3500, temperature=0.8, model=None):
 def push_articles(arts):
     if not GH_TOKEN:
         log("GitHub未設定のためスキップ")
-        return
+        return False
     url = f"https://api.github.com/repos/{GH_USER}/{GH_REPO}/contents/articles.json"
     sha = ""
     r = requests.get(url, headers=_gh_headers())
     if r.status_code == 200:
         sha = r.json().get("sha", "")
     content_b64 = base64.b64encode(json.dumps(arts, ensure_ascii=False, indent=2).encode()).decode()
-    body = {"message": f"Auto: article {datetime.now().strftime('%Y-%m-%d %H:%M')}", "content": content_b64}
+    body = {"message": f"Auto: note_posted flag {datetime.now().strftime('%Y-%m-%d %H:%M')}", "content": content_b64}
     if sha:
         body["sha"] = sha
     r = requests.put(url, headers=_gh_headers(), json=body)
     if r.status_code in (200, 201):
         log("✓ GitHub articles.json 更新完了")
+        return True
     else:
         log(f"✗ GitHub更新失敗: {r.status_code} {r.text[:200]}")
+        return False
 
 # ── アイキャッチ画像生成（Gemini）────────────────────────────
-
 def generate_eyecatch_image(title: str, cat: str) -> bytes | None:
-    """Gemini APIで画像を生成してPNGバイト列を返す。失敗時はNone。"""
     model = EYECATCH_MODEL
     if model == "svg":
         return None
 
-    # テキストなし・高品質デザイン画像のみ生成
     prompt = (
         f"High quality professional blog header image, 16:9 ratio. "
         f"Color palette ONLY: white (#FFFFFF), black (#1A1A1A), orange (#FF6B00). "
@@ -268,7 +251,6 @@ def generate_eyecatch_image(title: str, cat: str) -> bytes | None:
     )
 
     try:
-        # Nano Banana系（gemini-2.5-flash-image, gemini-3.1-flash-image-preview）
         if "gemini" in model:
             url = (f"https://generativelanguage.googleapis.com/v1beta/models/"
                    f"{model}:generateContent?key={GEMINI_API_KEY}")
@@ -279,7 +261,6 @@ def generate_eyecatch_image(title: str, cat: str) -> bytes | None:
             r = requests.post(url, json=body, timeout=60)
             r.raise_for_status()
             data = r.json()
-            # 画像データを取得
             for part in data.get("candidates", [{}])[0].get("content", {}).get("parts", []):
                 if "inlineData" in part:
                     img_bytes = base64.b64decode(part["inlineData"]["data"])
@@ -287,7 +268,6 @@ def generate_eyecatch_image(title: str, cat: str) -> bytes | None:
             log(f"note: 画像データが見つかりません: {str(data)[:200]}")
             return None
 
-        # Imagen 4系（imagen-4.0-generate-001, imagen-4.0-fast-generate-001）
         elif "imagen" in model:
             url = (f"https://generativelanguage.googleapis.com/v1beta/models/"
                    f"{model}:generateImages?key={GEMINI_API_KEY}")
@@ -307,30 +287,26 @@ def generate_eyecatch_image(title: str, cat: str) -> bytes | None:
                 return img_bytes
             log(f"note: Imagen応答に画像なし: {str(data)[:200]}")
             return None
-
         else:
             log(f"note: 未知のモデル: {model}")
             return None
-
     except Exception as e:
         log(f"note: 画像生成エラー ({model}): {e}")
         return None
 
 
 def _overlay_japanese_text(img_bytes: bytes, title: str, cat: str) -> bytes:
-    """Pillowで日本語テキストをGemini生成画像に合成する"""
+    """Pillowで日本語テキストをGemini生成画像に合成する（既存処理・変更なし）"""
     try:
         import io as _io, urllib.request as _ur, tempfile as _tf, os as _os
         from PIL import Image as _Img, ImageDraw as _Draw, ImageFont as _Font
 
-        # Noto Sans JPフォントをダウンロード（なければシステムフォントを使用）
         font_path = "/tmp/NotoSansJP-Bold.ttf"
         if not _os.path.exists(font_path):
             try:
                 font_url = "https://github.com/googlefonts/noto-cjk/raw/main/Sans/OTF/Japanese/NotoSansCJKjp-Bold.otf"
                 _ur.urlretrieve(font_url, font_path)
             except Exception:
-                # フォールバック: IPAゴシック
                 try:
                     font_url2 = "https://moji.or.jp/wp-content/ipafont/IPAexfont/IPAexfont00401.zip"
                     import zipfile as _zf
@@ -346,13 +322,11 @@ def _overlay_japanese_text(img_bytes: bytes, title: str, cat: str) -> bytes:
                     font_path = None
 
         img = _Img.open(_io.BytesIO(img_bytes)).convert("RGBA")
-        # 1280x670にリサイズ
         target_w, target_h = 1280, 670
         img = img.resize((target_w, target_h), _Img.LANCZOS)
 
         draw = _Draw.Draw(img)
 
-        # フォントサイズ設定
         if font_path and _os.path.exists(font_path):
             try:
                 font_title = _Font.truetype(font_path, 64)
@@ -363,19 +337,16 @@ def _overlay_japanese_text(img_bytes: bytes, title: str, cat: str) -> bytes:
         else:
             font_title = font_cat = font_logo = _Font.load_default()
 
-        # 半透明白背景をテキストエリアに追加（左側約60%）
         overlay = _Img.new("RGBA", (target_w, target_h), (0,0,0,0))
         ov_draw = _Draw.Draw(overlay)
         ov_draw.rectangle([0, 0, 780, target_h], fill=(255,255,255,210))
         img = _Img.alpha_composite(img, overlay)
         draw = _Draw.Draw(img)
 
-        # カテゴリラベル（オレンジ背景）
         cat_w = len(cat) * 17 + 24
         draw.rectangle([60, 140, 60 + cat_w, 178], fill=(255,107,0,255))
         draw.text((72, 145), cat, fill=(255,255,255,255), font=font_cat)
 
-        # タイトル（12文字で改行、最大3行）
         title_y = 200
         line_h = 80
         words = [title[i:i+12] for i in range(0, len(title), 12)]
@@ -383,23 +354,20 @@ def _overlay_japanese_text(img_bytes: bytes, title: str, cat: str) -> bytes:
             suffix = "…" if j == 2 and len(title) > 36 else ""
             draw.text((60, title_y + j * line_h), line + suffix, fill=(26,26,26,255), font=font_title)
 
-        # RayPhoneAI ロゴ（左下）
         draw.text((60, target_h - 45), "RayPhoneAI", fill=(255,107,0,255), font=font_logo)
 
-        # PNG出力
         img = img.convert("RGB")
         buf = _io.BytesIO()
         img.save(buf, format="PNG", optimize=True)
         log("note: 日本語テキストオーバーレイ完了")
         return buf.getvalue()
-
     except Exception as e:
         log(f"note: テキストオーバーレイエラー: {e} → 元画像を使用")
         return img_bytes
 
 
-
 def post_to_note(title: str, body: str, svg_code: str, eyecatch_png: bytes = b"") -> dict:
+    """既存のPlaywrightベースのnote投稿処理（変更なし）"""
     log("note: 投稿開始...")
     try:
         from playwright.sync_api import sync_playwright
@@ -421,7 +389,6 @@ def post_to_note(title: str, body: str, svg_code: str, eyecatch_png: bytes = b""
 
             page = ctx.new_page()
 
-            # ログイン確認
             page.goto("https://note.com/", wait_until="domcontentloaded", timeout=30000)
             time.sleep(3)
             log(f"note: トップ URL={page.url}")
@@ -467,7 +434,6 @@ def post_to_note(title: str, body: str, svg_code: str, eyecatch_png: bytes = b""
 
             time.sleep(2)
 
-            # 新規記事 - 両方のURLを試す
             editor_url = None
             for try_url in ["https://note.com/notes/new", "https://editor.note.com/new"]:
                 try:
@@ -483,7 +449,6 @@ def post_to_note(title: str, body: str, svg_code: str, eyecatch_png: bytes = b""
                 browser.close()
                 return {"ok": False, "message": "noteエディタ開けず"}
 
-            # タイトル入力
             titled = False
             for sel in ['[placeholder*="タイトル"]', 'input[data-placeholder*="タイトル"]', '.title-input', 'h1[contenteditable]']:
                 try:
@@ -499,7 +464,6 @@ def post_to_note(title: str, body: str, svg_code: str, eyecatch_png: bytes = b""
             if not titled:
                 log("note: タイトル入力失敗（続行）")
 
-            # 本文入力
             page.keyboard.press("Tab")
             time.sleep(1)
             try:
@@ -512,20 +476,17 @@ def post_to_note(title: str, body: str, svg_code: str, eyecatch_png: bytes = b""
 
             time.sleep(2)
 
-            # アイキャッチ（失敗しても投稿は続行）
             try:
                 import tempfile as _tf, subprocess as _sp
                 png = None
 
                 if eyecatch_png:
-                    # Gemini生成PNGを直接使用
                     _ptmp = _tf.NamedTemporaryFile(suffix=".png", delete=False)
                     _ptmp.write(eyecatch_png)
                     _ptmp.close()
                     png = _ptmp.name
                     log("note: Gemini生成PNGを使用")
                 elif svg_code and "<svg" in svg_code:
-                    # SVG→PNG変換（subprocess経由）
                     tmp = _tf.NamedTemporaryFile(suffix=".svg", delete=False, mode="w", encoding="utf-8")
                     tmp.write(svg_code)
                     tmp.close()
@@ -550,7 +511,6 @@ with sync_playwright() as pw:
                     log("note: SVG→PNG変換完了")
 
                 if png:
-                    # アイキャッチボタンをクリック
                     page.evaluate("window.scrollTo(0,0)")
                     time.sleep(1)
                     ec_clicked = False
@@ -569,7 +529,6 @@ with sync_playwright() as pw:
                         page.evaluate("const b=document.querySelector('[class*=sc]');if(b){b.scrollIntoView();b.click();}")
                         time.sleep(2)
 
-                    # ファイル選択
                     try:
                         with page.expect_file_chooser(timeout=10000) as fc:
                             for up_sel in ['button:has-text("画像をアップロード")', 'li:has-text("画像をアップロード")']:
@@ -599,14 +558,12 @@ with sync_playwright() as pw:
                 log(f"note: アイキャッチエラー（スキップ）: {e}")
             time.sleep(3)
 
-            # Escapeキーで全パネル・ダイアログを閉じる
             try:
                 page.keyboard.press("Escape")
                 time.sleep(1)
             except Exception:
                 pass
 
-            # AIアシスタントパネルが開いていれば閉じる
             for _ in range(3):
                 try:
                     close_btn = page.locator('button:has-text("閉じる")').first
@@ -619,18 +576,15 @@ with sync_playwright() as pw:
                 except Exception:
                     break
 
-            # スクロールを一番上に戻してから公開ボタンを探す
             page.evaluate("window.scrollTo(0, 0)")
             time.sleep(2)
 
-            # 現在のボタン一覧をログに出してデバッグ
             try:
                 all_btns = page.locator('button').all_text_contents()
                 log(f"note: 公開前ボタン一覧: {[b.strip() for b in all_btns if b.strip()][:10]}")
             except Exception:
                 pass
 
-            # 公開に進む（見つからない場合はJSでも試みる）
             pub_ok = False
             for sel in ['button:has-text("公開に進む")', 'button:has-text("投稿設定へ")', 'button:has-text("公開設定")']:
                 try:
@@ -646,7 +600,6 @@ with sync_playwright() as pw:
                     pass
 
             if not pub_ok:
-                # JSで直接クリックを試みる
                 try:
                     result = page.evaluate("""() => {
                         const btns = Array.from(document.querySelectorAll('button'));
@@ -669,16 +622,12 @@ with sync_playwright() as pw:
                 browser.close()
                 return {"ok": False, "message": "note公開ボタン見つからず"}
 
-            # 最大20秒待って「投稿する」モーダルを探す
             confirm_ok = False
             for wait_i in range(20):
                 time.sleep(1)
-                # URLが変わっていれば既に投稿完了
                 if 'editor.note.com/notes/' in page.url and '/publish' in page.url:
-                    # publish URLにいる → 投稿ボタンを探す
                     pass
                 elif 'note.com' in page.url and 'editor' not in page.url:
-                    # 記事ページに遷移済み → 投稿完了
                     log(f"note: URL変化で投稿完了を検知: {page.url}")
                     confirm_ok = True
                     break
@@ -708,7 +657,6 @@ with sync_playwright() as pw:
             browser.close()
             log(f"note: 最終URL={final_url}")
 
-            # publish URLを記事URLに変換
             m = re.search(r'/notes/(n[a-f0-9]+)/', final_url)
             if m:
                 urlname = NOTE_URL.rstrip("/").split("/")[-1]
@@ -722,13 +670,33 @@ with sync_playwright() as pw:
         return {"ok": False, "message": str(e)}
 
 
-# ── note専用メイン ─────────────────────────────────────────
+# ── 投稿済み管理ヘルパ（v3.1 新設） ──────────────────────────
+def _is_posted(art: dict) -> bool:
+    """投稿済みかどうかを判定"""
+    return bool(art.get("note_posted_at"))
+
+def _today_already_posted(arts: list) -> bool:
+    """本日すでにnote投稿済みの記事があるか"""
+    today = datetime.now().strftime("%Y-%m-%d")
+    return any((a.get("note_posted_at") or "").startswith(today) for a in arts)
+
+def _find_target_article(arts: list):
+    """未投稿の記事を1件取得（先頭=最新から探索）"""
+    for i, a in enumerate(arts):
+        if not _is_posted(a):
+            return i, a
+    return None, None
+
+
+# ── note専用メイン（v3.1 冪等性対応版） ──────────────────────
 def main_note():
-    """GitHubの最新記事をnoteに自動投稿する"""
+    """GitHubの最新記事をnoteに自動投稿する（投稿済みフラグで冪等性を担保）"""
     import requests as _req
 
-    log("=== note自動投稿開始（Gemini版） ===")
+    log("=== note自動投稿開始（Gemini版 v3.1 冪等性対応） ===")
     log(f"使用モデル: 本文={GEMINI_MODEL} / ハッシュタグ={GEMINI_HASHTAG_MODEL}")
+    if NOTE_INIT_MODE:
+        log(f"⚠ 初期化モード: NOTE_INIT_MODE={NOTE_INIT_MODE}")
 
     # GitHubから最新のarticles.jsonを取得
     arts = []
@@ -748,17 +716,58 @@ def main_note():
         log("投稿対象の記事が見つかりません")
         return
 
-    art = arts[0]
+    # ============================================================
+    # ★ 初期化モード（既存記事を投稿済みとしてマークするだけで終了）
+    # ============================================================
+    if NOTE_INIT_MODE == "mark_latest":
+        if not _is_posted(arts[0]):
+            arts[0]["note_posted_at"] = datetime.now().isoformat()
+            arts[0]["note_url"] = "manually_marked_initial"
+            push_articles(arts)
+            log(f"✓ 初期化(mark_latest): 最新記事「{arts[0].get('title','')}」をマーク完了")
+        else:
+            log("最新記事は既にマーク済みです")
+        return
+
+    if NOTE_INIT_MODE == "mark_all":
+        marked = 0
+        now_iso = datetime.now().isoformat()
+        for a in arts:
+            if not _is_posted(a):
+                a["note_posted_at"] = now_iso
+                a["note_url"] = "manually_marked_initial"
+                marked += 1
+        if marked:
+            push_articles(arts)
+        log(f"✓ 初期化(mark_all): {marked}件をマーク完了")
+        return
+
+    # ============================================================
+    # ★ 当日二重投稿ガード
+    # ============================================================
+    if _today_already_posted(arts):
+        today = datetime.now().strftime("%Y-%m-%d")
+        log(f"⚠ 本日({today})はすでにnote投稿済みのためスキップします")
+        return
+
+    # ============================================================
+    # ★ 未投稿記事を選択
+    # ============================================================
+    target_idx, art = _find_target_article(arts)
+    if art is None:
+        log("✓ すべての記事はnote投稿済みです。スキップします。")
+        return
+
     title   = art.get("title", "")
     content = art.get("content", "")
     svg     = art.get("svg", "")
     cat     = art.get("cat", "AI活用")
     art_url = art.get("url", "") or f"{BLOG_URL}/?id={art.get('id','')}"
 
-    log(f"投稿対象: {title}")
+    log(f"投稿対象（未投稿・index={target_idx}）: {title}")
     log(f"ブログ本文: {len(content)}字")
 
-    # ブログ全文を使ってnote実践版を生成（Gemini Flash）
+    # ── 本文生成 ──
     note_body = claude(f"""あなたはRayphone(プロンプト設計士・商品開発15年・Claude副業月収15万達成)です。
 下記のブログ記事を元に、noteで実践的に解説する記事(約2000字)を書いてください。
 
@@ -783,7 +792,7 @@ def main_note():
     if art_url not in note_body:
         note_body += f"\n\n▼ ブログ記事はこちら\n{art_url}\n"
 
-    # 記事に合ったハッシュタグを5個生成（Gemini Flash Lite でコスト・速度最適化）
+    # ── ハッシュタグ ──
     hashtag_text = claude(
         f"以下のnote記事に合うハッシュタグを5個生成してください。\n"
         f"タイトル：{title}\nカテゴリ：{cat}\n"
@@ -800,7 +809,6 @@ def main_note():
         note_body += "\n\n" + " ".join(tags)
         log(f"ハッシュタグ: {' '.join(tags)}")
     else:
-        # フォールバック
         cat_tag = "#" + cat.replace(" ", "").replace("xAI", "AI活用")
         fallback = f"{cat_tag} #AI活用 #Claude #副業 #プロンプト設計"
         note_body += f"\n\n{fallback}"
@@ -808,7 +816,7 @@ def main_note():
 
     log(f"noteコンテンツ生成完了({len(note_body)}字)")
 
-    # アイキャッチPNG生成
+    # ── アイキャッチ ──
     eyecatch_png = b""
     png_bytes = generate_eyecatch_image(title, art.get("cat", "AI活用"))
     if png_bytes:
@@ -817,11 +825,22 @@ def main_note():
     else:
         log("アイキャッチ生成失敗 → SVGで代用")
 
-    # note投稿
+    # ── note投稿 ──
     note_result = post_to_note(title, note_body, svg, eyecatch_png=eyecatch_png)
+
+    # ============================================================
+    # ★ v3.1 投稿成功時のフラグ保存
+    # ============================================================
     if note_result["ok"]:
         note_url_posted = note_result.get('url', NOTE_URL)
-        log(f"✓ note投稿完了: {note_url_posted}")
+        arts[target_idx]["note_posted_at"] = datetime.now().isoformat()
+        arts[target_idx]["note_url"] = note_url_posted
+
+        if push_articles(arts):
+            log(f"✓ note投稿完了 + フラグ保存: {note_url_posted}")
+        else:
+            log(f"⚠ note投稿は成功したが、フラグ保存に失敗。次回実行で重複投稿の恐れあり！")
+            log(f"  → 手動で articles.json の {target_idx} 番目に note_posted_at を追記してください")
     else:
         log(f"✗ note投稿失敗: {note_result.get('message','')}")
 
