@@ -1,21 +1,27 @@
 """
-note_post.py — RayPhoneAI note自動投稿スクリプト（v3.1 冪等性対応版）
+note_post.py — RayPhoneAI note自動投稿スクリプト（v4.0 独立運用版）
 
-【v3.1 変更点】
-1. 投稿済みチェック追加（articles.json の note_posted_at フラグで管理）
-2. 当日二重投稿ガード追加(同じ日に複数回走っても1回しか投稿しない)
-3. 投稿成功後、自動的に articles.json を更新してGitHubに反映
-4. 初期化モード追加(NOTE_INIT_MODE 環境変数で制御)
-   - mark_latest : 最新記事のみ投稿済みマーク
-   - mark_all    : 全記事を投稿済みマーク
-   既存記事を「過去に投稿済み」として一括マークするための一回限りの処置用
+【v4.0 変更点】
+1. ★ ブログ依存を完全廃止 ★
+   - 旧: GitHub の articles.json から最新記事を取得 → ブログ更新が前提だった
+   - 新: note_post.py 内で記事を直接生成（CATEGORIES ローテーションで Gemini に書かせる）
+2. タイトルサニタイズ追加
+   - 【深堀り】【完全版】【保存版】等の先頭括弧装飾を自動除去
+   - スキ数低下要因として観測されたため
+3. 投稿時刻を 12:00 JST → 21:30 JST に変更（cron 側で対応）
+   - AI/副業/ノウハウ系noteのゴールデンタイム狙い
+4. articles.json は引き続きアーカイブ＆重複防止用に使用（push_articles で更新）
 
-【v3.0 までの内容】
+【v3.1 までの内容】
+- 投稿済みチェック（articles.json の note_posted_at フラグ）
+- 当日二重投稿ガード
+- 投稿成功後、自動的に articles.json を更新してGitHubに反映
+- 初期化モード（NOTE_INIT_MODE で過去記事を一括マーク）
 - Gemini API 完全対応（claude_xx 引数の互換は維持）
-- アイキャッチ画像生成、Playwrightによるnote投稿は変更なし
+- アイキャッチ画像生成、Playwrightによるnote投稿
 """
 import sys
-print("=== note_post.py 起動（Gemini版 v3.1 冪等性対応） ===", flush=True)
+print("=== note_post.py 起動（Gemini版 v4.0 独立運用） ===", flush=True)
 print(f"Python: {sys.version}", flush=True)
 
 try:
@@ -688,17 +694,110 @@ def _find_target_article(arts: list):
     return None, None
 
 
+# ── タイトルサニタイズ（v4.0 新設） ─────────────────────────
+def sanitize_title(title: str) -> str:
+    """note タイトルから先頭の括弧装飾を除去する。
+
+    対象パターン:
+      【深堀り】〇〇 → 〇〇
+      【完全版】〇〇 → 〇〇
+      [保存版] 〇〇 → 〇〇
+      『初心者向け』〇〇 → 〇〇
+      ★決定版★〇〇 → 〇〇
+
+    観測データ: 【深堀り】を外したらスキ数が増えた → 装飾系は除去方針
+    """
+    if not title:
+        return ""
+    t = title.strip()
+
+    # 先頭の括弧装飾を最大3回まで剥がす（複数連結対策）
+    pattern = r'^\s*[【\[『「★☆\*][^】\]』」★☆\*]{1,15}[】\]』」★☆\*]\s*[:：\-―ー\s]*'
+    for _ in range(3):
+        new_t = re.sub(pattern, '', t)
+        if new_t == t:
+            break
+        t = new_t
+
+    # 先頭の余計な記号・空白を除去
+    t = t.lstrip('・-—:: 　')
+    return t.strip()
+
+
+# ── 記事生成（v4.0 新設：ブログ非依存） ──────────────────────
+def generate_note_article(category: str) -> tuple[str, str]:
+    """指定カテゴリで note 記事のタイトルと本文を生成する。
+
+    Returns:
+        (title, body) のタプル。title は sanitize_title 済み。
+    """
+    log(f"記事生成開始: カテゴリ={category}")
+
+    # ── ステップ1: タイトル生成 ──
+    title_prompt = f"""カテゴリ「{category}」の note 記事タイトルを1つだけ出力してください。
+
+【厳守事項】
+・25〜32字以内
+・読者(個人事業主・クリエイター・ライター)が「自分のことだ」と感じる具体性
+・実用的・行動につながる表現
+・煽り表現禁止(絶対・必ず・全員・100%・誰でも・神・最強・革命)
+・先頭に【】[]『』★☆等の括弧装飾を絶対に使わない(【深堀り】【完全版】【保存版】等)
+・「:」「|」「→」等の記号使用は最小限
+・タイトル本文のみ1行で出力(説明・前置き・引用符・番号付け禁止)"""
+
+    title_raw = claude(title_prompt, max_tokens=200, temperature=0.9)
+    # 1行目だけ取り出してサニタイズ
+    title = title_raw.split('\n')[0].strip().strip('"').strip("'")
+    title = sanitize_title(title)
+    if not title or len(title) < 5:
+        # フォールバック: カテゴリ名そのままで仮タイトル
+        title = f"{category}の現場ノウハウを共有します"
+    log(f"✓ タイトル: {title}")
+
+    # ── ステップ2: 本文生成 ──
+    body_prompt = f"""タイトル: {title}
+カテゴリ: {category}
+
+上記の note 記事の本文を 2000〜2500字で書いてください。
+あなたは Rayphone(プロンプト設計士・商品開発15年・Claude副業月収15万達成)です。
+読者は個人事業主・クリエイター・ライターで、AIを実務に取り入れたい層です。
+
+■本文構成
+■はじめに(約200字) ― 読者が抱えている悩みに寄り添う導入
+■本論セクション1(約700字) ― 具体的な事例または失敗談+学び
+■本論セクション2(約700字) ― 実践的なノウハウ・手順
+■今すぐ試せるアクション(約400字) ― 実際に使えるプロンプト例を1つ以上含める
+■Rayphoneからの一言(約200字) ― 締め、読者への問いかけや共感
+
+■禁止事項
+・# ## ### マークダウン見出し → 必ず ■ を使う
+・**太字** *斜体* ``` 等のマークダウン記号一切禁止
+・箇条書きは - * ではなく「・」を使う
+・「はい」「承知しました」等の前置き・承諾文禁止
+・煽り表現(絶対・必ず・全員・100%・誰でも)を避ける
+・本文のみ出力(タイトル・自己紹介・メタ説明は不要)"""
+
+    body = claude(body_prompt, max_tokens=4000, temperature=0.85)
+    log(f"✓ 本文生成完了({len(body)}字)")
+
+    return title, body
+
+
 # ── note専用メイン（v3.1 冪等性対応版） ──────────────────────
 def main_note():
-    """GitHubの最新記事をnoteに自動投稿する（投稿済みフラグで冪等性を担保）"""
+    """note自動投稿のメインフロー（v4.0 独立運用版）
+
+    旧版: GitHubの articles.json から最新ブログ記事を取得して投稿
+    新版: ブログ非依存。CATEGORIES ローテーションで Gemini に直接記事を書かせて投稿
+    """
     import requests as _req
 
-    log("=== note自動投稿開始（Gemini版 v3.1 冪等性対応） ===")
+    log("=== note自動投稿開始（Gemini版 v4.0 独立運用） ===")
     log(f"使用モデル: 本文={GEMINI_MODEL} / ハッシュタグ={GEMINI_HASHTAG_MODEL}")
     if NOTE_INIT_MODE:
         log(f"⚠ 初期化モード: NOTE_INIT_MODE={NOTE_INIT_MODE}")
 
-    # GitHubから最新のarticles.jsonを取得
+    # ── articles.json を取得（重複防止＆アーカイブ用、なければ空配列）──
     arts = []
     if GH_USER and GH_REPO:
         try:
@@ -708,25 +807,23 @@ def main_note():
             )
             if r.status_code == 200:
                 arts = r.json()
-                log(f"記事取得: {len(arts)}件")
+                log(f"既存記事アーカイブ: {len(arts)}件")
+            else:
+                log(f"articles.json 取得スキップ(status={r.status_code}) → 新規アーカイブとして開始")
         except Exception as e:
-            log(f"記事取得エラー: {e}")
-
-    if not arts:
-        log("投稿対象の記事が見つかりません")
-        return
+            log(f"articles.json 取得エラー(無視して続行): {e}")
 
     # ============================================================
     # ★ 初期化モード（既存記事を投稿済みとしてマークするだけで終了）
     # ============================================================
     if NOTE_INIT_MODE == "mark_latest":
-        if not _is_posted(arts[0]):
+        if arts and not _is_posted(arts[0]):
             arts[0]["note_posted_at"] = datetime.now().isoformat()
             arts[0]["note_url"] = "manually_marked_initial"
             push_articles(arts)
             log(f"✓ 初期化(mark_latest): 最新記事「{arts[0].get('title','')}」をマーク完了")
         else:
-            log("最新記事は既にマーク済みです")
+            log("マーク対象なし、または最新記事は既にマーク済みです")
         return
 
     if NOTE_INIT_MODE == "mark_all":
@@ -751,96 +848,105 @@ def main_note():
         return
 
     # ============================================================
-    # ★ 未投稿記事を選択
+    # ★ カテゴリを決定（cat_index で順番にローテーション）
     # ============================================================
-    target_idx, art = _find_target_article(arts)
-    if art is None:
-        log("✓ すべての記事はnote投稿済みです。スキップします。")
+    cat_idx = get_cat_index()
+    category = CATEGORIES[cat_idx % len(CATEGORIES)]
+    log(f"今回のカテゴリ: {category}（cat_index={cat_idx}）")
+
+    # ============================================================
+    # ★ v4.0: 記事を内部で生成（ブログ非依存）
+    # ============================================================
+    try:
+        title, content = generate_note_article(category)
+    except Exception as e:
+        log(f"✗ 記事生成エラー: {e}")
+        log(traceback.format_exc()[:500])
         return
 
-    title   = art.get("title", "")
-    content = art.get("content", "")
-    svg     = art.get("svg", "")
-    cat     = art.get("cat", "AI活用")
-    art_url = art.get("url", "") or f"{BLOG_URL}/?id={art.get('id','')}"
+    # 念のため再サニタイズ（generate_note_article 内でも実施済み）
+    title = sanitize_title(title)
+    log(f"投稿予定タイトル: {title}")
+    log(f"本文: {len(content)}字")
 
-    log(f"投稿対象（未投稿・index={target_idx}）: {title}")
-    log(f"ブログ本文: {len(content)}字")
+    # ============================================================
+    # ★ note 投稿用の本文を整形（生成本文をそのまま使用 + ハッシュタグ付与）
+    # ============================================================
+    note_body = content.strip()
 
-    # ── 本文生成 ──
-    note_body = claude(f"""あなたはRayphone(プロンプト設計士・商品開発15年・Claude副業月収15万達成)です。
-下記のブログ記事を元に、noteで実践的に解説する記事(約2000字)を書いてください。
+    # ── ハッシュタグ生成 ──
+    try:
+        hashtag_text = claude(
+            f"以下のnote記事に合うハッシュタグを5個生成してください。\n"
+            f"タイトル：{title}\nカテゴリ：{category}\n"
+            f"本文抜粋：{note_body[:300]}\n\n"
+            f"【出力形式】#タグ1 #タグ2 #タグ3 #タグ4 #タグ5\n"
+            f"【ルール】#をつける。日本語OK。記事内容に直結した具体的なタグ。"
+            f"スペース区切りで1行のみ出力。前置き・説明文禁止。",
+            max_tokens=1024,
+            temperature=0.5,
+            model=GEMINI_HASHTAG_MODEL,
+        )
+        tags = re.findall(r'#\S+', hashtag_text)[:5]
+    except Exception as e:
+        log(f"ハッシュタグ生成エラー(フォールバックを使用): {e}")
+        tags = []
 
-【ブログタイトル】{title}
-【カテゴリ】{cat}
-【ブログURL】{art_url}
-【ブログ本文(全文)】
-{content}
-
-■構成
-■はじめに(200字)―ブログの要点をnote読者向けに噛み砕く
-■ブログでは語れなかった実例・応用(800字)―実体験・失敗談・応用例を追加
-■読者が今すぐ試せるアクション(400字)―具体的なプロンプト例を1つ以上
-■Rayphoneからの一言(200字)―締め
-
-▼ ブログ記事はこちら(必ず本文中にそのまま記載)
-{art_url}
-
-【禁止】# * ** アスタリスク・マークダウン記号一切禁止。タイトルにも本文にも * は使わないこと。見出しは■。箇条書きは「・」。前置き・承諾文禁止。
-ブログと同じ情報を繰り返すのではなく、必ず「ブログの続き・実例展開」として書くこと。""", max_tokens=3500)
-
-    if art_url not in note_body:
-        note_body += f"\n\n▼ ブログ記事はこちら\n{art_url}\n"
-
-    # ── ハッシュタグ ──
-    hashtag_text = claude(
-        f"以下のnote記事に合うハッシュタグを5個生成してください。\n"
-        f"タイトル：{title}\nカテゴリ：{cat}\n"
-        f"本文抜粋：{note_body[:300]}\n\n"
-        f"【出力形式】#タグ1 #タグ2 #タグ3 #タグ4 #タグ5\n"
-        f"【ルール】#をつける。日本語OK。記事内容に直結した具体的なタグ。"
-        f"スペース区切りで1行のみ出力。前置き・説明文禁止。",
-        max_tokens=1024,
-        temperature=0.5,
-        model=GEMINI_HASHTAG_MODEL,
-    )
-    tags = re.findall(r'#\S+', hashtag_text)[:5]
     if len(tags) >= 3:
         note_body += "\n\n" + " ".join(tags)
         log(f"ハッシュタグ: {' '.join(tags)}")
     else:
-        cat_tag = "#" + cat.replace(" ", "").replace("xAI", "AI活用")
+        cat_tag = "#" + category.replace(" ", "").replace("xAI", "AI活用")
         fallback = f"{cat_tag} #AI活用 #Claude #副業 #プロンプト設計"
         note_body += f"\n\n{fallback}"
         log(f"ハッシュタグ（フォールバック）: {fallback}")
 
-    log(f"noteコンテンツ生成完了({len(note_body)}字)")
+    log(f"noteコンテンツ最終({len(note_body)}字)")
 
     # ── アイキャッチ ──
     eyecatch_png = b""
-    png_bytes = generate_eyecatch_image(title, art.get("cat", "AI活用"))
-    if png_bytes:
-        eyecatch_png = png_bytes
-        log(f"✓ アイキャッチ生成完了({len(png_bytes)//1024}KB)")
-    else:
-        log("アイキャッチ生成失敗 → SVGで代用")
+    try:
+        png_bytes = generate_eyecatch_image(title, category)
+        if png_bytes:
+            eyecatch_png = png_bytes
+            log(f"✓ アイキャッチ生成完了({len(png_bytes)//1024}KB)")
+        else:
+            log("アイキャッチ生成失敗 → なしで続行")
+    except Exception as e:
+        log(f"アイキャッチ生成エラー(なしで続行): {e}")
 
     # ── note投稿 ──
-    note_result = post_to_note(title, note_body, svg, eyecatch_png=eyecatch_png)
+    note_result = post_to_note(title, note_body, "", eyecatch_png=eyecatch_png)
 
     # ============================================================
-    # ★ v3.1 投稿成功時のフラグ保存
+    # ★ 投稿成功時: アーカイブに追加 + cat_index 進行
     # ============================================================
     if note_result["ok"]:
         note_url_posted = note_result.get('url', NOTE_URL)
-        arts[target_idx]["note_posted_at"] = datetime.now().isoformat()
-        arts[target_idx]["note_url"] = note_url_posted
+        new_article = {
+            "id": str(int(time.time())),
+            "title": title,
+            "content": content,
+            "cat": category,
+            "created_at": datetime.now().isoformat(),
+            "note_posted_at": datetime.now().isoformat(),
+            "note_url": note_url_posted,
+            "source": "note_post.py v4.0 (independent)",
+        }
+        arts.insert(0, new_article)  # 先頭=最新
 
         if push_articles(arts):
-            log(f"✓ note投稿完了 + フラグ保存: {note_url_posted}")
+            log(f"✓ note投稿完了 + アーカイブ追加: {note_url_posted}")
         else:
-            log(f"⚠ note投稿は成功したが、フラグ保存に失敗。次回実行で重複投稿の恐れあり！")
-            log(f"  → 手動で articles.json の {target_idx} 番目に note_posted_at を追記してください")
+            log(f"⚠ note投稿は成功したが、アーカイブ保存に失敗")
+            log(f"  → 同日の重複ガードが効かない可能性あり。手動で articles.json に追記推奨")
+
+        # 次回用にカテゴリインデックスを進める
+        try:
+            save_cat_index((cat_idx + 1) % len(CATEGORIES))
+            log(f"✓ cat_index 進行: {cat_idx} → {(cat_idx + 1) % len(CATEGORIES)}")
+        except Exception as e:
+            log(f"⚠ cat_index 更新失敗(無視): {e}")
     else:
         log(f"✗ note投稿失敗: {note_result.get('message','')}")
 
