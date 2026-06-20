@@ -1,12 +1,12 @@
-name: note自動投稿
+name: note記事生成→Discord通知（RayPhoneAI）
 on:
   schedule:
     - cron: '30 12 * * *'  # 毎日 21:30 JST（UTC 12:30）
-  workflow_dispatch:      # 管理画面「noteに投稿」ボタンからの手動トリガーも維持
+  workflow_dispatch:        # 手動トリガーも維持
 jobs:
   note-post:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
       - name: リポジトリをチェックアウト
         uses: actions/checkout@v4
@@ -15,25 +15,13 @@ jobs:
         with:
           python-version: '3.11'
       - name: 依存ライブラリをインストール
-        run: |
-          pip install requests playwright pillow
-          playwright install chromium
-          playwright install-deps chromium
-      - name: note投稿を実行
+        run: pip install requests pillow
+      - name: 記事を生成して Discord に通知
         env:
           GEMINI_API_KEY:        ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODEL:          ${{ vars.GEMINI_MODEL || 'gemini-2.5-flash' }}
           GEMINI_HASHTAG_MODEL:  ${{ vars.GEMINI_HASHTAG_MODEL || 'gemini-2.5-flash-lite' }}
           EYECATCH_MODEL:        ${{ vars.EYECATCH_MODEL || 'gemini-2.5-flash-image' }}
-          NOTE_EMAIL:            ${{ secrets.NOTE_EMAIL }}
-          NOTE_PASSWORD:         ${{ secrets.NOTE_PASSWORD }}
-          BLOG_URL:              ${{ secrets.BLOG_URL }}
-          NOTE_URL:              ${{ secrets.NOTE_URL }}
-          GH_TOKEN:              ${{ secrets.GH_TOKEN }}
-          GH_USER:               ${{ secrets.GH_USER }}
-          GH_REPO:               ${{ secrets.GH_REPO }}
-          NOTE_COOKIES_B64:      ${{ secrets.NOTE_COOKIES_B64 }}
-          NOTE_INIT_MODE:        ${{ vars.NOTE_INIT_MODE || '' }}   # ← ★この1行を追加
-          HEADLESS:              "true"
+          DISCORD_WEBHOOK_URL:   ${{ secrets.DISCORD_WEBHOOK_URL }}
           PYTHONUNBUFFERED:      "1"
         run: python -u note_post.py
