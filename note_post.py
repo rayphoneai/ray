@@ -38,9 +38,10 @@ GEMINI_API_KEY       = os.getenv("GEMINI_API_KEY", "")
 GEMINI_MODEL         = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 GEMINI_HASHTAG_MODEL = os.getenv("GEMINI_HASHTAG_MODEL", "gemini-2.5-flash-lite")
 EYECATCH_MODEL       = os.getenv("EYECATCH_MODEL", "gemini-2.5-flash-image")
-DISCORD_WEBHOOK_URL  = os.getenv("DISCORD_WEBHOOK_URL", "")
+# .strip() + BOM除去: Windows等でSecretにBOM/空白が混入してもURLを壊さない
+DISCORD_WEBHOOK_URL  = os.getenv("DISCORD_WEBHOOK_URL", "").strip().lstrip("﻿").strip()
 # note の新規下書きを開く URL（投稿アカウントにログインした状態で開くこと）
-NOTE_NEW_URL         = os.getenv("NOTE_NEW_URL", "https://note.com/new")
+NOTE_NEW_URL         = os.getenv("NOTE_NEW_URL", "https://note.com/new").strip().lstrip("﻿").strip()
 
 CATEGORIES = [
     "Claude活用Tips",
