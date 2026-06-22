@@ -1,0 +1,41 @@
+name: 楽天ROOM 投稿リマインド（メール）
+
+on:
+  schedule:
+    - cron: '0 23 * * *'   # 08:00 JST（UTC 23:00 前日）
+    - cron: '30 2 * * *'   # 11:30 JST（UTC 02:30）
+    - cron: '0 12 * * *'   # 21:00 JST（UTC 12:00）
+  workflow_dispatch:        # 手動トリガー
+    inputs:
+      slot:
+        description: '送信スロット（空欄なら現在時刻から自動判定）'
+        required: false
+        type: choice
+        default: ''
+        options:
+          - ''
+          - '08:00'
+          - '11:30'
+          - '21:00'
+
+jobs:
+  room-reminder:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Python セットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: リマインドメールを送信
+        env:
+          GMAIL_ADDRESS:      ${{ vars.GMAIL_ADDRESS || 'jyumaru.shidou@gmail.com' }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          MAIL_TO:            ${{ vars.MAIL_TO || 'jyumaru.shidou@gmail.com' }}
+          SLOT:               ${{ github.event.inputs.slot }}
+          PYTHONUNBUFFERED:   "1"
+        run: python -u room_reminder.py
