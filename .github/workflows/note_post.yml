@@ -1,8 +1,6 @@
 name: note記事生成→Discord通知（RayPhoneAI）
 on:
-  schedule:
-    - cron: '30 12 * * *'  # 毎日 21:30 JST（UTC 12:30）
-  workflow_dispatch:        # 手動トリガーも維持
+  workflow_dispatch:        # triggered locally at 21:30 JST via Task Scheduler (avoids GitHub cron delay)
 jobs:
   note-post:
     runs-on: ubuntu-latest
