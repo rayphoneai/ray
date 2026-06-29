@@ -292,6 +292,25 @@ def generate_note_article(category: str) -> tuple[str, str]:
     body = gemini_text(body_prompt, max_tokens=2500, temperature=0.85)
     log(f"✓ 本文生成完了({len(body)}字)")
 
+    # flashは日本語の字数指定を守りきれず長くなりがち。1300字を超えたら
+    # 1回だけ縮約パス（語り口と実体験エピソードは保ったまま約1000字へ）。
+    if len(body) > 1300:
+        log(f"本文が長い({len(body)}字) → 約1000字へ縮約")
+        condense_prompt = f"""次のnote記事を、語り口・一人称「私」・実体験のエピソードを保ったまま 900〜1100字に縮めてください。
+削るのは冗長な説明・繰り返し・回りくどい言い回しだけ。情報を増やさない。要点(使い方のコツ)は1つに保つ。
+出力ルール: マークダウン記号(# ** ``` 等)禁止、見出しを置くなら ■、箇条書きは「・」。本文のみ出力。
+
+{body}"""
+        try:
+            condensed = gemini_text(condense_prompt, max_tokens=1800, temperature=0.6)
+            if condensed and len(condensed) >= 600:
+                body = condensed
+                log(f"✓ 縮約完了({len(body)}字)")
+            else:
+                log(f"縮約結果が短すぎ/空 → 元の本文を使用")
+        except Exception as e:
+            log(f"縮約スキップ(元の本文を使用): {e}")
+
     return title, body
 
 
