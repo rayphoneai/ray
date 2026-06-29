@@ -239,11 +239,12 @@ def generate_note_article(category: str) -> tuple[str, str]:
     log(f"記事生成開始: カテゴリ={category}")
 
     title_prompt = f"""カテゴリ「{category}」の note 記事タイトルを1つだけ出力してください。
+記事は、書き手(個人事業主)が自分の実体験 ― AIをこう使った、あるいは こうしくじった ― を約1000字で正直に語る内容です。
 
 【厳守事項】
-・25〜32字以内
+・20〜30字以内
 ・読者(個人事業主・クリエイター・ライター)が「自分のことだ」と感じる具体性
-・実用的・行動につながる表現
+・体験談・失敗談・気づきが伝わる、地に足のついた表現(誇張しない)
 ・煽り表現禁止(絶対・必ず・全員・100%・誰でも・神・最強・革命)
 ・先頭に【】[]『』★☆等の括弧装飾を絶対に使わない(【深堀り】【完全版】【保存版】等)
 ・「:」「|」「→」等の記号使用は最小限
@@ -253,32 +254,35 @@ def generate_note_article(category: str) -> tuple[str, str]:
     title = title_raw.split('\n')[0].strip().strip('"').strip("'")
     title = sanitize_title(title)
     if not title or len(title) < 5:
-        title = f"{category}の現場ノウハウを共有します"
+        title = f"{category}で、私がつまずいて分かったこと"
     log(f"✓ タイトル: {title}")
 
     body_prompt = f"""タイトル: {title}
 カテゴリ: {category}
 
-上記の note 記事の本文を 2000〜2500字で書いてください。
-あなたは Rayphone(プロンプト設計士・商品開発15年・Claude副業月収15万達成)です。
+あなたは Rayphone。プロンプト設計と商品開発を長くやってきた個人事業主で、AIを毎日の実務で使い倒しています。完璧な専門家ではなく、試行錯誤しながら付き合っている等身大の人です。
 読者は個人事業主・クリエイター・ライターで、AIを実務に取り入れたい層です。
 
-■本文構成
-■はじめに(約200字) ― 読者が抱えている悩みに寄り添う導入
-■本論セクション1(約700字) ― 具体的な事例または失敗談+学び
-■本論セクション2(約700字) ― 実践的なノウハウ・手順
-■今すぐ試せるアクション(約400字) ― 実際に使えるプロンプト例を1つ以上含める
-■Rayphoneからの一言(約200字) ― 締め、読者への問いかけや共感
+上記タイトルの note 記事の本文を 900〜1200字で書いてください。
+情報を網羅して詰め込むのではなく、あなた自身の実体験(うまくいった話、あるいは しくじった話)を1つだけ語る感覚で書きます。
+
+■書き方
+・具体的な場面から入る ― いつ、何をしようとして、どうなったか。失敗談なら、つまずいた瞬間の戸惑いや、そこで分かったことを正直に書く
+・その体験から得た「使い方のコツ」を1つだけ、読者がすぐ試せる形で渡す。可能なら実際に使ったプロンプトを一例だけ載せる
+・要点は1つに絞る。教科書的に並べない
+・最後は、読者へのやわらかい問いかけか、本音の一言で締める
+・全体に体温のある語り口。少し砕けてよい。一人称は「私」
 
 ■禁止事項
-・# ## ### マークダウン見出し → 必ず ■ を使う
+・# ## ### マークダウン見出し → 見出しを置くなら ■ を使う(無くてもよい)
 ・**太字** *斜体* ``` 等のマークダウン記号一切禁止
 ・箇条書きは - * ではなく「・」を使う
 ・「はい」「承知しました」等の前置き・承諾文禁止
-・煽り表現(絶対・必ず・全員・100%・誰でも)を避ける
+・煽り表現(絶対・必ず・全員・100%・誰でも・神・最強・革命)を避ける
+・「いかがでしたか」「まとめると」のような優等生的な締めを使わない
 ・本文のみ出力(タイトル・自己紹介・メタ説明は不要)"""
 
-    body = gemini_text(body_prompt, max_tokens=4000, temperature=0.85)
+    body = gemini_text(body_prompt, max_tokens=2500, temperature=0.85)
     log(f"✓ 本文生成完了({len(body)}字)")
 
     return title, body
@@ -309,14 +313,45 @@ def generate_hashtags(title: str, category: str, body: str) -> list[str]:
     return [cat_tag, "#AI活用", "#Claude", "#副業", "#プロンプト設計"]
 
 
-# ── Discord通知（じゅまる方式：スマホで“タイトル→本文→タグ”をコピペ投稿）──
+# ── Discord通知（PC/スマホ両対応：コードブロックでクリーンにコピー）──────
 def _post_text(text: str):
     r = requests.post(DISCORD_WEBHOOK_URL, json={"content": text}, timeout=30)
     r.raise_for_status()
 
 
+def _post_code_block(text: str):
+    """コードブロックで送る。
+    PCのDiscordはブロック右上の「コピー」ボタンで、改行を保ったまま中身だけを
+    ワンクリックでコピーできる（通常メッセージはPCだとユーザー名・時刻まで
+    巻き込み、改行も崩れてベタ詰めになりやすい）。スマホは長押しコピーで従来通り。"""
+    safe = text.replace("```", "ˋˋˋ")  # ブロックを壊すバッククォート3連を無害化
+    _post_text("```\n" + safe + "\n```")
+
+
+def _split_for_codeblock(text: str, max_inner: int = 1900) -> list[str]:
+    """段落（空行）優先で max_inner 以内のチャンクに分割。
+    文の途中で切らない。1段落だけで上限超のときのみ文字単位で強制分割。"""
+    chunks: list[str] = []
+    cur = ""
+    for p in text.split("\n\n"):
+        if len(p) > max_inner:                # 1段落が長すぎる → 強制分割
+            if cur:
+                chunks.append(cur); cur = ""
+            for i in range(0, len(p), max_inner):
+                chunks.append(p[i:i + max_inner])
+            continue
+        cand = p if not cur else cur + "\n\n" + p
+        if len(cand) <= max_inner:
+            cur = cand
+        else:
+            chunks.append(cur); cur = p
+    if cur:
+        chunks.append(cur)
+    return chunks or [""]
+
+
 def notify_discord(title: str, body: str, hashtags: list[str], eyecatch_png: bytes):
-    """生成した記事を Discord に4分割で送る。人間がコピペして note に手動投稿する。"""
+    """生成した記事を Discord に分割して送る。人間がコピペして note に手動投稿する。"""
     today = date.today().strftime("%Y-%m-%d")
     hashtag_line = " ".join(hashtags)
 
@@ -324,8 +359,9 @@ def notify_discord(title: str, body: str, hashtags: list[str], eyecatch_png: byt
     head = (
         f"【note下書き｜RayPhoneAI】{today}\n"
         f"▼タップで新規下書きを開く\n{NOTE_NEW_URL}\n\n"
-        f"この後 “タイトル → 本文 → ハッシュタグ” の順で送ります。\n"
-        f"各メッセージを長押しコピー → 下書きに貼り付けてください。\n"
+        f"この後 “タイトル → 本文 → ハッシュタグ” をコードブロックで送ります。\n"
+        f"PCはブロック右上のコピーボタン、スマホは長押しコピーで、\n"
+        f"改行を保ったまま note に貼り付けてください。\n"
         f"※ note.com の RayPhoneAI アカウントにログインした状態で開くこと。"
     )
     if eyecatch_png:
@@ -337,24 +373,19 @@ def notify_discord(title: str, body: str, hashtags: list[str], eyecatch_png: byt
     r.raise_for_status()
     log("✓ Discord通知（1/4 URL＋画像）")
 
-    # 2. タイトル（中身だけ＝コピーがクリーン）
-    _post_text(title)
+    # 2. タイトル（コードブロック＝コピーがクリーン）
+    _post_code_block(title)
     log("✓ Discord通知（2/4 タイトル）")
 
-    # 3. 本文（Discordの1900字制限で分割）
-    MAX = 1900
-    if len(body) <= MAX:
-        _post_text(body)
-    else:
-        rest = body
-        while rest:
-            _post_text(rest[:MAX])
-            rest = rest[MAX:]
-    log("✓ Discord通知（3/4 本文）")
+    # 3. 本文（段落優先で分割し、各チャンクをコードブロックで）
+    chunks = _split_for_codeblock(body, 1900)
+    for ch in chunks:
+        _post_code_block(ch)
+    log(f"✓ Discord通知（3/4 本文 {len(chunks)}通）")
 
     # 4. ハッシュタグ
     if hashtag_line:
-        _post_text(hashtag_line)
+        _post_code_block(hashtag_line)
     log("✓ Discord通知（4/4 ハッシュタグ）")
 
 
