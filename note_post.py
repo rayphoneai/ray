@@ -237,6 +237,22 @@ def sanitize_title(title: str) -> str:
     return t.strip()
 
 
+def trim_to_last_sentence(text: str) -> str:
+    """maxOutputTokensで本文が途中終了したとき、末尾の中途半端な文を落として
+    最後の文末（。！？や閉じ括弧）まで戻す。既に文末で終わっていれば素通し。"""
+    if not text:
+        return text
+    t = text.rstrip()
+    enders = "。．.！!？?」』）)】］"
+    if t and t[-1] in enders:
+        return t
+    # 末尾から最も近い文末記号を探して、その直後で切る
+    last = max((t.rfind(c) for c in enders), default=-1)
+    if last == -1:
+        return t  # 文末記号が一つも無ければ手を加えない
+    return t[:last + 1].rstrip()
+
+
 # ── 記事生成（Gemini）───────────────────────────────────────
 def generate_note_article(category: str) -> tuple[str, str]:
     """指定カテゴリで note 記事のタイトルと本文を生成する。
@@ -289,27 +305,13 @@ def generate_note_article(category: str) -> tuple[str, str]:
 ・「いかがでしたか」「まとめると」のような優等生的な締めを使わない
 ・本文のみ出力(タイトル・自己紹介・メタ説明は不要)"""
 
-    body = gemini_text(body_prompt, max_tokens=2500, temperature=0.85)
+    # flashは日本語の字数指定をほぼ守れない（プロンプトで「900〜1200字」と書いても
+    # 1500〜2200字に膨らむ／「縮めて」も効かない）。唯一効くのは maxOutputTokens の
+    # ハード上限なので、本文だけトークン枠を絞って物理的に長さを抑える。
+    # 枠切れで文が途中終了し得るため、生成後に末尾を最後の文末まで戻して整える。
+    body = gemini_text(body_prompt, max_tokens=1300, temperature=0.85)
+    body = trim_to_last_sentence(body)
     log(f"✓ 本文生成完了({len(body)}字)")
-
-    # flashは日本語の字数指定を守りきれず長くなりがち。1300字を超えたら
-    # 1回だけ縮約パス（語り口と実体験エピソードは保ったまま約1000字へ）。
-    if len(body) > 1300:
-        log(f"本文が長い({len(body)}字) → 約1000字へ縮約")
-        condense_prompt = f"""次のnote記事を、語り口・一人称「私」・実体験のエピソードを保ったまま 900〜1100字に縮めてください。
-削るのは冗長な説明・繰り返し・回りくどい言い回しだけ。情報を増やさない。要点(使い方のコツ)は1つに保つ。
-出力ルール: マークダウン記号(# ** ``` 等)禁止、見出しを置くなら ■、箇条書きは「・」。本文のみ出力。
-
-{body}"""
-        try:
-            condensed = gemini_text(condense_prompt, max_tokens=1800, temperature=0.6)
-            if condensed and len(condensed) >= 600:
-                body = condensed
-                log(f"✓ 縮約完了({len(body)}字)")
-            else:
-                log(f"縮約結果が短すぎ/空 → 元の本文を使用")
-        except Exception as e:
-            log(f"縮約スキップ(元の本文を使用): {e}")
 
     return title, body
 
