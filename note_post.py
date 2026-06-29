@@ -101,6 +101,9 @@ def gemini_text(prompt, max_tokens=3500, temperature=0.8, model=None):
         "generationConfig": {
             "maxOutputTokens": max(int(max_tokens), 1024),
             "temperature": temperature,
+            # gemini-2.5系は出力前に「思考」トークンを消費し maxOutputTokens を食う。
+            # 創作文には思考不要 & 思考分で本文が途中truncateするのを防ぐため明示OFF。
+            "thinkingConfig": {"thinkingBudget": 0},
         },
     }
 
@@ -129,6 +132,8 @@ def gemini_text(prompt, max_tokens=3500, temperature=0.8, model=None):
                 finish_reason = cand.get("finishReason", "")
                 if not text and finish_reason and finish_reason != "STOP":
                     raise RuntimeError(f"Gemini生成中断: {finish_reason}")
+                if text and finish_reason == "MAX_TOKENS":
+                    log(f"⚠ 出力がmaxOutputTokensで途中終了（末尾が切れている可能性）: {len(text)}字")
             return strip_preamble(text.strip())
         except requests.exceptions.HTTPError as e:
             if attempt < 2:
